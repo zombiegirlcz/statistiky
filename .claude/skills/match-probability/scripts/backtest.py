@@ -514,17 +514,50 @@ def sets_count(score, winner_sets=True):
     return (w, l) if winner_sets else (l, w)
 
 
+def games_per_set(score):
+    """Vrati seznam (vitezovy_gamy, porazenyho_gamy) pro kazdy odehrany set.
+    Nase data nemaji prubeh po jednotlivych gamech (kdo vyhral ktery game) -
+    jen konecne skore setu - takze z nich jde spocitat POCET gamu v setu
+    a jestli vitez zapasu prohral 1. set (zvrat), ale NE kdo vyhral konkretni
+    game cislo 3/4/5/6 - to by vyzadovalo zdrojova data s prubehem zapasu
+    (napr. Match Charting Project), ktera pokryvaji jen zlomek zapasu
+    (prevazne spicka na grandslamech), takze by predikce fungovala jen pro
+    hrstku dotazu - viz metodika.md."""
+    if any(m in score for m in BAD_SCORE_MARKERS):
+        return None
+    out = []
+    for p in score.split():
+        p = p.split("(")[0]
+        if "-" not in p:
+            return None
+        try:
+            a, b = (int(x) for x in p.split("-"))
+        except ValueError:
+            return None
+        out.append((a, b))
+    return out
+
+
+VALID_SET_GAMES = (6, 7, 8, 9, 10, 12, 13)
+
+
+def snap_games(x):
+    return min(VALID_SET_GAMES, key=lambda v: abs(v - x))
+
+
 def pick_tennis_testset(rows, n, seed=42):
     complete = []
     for r in rows:
         if r["_d"] < "20220101":
             continue
         sc = sets_count(r.get("score", ""))
-        if sc is None:
+        gps = games_per_set(r.get("score", ""))
+        if sc is None or not gps:
             continue
         if not r.get("w_ace") or not r.get("l_ace"):
             continue
         r["_sets"] = sc
+        r["_games"] = gps
         complete.append(r)
     rng = random.Random(seed)
     sample = rng.sample(complete, min(n, len(complete)))
