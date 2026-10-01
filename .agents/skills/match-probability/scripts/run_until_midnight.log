@@ -425,3 +425,84 @@ Zkontrolováno na podání: 16 (bez dost dat: 6, přeskočeno tiebreak/mezi sety
 Vyhodnoceno dřívějších tiketů: 4, nových tiketů: 6
 Banka: 943 mincí (start 1000), nevyřízeno 14 tiketů
 --- live_game_bet agresivni-tick ---
+
+########## 2026-10-01 18:00:00 UTC ##########
+Žádné nevyřízené tikety.
+
+==================================================================
+PŘEHLED FIKTIVNÍCH TENISOVÝCH SÁZEK (strategie: silný favorit)
+==================================================================
+Podíl rostoucích tiketů (výher): 100.0%  -> PŘEVAŽUJE RŮST
+  (1 roste / 0 klesá z 1 vyhodnocených)
+
+Rozpočet na start:          1000 mincí
+Banka teď:                  1005 mincí  (+5)
+Vázáno v nevyřízených:         0 mincí (0 tiketů)
+
+Tiketů celkem:                 1
+  vyhodnocených:               1  (výhra 1, prohra 0)
+  vsazeno / vráceno:          20 / 25 mincí
+  ROI:                   +27.0%  (poctivé měřítko peněz - i vysoký podíl výher může dát záporné ROI)
+  průměrný kurz:            1.27
+
+------------------------------------------------------------------
+POZOR: vyhodnocených tiketů je 1, to je málo na spolehlivý podíl výher. I u skutečných favoritů se pár desítek
+tiketů může sejít příznivěji nebo hůř, než je jejich dlouhodobá
+úspěšnost. Spolehlivější obrázek dá řádově 100+ tiketů.
+Mince jsou FIKTIVNÍ. I strategie se spoustou výherních tiketů může mít
+záporné ROI (jedna velká prohra smaže víc malých výher) a žádná
+strategie nemůže zaručit, že banka neklesne pod startovní hodnotu.
+------------------------------------------------------------------
+Živých zápasů: 24 (z toho dvouhry: 12)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Eszter Meri vs Astra Sharma [W15 Nashville] sety 1:1, gemy 0:5, body 0:0 | model: 2% / 98%
+      - Eszter Meri získal 2. set (6:1) - stav na sety 1:1
+      - posun šance Eszter Meri: 25% -> 2%
+Felix Corwin vs Damir Zhalgasbay [M15 Ann Arbor, MI] sety 0:1, gemy 1:1, body 30:0 | model: málo historických dat
+      - Damir Zhalgasbay získal 1. set (6:7) - stav na sety 0:1
+Dragos Nicolae Cazacu vs Alexander Rozin [ITF M15 Fayetteville, AR Men] sety 1:0, gemy 0:1, body 0:0 | model: málo historických dat
+      - Dragos Nicolae Cazacu získal 1. set (6:1) - stav na sety 1:0
+Nikola Djosic vs Thanaphat Boosarawongse [M15 Ann Arbor, MI] sety 1:0, gemy 1:1, body 40:40 | model: málo historických dat
+      - Nikola Djosic získal 1. set (7:6) - stav na sety 1:0
+Marko Mesarovic vs Oliver Bonding [M15 Ann Arbor, MI] sety 0:0, gemy 4:3, body 0:15 | model: málo historických dat
+      - poprvé viděn (sety 0:0, gemy 4:3)
+Francesca Mattioli vs Rose Marie Nijkamp [W15 Nashville] sety 1:1, gemy 0:1, body AD:40 | model: 46% / 54%
+      - Rose Marie Nijkamp získal 2. set (2:6) - stav na sety 1:1
+      - posun šance Francesca Mattioli: 80% -> 46%
+      - změna favorita na Rose Marie Nijkamp
+Mathilde Lollia vs Juliana Giaccio [W35 Baza] sety 0:1, gemy 1:2, body 40:40 | model: 9% / 91%
+      - Juliana Giaccio získal 1. set (5:7) - stav na sety 0:1
+      - posun šance Mathilde Lollia: 30% -> 9%
+Ana Victoria Gobbi Monllau vs Emily Zornada [W15 Trelew] sety 0:0, gemy 4:4, body AD:40 | model: 50% / 50%
+      - BREJK pro Ana Victoria Gobbi Monllau (4:4)
+Whitney Osuigwe vs Ella McDonald [W100 Templeton] sety 0:0, gemy 6:5, body 40:30 | model: málo historických dat
+      - poprvé viděn (sety 0:0, gemy 6:5)
+Akasha Urhobo vs Malaika Rapolu [W100 Templeton] sety 0:1, gemy 1:2, body 0:0 | model: 15% / 85%
+      - poprvé viděn (sety 0:1, gemy 1:2)
+Colton Smith vs Aidan Mayo [Columbus] sety 0:0, gemy 2:3, body 30:0 | model: málo historických dat
+      - poprvé viděn (sety 0:0, gemy 2:3)
+Tatjana Maria vs Lea Ma [W100 Templeton] sety 1:0, gemy 4:0, body 15:30 | model: málo historických dat
+      - poprvé viděn (sety 1:0, gemy 4:0)
+
+Sledováno zápasů: 12
+  bez modelu (málo historických dat na hráče): 7
+  bez živých kurzů v nabídce: 5
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+--- live_game_bet tick ---
+  [won  ] Nikola Djosic vs Thanaphat Boosarawongse - tiket na Nikola Djosic (Nikola Djosic)
+  [lost ] Dragos Nicolae Cazacu vs Alexander Rozin - tiket na Alexander Rozin (Dragos Nicolae Cazacu)
+      => TIKET na gem pro Felix Corwin @ 1.14 (p=88%), vklad 19 mincí [Felix Corwin vs Damir Zhalgasbay]
+      => TIKET na gem pro Nikola Djosic @ 1.23 (p=81%), vklad 19 mincí [Nikola Djosic vs Thanaphat Boosarawongse]
+      => TIKET na gem pro Francesca Mattioli @ 1.16 (p=86%), vklad 19 mincí [Francesca Mattioli vs Rose Marie Nijkamp]
+      => TIKET na gem pro Ana Victoria Gobbi Monllau @ 1.18 (p=85%), vklad 19 mincí [Ana Victoria Gobbi Monllau vs Emily Zornada]
+
+Zkontrolováno na podání: 11 (bez dost dat: 3, přeskočeno tiebreak/mezi sety: 0)
+Vyhodnoceno dřívějších tiketů: 2, nových tiketů: 4
+Banka: 927 mincí (start 1000), nevyřízeno 16 tiketů
+--- live_game_bet agresivni-tick ---
+
+Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
