@@ -1154,3 +1154,113 @@ Banka: 873 mincí (start 1000), nevyřízeno 18 tiketů
 --- live_game_bet agresivni-tick ---
 
 Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
+
+########## 2026-10-01 22:20:00 UTC ##########
+Živých zápasů: 12 (z toho dvouhry: 4)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Theo Papamalamis vs Tito Chavez [ITF M15 Fayetteville, AR Men] sety 0:0, gemy 3:2, body 0:15 | model: málo historických dat
+      - BREJK pro Theo Papamalamis (3:2)
+Evan Bynoe vs Aryan Shah [ITF M15 Fayetteville, AR Men] sety 1:1, gemy 0:1, body 0:0 | model: málo historických dat
+      - Evan Bynoe získal 2. set (6:2) - stav na sety 1:1
+Hoyoung Roh vs Charlie Robertson [ITF M15 Fayetteville, AR Men] sety 1:1, gemy 0:1, body 30:40 | model: málo historických dat
+      - Charlie Robertson získal 2. set (1:6) - stav na sety 1:1
+Madison Brengle vs Arianna Zucchini [W100 Templeton] sety 1:0, gemy 2:1, body 0:0 | model: 87% / 13%
+      - Madison Brengle získal 1. set (6:1) - stav na sety 1:0
+
+Sledováno zápasů: 4
+  bez modelu (málo historických dat na hráče): 3
+  bez živých kurzů v nabídce: 0
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+--- live_game_bet tick ---
+  [won  ] Madison Brengle vs Arianna Zucchini - tiket na Madison Brengle (Madison Brengle)
+
+Zkontrolováno na podání: 3 (bez dost dat: 3, přeskočeno tiebreak/mezi sety: 0)
+Vyhodnoceno dřívějších tiketů: 1, nových tiketů: 0
+Banka: 876 mincí (start 1000), nevyřízeno 17 tiketů
+--- live_game_bet agresivni-tick ---
+
+Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
+
+########## 2026-10-01 22:40:00 UTC ##########
+Živých zápasů: 13 (z toho dvouhry: 3)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Evan Bynoe vs Aryan Shah [ITF M15 Fayetteville, AR Men] sety 1:1, gemy 2:2, body 0:0 | model: málo historických dat
+      - BREJK pro Aryan Shah (2:2)
+Hoyoung Roh vs Charlie Robertson [ITF M15 Fayetteville, AR Men] sety 1:1, gemy 2:3, body 40:30 | model: málo historických dat
+      - BREJK pro Charlie Robertson (2:3)
+Theo Papamalamis vs Tito Chavez [ITF M15 Fayetteville, AR Men] sety 0:0, gemy 5:5, body 15:0 | model: málo historických dat
+      - BREJK pro Theo Papamalamis (5:5)
+
+Sledováno zápasů: 3
+  bez modelu (málo historických dat na hráče): 3
+  bez živých kurzů v nabídce: 0
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+--- live_game_bet tick ---
+
+Zkontrolováno na podání: 3 (bez dost dat: 3, přeskočeno tiebreak/mezi sety: 0)
+Vyhodnoceno dřívějších tiketů: 0, nových tiketů: 0
+Banka: 876 mincí (start 1000), nevyřízeno 17 tiketů
+--- live_game_bet agresivni-tick ---
+
+Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
+
+########## 2026-10-01 23:00:00 UTC ##########
+Žádné nevyřízené tikety.
+
+==================================================================
+PŘEHLED FIKTIVNÍCH TENISOVÝCH SÁZEK (strategie: silný favorit)
+==================================================================
+Podíl rostoucích tiketů (výher): 100.0%  -> PŘEVAŽUJE RŮST
+  (1 roste / 0 klesá z 1 vyhodnocených)
+
+Rozpočet na start:          1000 mincí
+Banka teď:                  1005 mincí  (+5)
+Vázáno v nevyřízených:         0 mincí (0 tiketů)
+
+Tiketů celkem:                 1
+  vyhodnocených:               1  (výhra 1, prohra 0)
+  vsazeno / vráceno:          20 / 25 mincí
+  ROI:                   +27.0%  (poctivé měřítko peněz - i vysoký podíl výher může dát záporné ROI)
+  průměrný kurz:            1.27
+
+------------------------------------------------------------------
+POZOR: vyhodnocených tiketů je 1, to je málo na spolehlivý podíl výher. I u skutečných favoritů se pár desítek
+tiketů může sejít příznivěji nebo hůř, než je jejich dlouhodobá
+úspěšnost. Spolehlivější obrázek dá řádově 100+ tiketů.
+Mince jsou FIKTIVNÍ. I strategie se spoustou výherních tiketů může mít
+záporné ROI (jedna velká prohra smaže víc malých výher) a žádná
+strategie nemůže zaručit, že banka neklesne pod startovní hodnotu.
+------------------------------------------------------------------
+Živých zápasů: 13 (z toho dvouhry: 3)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Evan Bynoe vs Aryan Shah [ITF M15 Fayetteville, AR Men] sety 1:1, gemy 3:5, body 15:15 | model: málo historických dat
+      - BREJK pro Evan Bynoe (3:5)
+Hoyoung Roh vs Charlie Robertson [ITF M15 Fayetteville, AR Men] sety 1:1, gemy 3:4, body 30:30 | model: málo historických dat
+      - BREJK pro Charlie Robertson (3:4)
+Theo Papamalamis vs Tito Chavez [ITF M15 Fayetteville, AR Men] sety 1:0, gemy 1:1, body 0:0 | model: málo historických dat
+      - Theo Papamalamis získal 1. set (7:5) - stav na sety 1:0
+
+Sledováno zápasů: 3
+  bez modelu (málo historických dat na hráče): 3
+  bez živých kurzů v nabídce: 0
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+--- live_game_bet tick ---
+
+Zkontrolováno na podání: 2 (bez dost dat: 2, přeskočeno tiebreak/mezi sety: 0)
+Vyhodnoceno dřívějších tiketů: 0, nových tiketů: 0
+Banka: 876 mincí (start 1000), nevyřízeno 17 tiketů
+--- live_game_bet agresivni-tick ---
+
+Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
