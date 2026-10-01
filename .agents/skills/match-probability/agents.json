@@ -1,0 +1,35 @@
+{
+  "user_bank": 10000.0,
+  "agents": [
+    {
+      "id": "match-fav",
+      "name": "Match-level favorit",
+      "strategy": "match_fav",
+      "bank": 1000.0,
+      "log": "live_bets_log.jsonl",
+      "active": false,
+      "created_at": null,
+      "config": {}
+    },
+    {
+      "id": "gem",
+      "name": "Gem-level",
+      "strategy": "gem",
+      "bank": 1000.0,
+      "log": "live_game_bets_log.jsonl",
+      "active": false,
+      "created_at": null,
+      "config": {}
+    },
+    {
+      "id": "gem-agr",
+      "name": "Gem-level agresivní",
+      "strategy": "gem_aggr",
+      "bank": 1000.0,
+      "log": "live_game_bet_aggressive_log.jsonl",
+      "active": false,
+      "created_at": null,
+      "config": {}
+    }
+  ]
+}

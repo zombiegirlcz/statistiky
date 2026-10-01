@@ -120,8 +120,13 @@ def notify(title, content):
     nebo selže (jiné prostředí, appka vypnutá...), jen se to potichu
     přeskočí, notifikace je bonus, ne kritická funkce."""
     try:
+        # Absolutní cesta: v cronu je PATH jen /usr/bin:/bin a holé `nh`
+        # (leží v /usr/local/bin) by se nenašlo - notifikace by se tiše ztratila.
+        nh_bin = "/usr/local/bin/nh"
+        if not os.path.exists(nh_bin):
+            nh_bin = "nh"  # fallback pro prostředí, kde je nh v PATH
         subprocess.run(
-            ["nh", "system", "notification", "-t", title, "-c", content],
+            [nh_bin, "system", "notification", "-t", title, "-c", content],
             capture_output=True, timeout=10, check=False,
         )
     except Exception:
@@ -131,25 +136,73 @@ def notify(title, content):
 # ---------------------------------------------------------------------------
 # Live Tennis API
 # ---------------------------------------------------------------------------
+# ROTACE API KLÍČŮ: `LIVE_TENNIS_API_KEYS` = čárkou oddělené klíče (fallback
+# jednotlivý `LIVE_TENNIS_API_KEY`). Když aktivní klíč narazí na kvótu (429)
+# nebo je neplatný/odebraný (401/403), automaticky se přepne na další klíč
+# v seznamu a zkusí to znovu. Fungující index se pamatuje v malém stavovém
+# souboru, aby rotace přežila mezi jednotlivými spuštěními (skripty jsou
+# bezstavové, běží z cronu). Vyčerpané klíče se „uzdraví" samy - stav drží
+# jen PREFEROVANÝ index, ne trvalý seznam mrtvých klíčů, takže po resetu
+# denní kvóty (UTC půlnoc) se příště prostě zkusí znovu.
+_KEY_STATE_PATH = os.path.join(_DATA_DIR, ".live_api_key_state.json")
+_QUOTA_CODES = {401, 403, 429}  # neplatný / vyčerpaný klíč -> zkus další
+
+
+def _api_keys():
+    raw = (os.environ.get("LIVE_TENNIS_API_KEYS")
+           or os.environ.get("LIVE_TENNIS_API_KEY") or "")
+    return [k.strip() for k in raw.split(",") if k.strip()]
+
+
+def _load_key_idx(n):
+    try:
+        with open(_KEY_STATE_PATH) as f:
+            s = json.load(f)
+        return int(s.get("idx", 0)) % max(n, 1)
+    except Exception:
+        return 0
+
+
+def _save_key_idx(idx):
+    try:
+        with open(_KEY_STATE_PATH, "w") as f:
+            json.dump({"idx": idx}, f)
+    except Exception:
+        pass
+
+
 def _live_api_request(path, params=None):
-    api_key = os.environ.get("LIVE_TENNIS_API_KEY")
-    if not api_key:
-        print("CHYBA: chybí proměnná prostředí LIVE_TENNIS_API_KEY (viz ~/.env).")
+    keys = _api_keys()
+    if not keys:
+        print("CHYBA: chybí LIVE_TENNIS_API_KEYS / LIVE_TENNIS_API_KEY (viz ~/.env).")
         sys.exit(1)
     import urllib.parse
     q = urllib.parse.urlencode(params or {})
     url = f"{LIVE_API_BASE}{path}" + (f"?{q}" if q else "")
-    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {api_key}"})
-    try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            return json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="replace")
-        print(f"CHYBA Live Tennis API ({e.code}): {body}")
-        sys.exit(1)
-    except urllib.error.URLError as e:
-        print(f"CHYBA síťového připojení (Live Tennis API): {e}")
-        sys.exit(1)
+    start = _load_key_idx(len(keys))
+    last_err = None
+    for attempt in range(len(keys)):
+        idx = (start + attempt) % len(keys)
+        api_key = keys[idx]
+        req = urllib.request.Request(url, headers={"Authorization": f"Bearer {api_key}"})
+        try:
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                if idx != start:
+                    _save_key_idx(idx)  # zapamatuj si fungující klíč
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", errors="replace")
+            last_err = f"HTTP {e.code}: {body}"
+            if e.code in _QUOTA_CODES and attempt < len(keys) - 1:
+                print(f"  [rotace klíčů] klíč #{idx + 1} selhal ({e.code}) -> zkouším další")
+                continue
+            print(f"CHYBA Live Tennis API ({e.code}): {body}")
+            sys.exit(1)
+        except urllib.error.URLError as e:
+            print(f"CHYBA síťového připojení (Live Tennis API): {e}")
+            sys.exit(1)
+    print(f"CHYBA: všechny API klíče selhaly. Poslední: {last_err}")
+    sys.exit(1)
 
 
 def fetch_live_matches():

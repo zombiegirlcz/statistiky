@@ -1,2 +1,5 @@
 __pycache__/
 *.pyc
+
+# transient state rotace API klíčů (obsahuje jen index, ale je to runtime stav)
+.agents/skills/match-probability/.live_api_key_state.json
