@@ -359,3 +359,81 @@ případů (203/287), zatímco ve skutečnosti bylo v tomhle vzorku nejčastěj�
 (viz výš) - jen aplikovaný na součet místo na dvojici čísel. Pro tenhle
 konkrétní trh (celkový počet gólů jako jedno číslo) je nejlíp spolehnout
 se na ligový průměr, ne na zápas-specifické λ.
+
+## Automatizované sázení na tenis pomocí AI - proč to nejde postavit na tomhle modelu
+
+Byl proveden explicitní test, jestli lze tenisový model (`forma+h2h+win rate`
+nebo Elo) postavit do automatického sázecího bota. Potřeba k tomu byly
+**skutečné historické kurzy** - ty v `tenis/*.csv` (Jeff Sackmann) chybí,
+proto byl doplněn `scripts/fetch_tennis_odds.py`, který stahuje WTA kurzy
+2021-2025 (11 730 zápasů) z mirroru `tennis-data.co.uk` na Hugging Face
+(primární zdroj je za Cloudflare, který blokuje datacentra). Výsledky testu
+jsou ve `scripts/tennis_value_backtest.py`.
+
+**Zdrojová data**: jen WTA (ženská túra) - ekvivalentní veřejně dostupný
+mirror pro ATP (mužskou túru) se nenašel. Kdo chce ověřit i ATP, musí
+soubory z tennis-data.co.uk stáhnout ručně z běžné (ne datacentrové) sítě a
+uložit jako `tenis/kurzy/atp_kurzy.csv` se stejnými sloupci.
+
+### Výsledek (7 290 zápasů 2021-2025, po vyřazení zápasů s málo historií)
+
+| Test | Výsledek |
+|---|---|
+| Kdo lépe tipuje vítěze - model, nebo trh | model 60,6 % (Elo 63,8 %) vs. **trh 66,0 %** |
+| "Hodnotové" sázky (edge ≥ 4 % proti trhu), flat staking | **ROI -7,7 %** |
+| Totéž s frakčním Kelly stakingem | **ROI -10,1 %** |
+| Baseline "vždy favorit trhu" | ROI -5,6 % (= zhruba marže sázkovky) |
+| Baseline "vždy tip modelu" | ROI -6,2 % |
+| Totéž s Elo modelem místo forma+h2h | ROI -10,0 % (Elo+povrch -8,9 %) |
+
+**Nejpřísnější test (`--pridana-hodnota`)**: namíchá se predikce
+`p = (1-w)×trh + w×model` a měří se, jestli JAKÁKOLI váha modelu (i malá,
+w=0,05) zlepší přesnost (log loss/Brier) oproti čistému trhu. Výsledek:
+**žádná váha modelu trh nezlepšila** - u všech tří variant modelu (forma,
+Elo, Elo+povrch) vycházelo nejlépe `w = 0` (čistý trh). To znamená, že model
+nedrží VŮBEC ŽÁDNOU informaci, kterou by trh už neměl zaceněnou - nejde jen
+o to, že je slabší, ale že je čistě podmnožinou toho, co umí trh.
+
+**Rozpad podle segmentu (`--segmenty`)**: ROI vychází záporné úplně všude -
+v každém pásmu výše kurzu (1,2 až 15,0), na všech třech površích, ve všech
+kolech turnaje. Navíc platí klasický **"favourite-longshot bias"** (známý
+jev ze sázkové literatury): čím vyšší kurz (outsider), tím horší ROI -
+od -2,4 % u favoritů (kurz do 1,2) až po -33,1 % u extrémních outsiderů
+(kurz nad 15). Model v testu hledal "hodnotu" i mezi outsidery, a právě
+tahle část trhu byla nejhůř placená ze všech.
+
+### Proč to tak je (vysvětlení k běžnému životu)
+
+Sázková kancelář je jako bazar s cedulkami cen, které denně upravuje podle
+toho, kdo kolik na co sází. Tisíce lidí (včetně profesionálů s vlastními
+statistickými modely) už do té ceny propsali vše, co šlo z veřejných dat
+vyčíst - formu, vzájemné zápasy, žebříček. Amatérský model počítaný ze
+stejných veřejných dat proto nemůže objevit nic, co by cena ještě
+neobsahovala - je to, jako kdybyste se snažili prodat bazarníkovi zpátky
+informaci, kterou mu sám do ceny už dávno zapracoval. Jediný způsob, jak reálně porazit cenu, je
+mít informaci RYCHLEJI nebo PŘESNĚJI než trh (např. čerstvá zpráva o zranění
+minuty před zápasem) - ne přepočítávat tatáž veřejná čísla jinak.
+
+### Závěr pro "chci stavět bota na AI sázení na tenis"
+
+Žádná verze tohoto modelu (jednoduchý vzorec ani Elo) neprokázala sázkovou
+výhodu - naopak prokázala její opak, konzistentně napříč segmenty i
+modely. Stavět automatického sázecího bota na tomhle datovém základu by
+znamenalo stavět stroj na systematické prohrávání peněz, ne na vydělávání.
+To není limitace implementace (zkusily se dvě různé metodiky), je to
+základní vlastnost trhu: ceny u velkých, likvidních sázkových trhů (ATP/WTA
+jsou jedny z nejlikvidnějších sportovních trhů vůbec) jsou extrémně efektivní.
+
+Pokud se o automatizaci přesto chce uživatel pokusit, poctivé další kroky
+(žádný z nich není zaručený, jen méně beznadějný než tohle):
+1. **Jiný typ informace, ne přesnější výpočet ze stejných dat** - živé
+   zpravodajství o zraněních/odstoupeních rychleji než trh, in-play data
+   (viz `game_flow.py --zvrat` pro živé přeskupení šancí uprostřed zápasu -
+   tam ale jde o sázení BĚHEM zápasu na burze, ne o předzápasové kurzy).
+2. **Mnohem užší niche trh** s menší likviditou (nižší turnaje, challengery),
+   kde je méně profesionálních peněz a model/zpravodajství může mít reálně
+   náskok - ale tam zase chybí kurzová i zápasová data v tomhle rozsahu.
+3. Realisticky: brát takový projekt jako technické cvičení (datový pipeline,
+   backtesting, řízení rizika) s papírovým obchodováním, ne jako zdroj
+   příjmu - a smířit se s tím, že matematicky očekávaná hodnota je záporná,
+   dokud se nenajde opravdu nová informační výhoda.

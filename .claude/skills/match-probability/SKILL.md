@@ -101,6 +101,19 @@ Funguje jen pro **fotbal** (jediný sport, kde máme v `fotbal/*.csv` i skutečn
 
 **Důležitý poctivý nález z backtestu** (viz `references/metodika.md` pro čísla): AKO kombinace v testu **prohrály úplně všechny** (0/40, ROI -100 %) - kombinování i hodnotných jednotlivých sázek nefunguje, protože nejistoty se násobí mnohem rychleji, než roste kurz. SÓLO vyšlo mírně ztrátově (-14,8 %), ne ziskově - náš jednoduchý historický model nemá prokázanou výhodu nad tržní cenou (ta v sobě má zaceněné informace, co náš model nevidí). Řekni tohle uživateli na rovinu, pokud se zeptá na reálnou výkonnost - skript je užitečný jako DEMONSTRACE stavby tiketu a jeho poctivého vyhodnocení, ne jako garance výhry. Žádná sázková strategie nemůže zaručit, že banka neklesne pod počáteční vklad - to je matematická vlastnost sázení (nenulová šance prohry u každé sázky), ne nedostatek skriptu.
 
+## Volitelně: sázková výhoda u tenisu (automatizované sázení pomocí AI)
+
+Pokud se uživatel zeptá, jestli lze postavit automatického sázecího bota na tenis (nebo obecně "má tenhle model sázkovou výhodu"), nejdřív stáhni historické kurzy (jen WTA, viz hlavička skriptu proč jen ta tura) a pak spusť test:
+
+```bash
+python3 .claude/skills/match-probability/scripts/fetch_tennis_odds.py           # jednorázově stáhne kurzy
+python3 .claude/skills/match-probability/scripts/tennis_value_backtest.py --diagnostika
+python3 .claude/skills/match-probability/scripts/tennis_value_backtest.py --pridana-hodnota   # nejpřísnější test
+python3 .claude/skills/match-probability/scripts/tennis_value_backtest.py --segmenty          # rozpad podle kurzu/povrchu/kola
+```
+
+**Poctivý nález** (viz `references/metodika.md` pro plná čísla): model (ani jednoduchý `forma+h2h`, ani Elo) **nemá žádnou prokázanou sázkovou výhodu** - trh tipuje vítěze přesněji (66,0 % vs. 60,6-63,8 %), hodnotové sázky jsou ztrátové (ROI -7,7 % až -10,1 %) a nejpřísnější test (namíchání modelu do tržní ceny) ukázal, že **žádná váha modelu nezlepší predikci nad čistý trh** - model nedrží vůbec žádnou informaci navíc. Řekni tohle uživateli přímo, pokud se zeptá na stavbu automatizovaného sázecího bota - není to nedostatek implementace (zkusily se dvě různé metodiky), je to důsledek toho, že ATP/WTA kurzy jsou jeden z nejlikvidnějších a nejefektivnějších sportovních trhů - veřejná data, ze kterých model počítá, už má trh dávno zaceněná.
+
 ## Když data chybí
 
 Skript hledá jen v tom, co je v `/statistiky` - u fotbalu je to 22 evropských lig, u hokeje jen NHL, u tenisu prakticky celá ATP/WTA túra (viz `/statistiky/README.md` pro přesný rozsah). Pokud se někdo zeptá na zápas mimo tento rozsah (např. mimoevropský klub, KHL, MS v hokeji), skript žádná data nenajde - v tom případě to uživateli řekni rovnou, místo abys dopočítal procenta z ničeho. Je v pořádku říct "na tenhle zápas nemám v datech dost podkladů."
