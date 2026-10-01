@@ -183,6 +183,52 @@ zeptá "vyplatí se počítat set 2 složitě" - krátká odpověď je "skoro ne
 kdo vyhrál set 1, většinou vyhraje i druhý, a to samo o sobě už je skoro
 tak dobrý tip jako celý model."
 
+## Živé kurzy "mezi gemy/sety" na vítěze zápasu - funguje mechanismus, NE "vydělávání mincí"
+
+Zkusili jsme rozšířit stavový model o kombinatorický výpočet (Markov řetězec
+přes skóre v setu i v zápase, z `hold_break_rate()`), který po KAŽDÉM gemu
+přepočítá pravděpodobnost/kurz na vítěze CELÉHO zápasu - a nechali model
+"sledovat celý průběh" historického zápasu se simulovanou bankou mincí,
+která roste/klesá podle toho, jestli model proti "trhu" najde hodnotu.
+
+**Výsledek: mechanismus (přepočet kurzu po každém gemu) funguje správně a
+dává smysluplná čísla** - příklad, reálný zápas Casper Ruud - Jannik
+Sinner (17. 5. 2026, Sinner hold rate 87,2 %, Ruud 84,2 %):
+
+```
+set  skóre gemů  podává    P(Ruud vyhraje zápas)  kurz Ruud  kurz Sinner
+1    0-0         Ruud      41,1 %                 2,43       1,70
+1    2-0         Ruud      58,4 %                 1,71       2,40   <- Ruud brejkl, dočasně favorit
+1    4-5         Sinner    22,4 %                 4,47       1,29   <- Sinner srovnal a přebral vedení
+2    0-2         Ruud       6,1 %                16,39       1,06
+2    3-5         Ruud       2,2 %                44,55       1,02
+```
+(skutečný vítěz: Sinner - odpovídá trajektorii čísel)
+
+**Ale "kolik mincí by model vydělal proti trhu" se nedá poctivě změřit,
+protože žádná reálná live kurzová data pro tenis v `/statistiky` nejsou**
+(na rozdíl od fotbalu, kde máme skutečné historické kurzy v CSV). Vyzkoušeli
+jsme dvě náhrady za "trh" a obě byly zavádějící:
+
+1. **Obecný/neinformovaný trh** (oba hráči = průměrný hold rate) - "edge"
+   vznikl už při stavu 0-0/0-0 (před prvním gemem) jen z toho, že model zná
+   konkrétní hráče a trh ne. To testuje předzápasovou znalost, ne živý
+   průběh - skoro všechny sázky padaly hned na začátku.
+2. **Trh = stejný model se zpožděním** (o celý set, pak zkráceno na 1 gem) -
+   tohle je TAUTOLOGIE: trh je jen zastaralá kopie modelu se stejným
+   vzorcem, takže model má téměř jistou výhru "z definice" (má vždy
+   čerstvější verzi identické formule). Banka v testu rostla exponenciálně
+   (1000 → 119 430 mincí za 150 zápasů, win rate 70 %) - to není skutečný
+   nález o tenise, je to artefakt porovnávání modelu se sebou samým.
+
+**Závěr**: nástroj na zobrazení živých kurzů v průběhu zápasu (`match_win_prob`
+v `scripts/` - dá se použít k ukázání, jak se šance mění po každém gemu) je
+plně funkční a použitelný jako informační přehled. Ale "kolik by se dalo
+vydělat" se bez reálných live kurzů změřit nedá - kdyby se uživatel zeptal
+na skutečnou ziskovost živého sázení v tenise, je čestná odpověď "na to
+nemáme data, jen na fotbal u predzápasových kurzů" (viz sekce o
+`ticket_builder.py` výš).
+
 ## Pravděpodobnost výhry podle aktuálního stavu zápasu ("živý" zvrat)
 
 Zvrat se neděje na úrovni "kdo vyhrál první set" (to je jen výsledek) - děje
