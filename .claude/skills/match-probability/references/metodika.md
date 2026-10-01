@@ -144,6 +144,45 @@ Kdo podává v gamu 1 (a tím i ve všech lichých gamech) se losuje těsně př
 zápasem - to z dat předem zjistit nejde, je to 50:50 nezávisle na všem
 ostatním.
 
+## Kdo vyhraje 1. a 2. set (ne jen celý zápas) - s/bez statistiky průběhu
+
+Na rozdíl od "kdo vyhraje game N" (viz výš) jde "kdo vyhraje set 1/set 2"
+spočítat i bez Charting dat - ze `hold_break_rate()` (game_flow.py) se dá
+odvodit pravděpodobnost výhry CELÉHO setu standardním kombinatorickým
+vzorcem (Markov řetězec přes skóre v setu 0-0 až 6-6+tiebreak, střídání
+podání po gamech). U 1. setu je potřeba zprůměrovat přes obě možnosti, kdo
+podává jako první (to se losuje těsně před zápasem, nejde to vědět dopředu).
+
+**Poctivý test na 186 zápasech** (nachartované zápasy z posledních ~30 %
+dat chronologicky, aby se zabránilo úniku informace do tréninkové části -
+viz níže o "momentum deltě"):
+
+| Predikce | Přesnost |
+|---|---|
+| Set 1 (kombinatorický model, podání 1. gamu neznámé) | 62,4 % |
+| Set 2 BEZ statistiky průběhu (ignoruje výsledek 1. setu) | 65,6 % |
+| Set 2 S statistikou průběhu (momentum delta dle 1. setu) | **74,7 %** |
+| Set 2 - naivní baseline ("vyhraje stejný hráč jako 1. set") | 74,2 % |
+
+**Statistika průběhu zápasu (= "momentum") je reálná a měřitelná**: hold
+rate hráče ve 2. setu je **+5,7 procentního bodu vyšší**, pokud vyhrál
+1. set (80,7 % vs. základních 75,0 %), a **-6,8 b. nižší**, pokud ho
+prohrál (68,2 %) - spočítáno ze 101 367 gamů na tréninkové (starší)
+části dat. Přidání týhle statistiky do modelu zvedlo přesnost predikce
+2. setu z 65,6 % na 74,7 % - o 9 procentních bodů, to je skutečné a
+použitelné zlepšení.
+
+**Ale stejný poctivý zádrhel jako u gamů**: naivní pravidlo "kdo vyhrál
+1. set, vyhraje i 2." (žádný model, jen jedno `if`) dosahuje 74,2 % -
+prakticky identicky s plným kombinatorickým modelem (74,7 %, rozdíl
+0,5 b. je v mezích šumu na 186 zápasech). Momentum efekt je skutečný, ale
+TAK silný, že většinu jeho predikční síly zachytí i triviální pravidlo bez
+jakéhokoli výpočtu - sofistikovaný model (hold/break rate + kombinatorika)
+přidává jen malý zlomek navíc. Řekni tohle uživateli na rovinu, pokud se
+zeptá "vyplatí se počítat set 2 složitě" - krátká odpověď je "skoro ne,
+kdo vyhrál set 1, většinou vyhraje i druhý, a to samo o sobě už je skoro
+tak dobrý tip jako celý model."
+
 ## Pravděpodobnost výhry podle aktuálního stavu zápasu ("živý" zvrat)
 
 Zvrat se neděje na úrovni "kdo vyhrál první set" (to je jen výsledek) - děje
@@ -288,3 +327,35 @@ hodnotu neprokázal) nemůže zaručit, že banka neklesne pod startovní část
 Konzervativní staking omezuje, o KOLIK klesne (nejhorší den v testu: 650 Kč,
 tedy ne celá tisícovka), ale garance "nikdy pod 1000" by vyžadovala
 nesázet vůbec.
+
+### Další varianty vyzkoušené na stejných datech (300-965 náhodných dní/zápasů)
+
+| Varianta | ROI | Poznámka |
+|---|---|---|
+| Baseline (SÓLO+AKO 3 nohy, edge≥4 %) | -40,4 % | viz výš |
+| Jen SÓLO (žádné AKO) | -14,8 % | AKO je hlavní problém |
+| AKO jen 2 nohy (místo 3) | -32,1 % (AKO samo -72 %) | kratší kombinace škodí míň, pořád ztrátové |
+| Přísnější edge_min 8 % (místo 4 %) | -38,8 % | téměř beze změny - síla edge nekoreluje s reálnou výherností |
+| Nižší risk_fraction 15 % (místo 35 %) | -40,4 % (stejné, jen menší částky) | ROI se staking-frakcí nemění, jen absolutní ztráta |
+| Větší vzorek n=100 dní, jiný seed n=40 | podobné řády ztráty | výsledek není náhoda jednoho vzorku |
+| **Jen 1X2 "vyhraje/prohraje" (BEZ remízy), 300 náhodných zápasů** | **-1,4 %** | **zdaleka nejlepší výsledek ze všech variant** |
+| Přesný CELKOVÝ počet gólů (Poisson mód), 287 zápasů, bez reálných kurzů | 23,3 % trefeno | **hůř než naivní baseline (31,0 % - vždy tipovat nejčastější celkový počet v lize)** |
+
+**Vyřazení remízy z 1X2 (sázka jen na "vyhraje/prohraje") dalo zdaleka nejlepší
+výsledek (-1,4 % ROI, prakticky na nule)** oproti plnému 1X2 s remízou
+(-13 až -15 %). Důvod: 25,9 % takových tiketů prohrálo kvůli remíze, ne kvůli
+špatnému tipu vítěze - remíza je notoricky nejhůř odhadnutelný výsledek
+fotbalového zápasu (nejnižší informační obsah v datech, o kterém model ví
+nejmíň), takže "edge" na remízu byl z velké části šum, který kontaminoval
+i zbytek portfolia. Když se remíza úplně vynechá (sází se jen když model vidí
+hodnotu na vítěze/poraženého), výsledek je o řád lepší - i když pořád ne
+ziskový, je to nejblíž k "fér hře" ze všech testovaných variant.
+
+**Přesný celkový počet gólů byl bez reálných tržních kurzů testován jen jako
+čistá přesnost predikce** (ne jako sázka s Kč) - a prohrál s naivním
+baseline. Model kvůli Poissonovu módu u nízkých λ tipoval "2 góly" v 71 %
+případů (203/287), zatímco ve skutečnosti bylo v tomhle vzorku nejčastější
+"3 góly" (31 %). To je stejný mechanismus jako u "1:1" u přesného skóre
+(viz výš) - jen aplikovaný na součet místo na dvojici čísel. Pro tenhle
+konkrétní trh (celkový počet gólů jako jedno číslo) je nejlíp spolehnout
+se na ligový průměr, ne na zápas-specifické λ.
