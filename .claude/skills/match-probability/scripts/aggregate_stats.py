@@ -20,6 +20,7 @@ import difflib
 import glob
 import os
 import sys
+from math import exp, factorial
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(_SCRIPT_DIR))))
@@ -65,6 +66,25 @@ def resolve_nhl(name):
         if n in aliases or any(n in a or a in n for a in aliases):
             return abbrev
     return None
+
+
+def poisson(k, lam):
+    if lam <= 0:
+        lam = 0.05
+    return exp(-lam) * lam ** k / factorial(k)
+
+
+def best_score(lambda_a, lambda_b, max_goals=6):
+    """Nejpravdepodobnejsi presne skore z Poissonova rozdeleni - stejna
+    metoda jako v backtest.py, overena tam na stovkach zpetne otestovanych
+    zapasu (viz metodika.md)."""
+    best, best_p = (0, 0), -1
+    for i in range(max_goals + 1):
+        for j in range(max_goals + 1):
+            p = poisson(i, lambda_a) * poisson(j, lambda_b)
+            if p > best_p:
+                best_p, best = p, (i, j)
+    return best
 
 
 def fuzzy_pick(name, candidates, cutoff=0.6):
@@ -215,9 +235,38 @@ def analyze_football(name_a, name_b, home_side):
     for r in h2h[-5:]:
         report.append(f"  {r['_season']} {r.get('Date','?')}: {r['HomeTeam']} {r['FTHG']}:{r['FTAG']} {r['AwayTeam']}")
     report.append(f"Prumerna remizovost v relevantnich souteznich (zdroj pro draw %): {league_draw_rate:.0%}")
+
+    # presne skore (Poisson) - tymovy prumer golu doma/venku + vzajemne
+    # zapasy (h2h), stejna metoda jako v backtest.py scripts/backtest.py,
+    # overena zpetnym testem (~14 % presnych skore, vs. ~5-10 % nahoda).
+    def goals_for_against(team, matches, venue):
+        gf, ga = [], []
+        for r in matches:
+            if venue == "H" and r["HomeTeam"] == team:
+                gf.append(int(r["FTHG"])); ga.append(int(r["FTAG"]))
+            elif venue == "A" and r["AwayTeam"] == team:
+                gf.append(int(r["FTAG"])); ga.append(int(r["FTHG"]))
+        return (sum(gf) / len(gf) if gf else None), (sum(ga) / len(ga) if ga else None)
+
+    h_attack, h_defense = goals_for_against(home_team, m_a if home_team == team_a else m_b, "H")
+    a_attack, a_defense = goals_for_against(away_team, m_b if away_team == team_b else m_a, "A")
+    lam_home = (safe(h_attack, 1.3) + safe(a_defense, 1.3)) / 2
+    lam_away = (safe(a_attack, 1.1) + safe(h_defense, 1.1)) / 2
+
+    if len(h2h) >= 3:
+        h2h_home_goals = [int(r["FTHG"]) if r["HomeTeam"] == home_team else int(r["FTAG"]) for r in h2h]
+        h2h_away_goals = [int(r["FTAG"]) if r["HomeTeam"] == home_team else int(r["FTHG"]) for r in h2h]
+        lam_home = 0.65 * lam_home + 0.35 * (sum(h2h_home_goals) / len(h2h_home_goals))
+        lam_away = 0.65 * lam_away + 0.35 * (sum(h2h_away_goals) / len(h2h_away_goals))
+
+    pred_h, pred_a = best_score(lam_home, lam_away)
+    report.append(f"Ocekavany pocet golu (pred vypoctem presneho skore): {home_team} {lam_home:.2f}, {away_team} {lam_away:.2f}")
     report.append("")
     report.append("=== ODHAD (navrh, Claude muze dle SKILL.md jemne doladit) ===")
     report.append(f"{home_team} (domaci) {pct_home}% / Remiza {pct_draw}% / {away_team} (hoste) {pct_away}%")
+    report.append(f"Nejpravdepodobnejsi presne skore: {home_team} {pred_h}:{pred_a} {away_team} "
+                   f"(POZOR: presne skore se trefuje jen cca 1x z 8 zapasu i pri spravnem modelu - "
+                   f"je to nejpravdepodobnejsi JEDNA moznost z desitek, ne jistota)")
     return "\n".join(report)
 
 
@@ -312,9 +361,52 @@ def analyze_tennis(name_a, name_b):
     report.append(f"Vzajemne zapasy v datech: {len(h2h)}x | {player_a} {h2h_a}:{h2h_b} {player_b}")
     for r in h2h[-5:]:
         report.append(f"  {r.get('tourney_date')} {r.get('tourney_name')} ({r.get('round')}): {r['winner_name']} por. {r['loser_name']} {r.get('score')}")
+
+    # nejcastejsi pomer setu pro dany pocet setu - stejna metoda jako
+    # backtest.py (~52 % presnych trefeni PRI SPRAVNEM vitezi). Bez znalosti
+    # konkretniho turnaje predpoklada best-of-3 (vetsina zapasu ATP/WTA
+    # mimo pansky grandslam) - u pansky grandslamu je to best-of-5.
+    BAD_SCORE_MARKERS = ("RET", "W/O", "DEF", "ABN")
+
+    def sets_count(score):
+        if any(m in score for m in BAD_SCORE_MARKERS):
+            return None
+        w, l = 0, 0
+        for p in score.split():
+            p = p.split("(")[0]
+            if "-" not in p:
+                return None
+            try:
+                a, b = (int(x) for x in p.split("-"))
+            except ValueError:
+                return None
+            if a > b:
+                w += 1
+            else:
+                l += 1
+        return (w, l)
+
+    def margin_pattern(best_of):
+        patterns = {}
+        for r in rows:
+            if r.get("best_of") != best_of:
+                continue
+            sc = sets_count(r.get("score", ""))
+            if sc is None:
+                continue
+            patterns[sc] = patterns.get(sc, 0) + 1
+        return max(patterns, key=patterns.get) if patterns else ((2, 0) if best_of == "3" else (3, 1))
+
+    margin_bo3 = margin_pattern("3")
+    winner_name = player_a if pct_a >= pct_b else player_b
+    loser_name = player_b if pct_a >= pct_b else player_a
     report.append("")
     report.append("=== ODHAD (navrh, Claude muze dle SKILL.md jemne doladit) ===")
     report.append(f"{player_a} {pct_a}% / {player_b} {pct_b}%")
+    report.append(f"Nejpravdepodobnejsi pomer setu (best-of-3, predpoklad vitezstvi {winner_name}): "
+                   f"{margin_bo3[0]}:{margin_bo3[1]} "
+                   f"(POZOR: u pansky grandslamu je zapas na 5 setu, tenhle odhad pocita s 3 - "
+                   f"presny pomer setu se trefuje cca 1x ze 2, pokud sedi i vitez)")
     return "\n".join(report)
 
 
@@ -415,9 +507,37 @@ def analyze_hockey(name_a, name_b, home_side):
     report.append(f"Vzajemne zapasy v datech: {len(h2h)}x | {abbrev_a} vyhral {h2h_a_wins}x, {abbrev_b} vyhral {h2h_b_wins}x")
     for r in h2h[-5:]:
         report.append(f"  {r['date']}: {r['away_team']} {r['away_score']}:{r['home_score']} {r['home_team']}")
+
+    # presne skore (Poisson), stejna metoda jako backtest.py - overeno
+    # zpetnym testem (~10 % presnych skore vs. ~5-8 % nahoda).
+    def goals_for_against(ab, matches, venue):
+        gf, ga = [], []
+        for r in matches:
+            if venue == "home" and r["home_team"] == ab:
+                gf.append(int(r["home_score"])); ga.append(int(r["away_score"]))
+            elif venue == "away" and r["away_team"] == ab:
+                gf.append(int(r["away_score"])); ga.append(int(r["home_score"]))
+        return (sum(gf) / len(gf) if gf else None), (sum(ga) / len(ga) if ga else None)
+
+    h_attack, h_defense = goals_for_against(home_ab, m_a if home_ab == abbrev_a else m_b, "home")
+    a_attack, a_defense = goals_for_against(away_ab, m_b if away_ab == abbrev_b else m_a, "away")
+    lam_home = (safe(h_attack, 3.0) + safe(a_defense, 3.0)) / 2
+    lam_away = (safe(a_attack, 2.8) + safe(h_defense, 2.8)) / 2
+
+    if len(h2h) >= 3:
+        h2h_home_goals = [int(r["home_score"]) if r["home_team"] == home_ab else int(r["away_score"]) for r in h2h]
+        h2h_away_goals = [int(r["away_score"]) if r["home_team"] == home_ab else int(r["home_score"]) for r in h2h]
+        lam_home = 0.65 * lam_home + 0.35 * (sum(h2h_home_goals) / len(h2h_home_goals))
+        lam_away = 0.65 * lam_away + 0.35 * (sum(h2h_away_goals) / len(h2h_away_goals))
+
+    pred_h, pred_a = best_score(lam_home, lam_away, max_goals=8)
+    report.append("")
+    report.append(f"Ocekavany pocet golu (pred vypoctem presneho skore): {home_ab} {lam_home:.2f}, {away_ab} {lam_away:.2f}")
     report.append("")
     report.append("=== ODHAD (navrh, Claude muze dle SKILL.md jemne doladit) ===")
     report.append(f"{home_ab} (domaci) {pct_home}% / {away_ab} (hoste) {pct_away}%")
+    report.append(f"Nejpravdepodobnejsi presne skore: {home_ab} {pred_h}:{pred_a} {away_ab} "
+                   f"(POZOR: presne skore se trefuje jen cca 1x z 10 zapasu i pri spravnem modelu)")
     return "\n".join(report)
 
 

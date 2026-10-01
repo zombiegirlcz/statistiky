@@ -47,6 +47,8 @@ Uživatel chce HOLÁ PROCENTA, ne esej. Formát odpovědi:
 
 Žádné dlouhé zdůvodňování navíc. Pokud se uživatel zeptá "proč" nebo "na základě čeho", teprve pak rozveď klíčová čísla (formu, vzájemnou bilanci) ze skriptového výstupu.
 
+**Pokud uživatel chce i přesný výsledek** ("jaké bude skóre", "tipni přesný výsledek"), skript na konci výstupu už sám nabízí `Nejpravdepodobnejsi presne skore` (fotbal/hokej, Poissonův model) nebo `Nejpravdepodobnejsi pomer setu` (tenis) - stačí to zkopírovat do odpovědi, nepočítej to ručně. Vždy k tomu připoj i skriptem dodané varování o nízké spolehlivosti (přesné skóre se u fotbalu/hokeje trefí jen zhruba 1x z 8-10, ne že je to jistota) - jinak by to působilo mnohem jistěji, než jak to doopravdy je.
+
 ## Volitelně: herní úroveň u tenisu (kdo vyhraje konkrétní game)
 
 Hlavní tenisová data (`tenis/*.csv`) mají jen konečné skóre setu (např. "7-6 6-4"), ne pořadí jednotlivých gamů. Pro to existuje doplňkový nástroj nad `tenis/prubeh/` (Match Charting Project):
