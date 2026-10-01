@@ -141,18 +141,49 @@ def predict_football_match(all_rows, match):
     p_home, p_draw, p_away = score_home / total, draw_rate / total, score_away / total
     pred_outcome = max((("H", p_home), ("D", p_draw), ("A", p_away)), key=lambda x: x[1])[0]
 
-    # presne skore (Poisson)
+    # prumer `team` ve vzajemnych zapasech (h2h, oba smery - at uz hral doma
+    # nebo venku) pro libovolny pocitatelny ukazatel (goly, rohy, ...) -
+    # rivalita/styl dvou konkretnich tymu ovlivnuje nejen karty, ale i goly
+    # a rohy (odchylka od ligoveho prumeru ~22 % u golu, ~12 % u rohu u
+    # dvojic se 4+ vzajemnymi zapasy, viz metodika.md).
+    def h2h_rate(team, opponent, team_home_field, team_away_field):
+        vals = []
+        for r in h2h:
+            if r["HomeTeam"] == team and r["AwayTeam"] == opponent:
+                v = r.get(team_home_field)
+            elif r["AwayTeam"] == team and r["HomeTeam"] == opponent:
+                v = r.get(team_away_field)
+            else:
+                continue
+            if v not in (None, ""):
+                try:
+                    vals.append(float(v))
+                except ValueError:
+                    pass
+        return (sum(vals) / len(vals), len(vals)) if vals else (None, 0)
+
+    # presne skore (Poisson) - tymovy prumer (65 %) + vzajemne zapasy (35 %)
     h_attack = team_rate(past, home, "H", "FTHG", cutoff)
     h_defense = team_rate(past, home, "H", "FTAG", cutoff)
     a_attack = team_rate(past, away, "A", "FTAG", cutoff)
     a_defense = team_rate(past, away, "A", "FTHG", cutoff)
     lam_home = (safe(h_attack, 1.3) + safe(a_defense, 1.3)) / 2
     lam_away = (safe(a_attack, 1.1) + safe(h_defense, 1.1)) / 2
+    h2h_h_goals, h2h_goals_n = h2h_rate(home, away, "FTHG", "FTAG")
+    h2h_a_goals, _ = h2h_rate(away, home, "FTAG", "FTHG")
+    if h2h_goals_n >= 3:
+        lam_home = 0.65 * lam_home + 0.35 * h2h_h_goals
+        lam_away = 0.65 * lam_away + 0.35 * h2h_a_goals
     pred_score = best_score(lam_home, lam_away)
 
-    # rohy
+    # rohy - stejny princip
     h_corners = safe(team_rate(past, home, "H", "HC", cutoff), 5.0)
     a_corners = safe(team_rate(past, away, "A", "AC", cutoff), 5.0)
+    h2h_h_corners, h2h_corners_n = h2h_rate(home, away, "HC", "AC")
+    h2h_a_corners, _ = h2h_rate(away, home, "AC", "HC")
+    if h2h_corners_n >= 3:
+        h_corners = 0.65 * h_corners + 0.35 * h2h_h_corners
+        a_corners = 0.65 * a_corners + 0.35 * h2h_a_corners
     corner_pick = "home" if h_corners - a_corners > 0.5 else ("away" if a_corners - h_corners > 0.5 else "vyrovnano")
 
     # karty (zlute+cervene) - kombinace: vlastni prumer tymu + vzajemne zapasy
@@ -319,41 +350,55 @@ def predict_hockey_match(all_rows, match):
     p_home = score_home / total if total else 0.5
     pred_outcome = "home" if p_home >= 0.5 else "away"
 
+    # prumer `team` ve vzajemnych zapasech (oba smery) pro libovolny ukazatel -
+    # rivalita mezi konkretni dvojici tymu ovlivnuje nejen trestne minuty, ale
+    # i goly (~9 % odchylka od ligoveho prumeru) a strely na branku (~4 %),
+    # viz metodika.md.
+    def h2h_rate(team, opponent, field):
+        vals = []
+        for r in h2h:
+            if r["home_team"] == team and r["away_team"] == opponent:
+                src = "home_" + field
+            elif r["away_team"] == team and r["home_team"] == opponent:
+                src = "away_" + field
+            else:
+                continue
+            try:
+                vals.append(float(r[src]))
+            except (ValueError, KeyError):
+                pass
+        return (sum(vals) / len(vals), len(vals)) if vals else (None, 0)
+
     h_attack = nhl_team_rate(past, home, "home", "home_score", cutoff)
     h_defense = nhl_team_rate(past, home, "home", "away_score", cutoff)
     a_attack = nhl_team_rate(past, away, "away", "away_score", cutoff)
     a_defense = nhl_team_rate(past, away, "away", "home_score", cutoff)
     lam_home = (safe(h_attack, 3.0) + safe(a_defense, 3.0)) / 2
     lam_away = (safe(a_attack, 2.8) + safe(h_defense, 2.8)) / 2
+    h2h_h_goals, h2h_goals_n = h2h_rate(home, away, "score")
+    h2h_a_goals, _ = h2h_rate(away, home, "score")
+    if h2h_goals_n >= 3:
+        lam_home = 0.65 * lam_home + 0.35 * h2h_h_goals
+        lam_away = 0.65 * lam_away + 0.35 * h2h_a_goals
     pred_score = best_score(lam_home, lam_away, max_goals=8)
 
     h_sog = safe(nhl_team_rate(past, home, "home", "home_sog", cutoff), 30.0)
     a_sog = safe(nhl_team_rate(past, away, "away", "away_sog", cutoff), 30.0)
+    h2h_h_sog, h2h_sog_n = h2h_rate(home, away, "sog")
+    h2h_a_sog, _ = h2h_rate(away, home, "sog")
+    if h2h_sog_n >= 3:
+        h_sog = 0.65 * h_sog + 0.35 * h2h_h_sog
+        a_sog = 0.65 * a_sog + 0.35 * h2h_a_sog
     sog_pick = "home" if h_sog - a_sog > 1 else ("away" if a_sog - h_sog > 1 else "vyrovnano")
 
     # trestne minuty - vlastni prumer tymu + vzajemne zapasy (rivalita mezi
-    # konkretni dvojici tymu ma na PIM mnohem vetsi vliv nez u fotbalovych
-    # karet - prumerna odchylka h2h prumeru od ligoveho prumeru je kolem 20 %,
+    # konkretni dvojici tymu ma na PIM mnohem vetsi vliv nez na goly/strely -
+    # prumerna odchylka h2h prumeru od ligoveho prumeru je kolem 20 %,
     # viz metodika.md). Rozhodci u NHL dat bohuzel nejsou k dispozici.
-    def h2h_pim_rate(team, opponent):
-        vals = []
-        for r in past:
-            if r["home_team"] == team and r["away_team"] == opponent:
-                try:
-                    vals.append(float(r["home_pim"]))
-                except (ValueError, KeyError):
-                    pass
-            elif r["away_team"] == team and r["home_team"] == opponent:
-                try:
-                    vals.append(float(r["away_pim"]))
-                except (ValueError, KeyError):
-                    pass
-        return (sum(vals) / len(vals), len(vals)) if vals else (None, 0)
-
     h_pim = safe(nhl_team_rate(past, home, "home", "home_pim", cutoff), 8.0)
     a_pim = safe(nhl_team_rate(past, away, "away", "away_pim", cutoff), 8.0)
-    h2h_h_pim, h2h_pim_n = h2h_pim_rate(home, away)
-    h2h_a_pim, _ = h2h_pim_rate(away, home)
+    h2h_h_pim, h2h_pim_n = h2h_rate(home, away, "pim")
+    h2h_a_pim, _ = h2h_rate(away, home, "pim")
     if h2h_pim_n >= 3:
         h_pim = 0.6 * h_pim + 0.4 * h2h_h_pim
         a_pim = 0.6 * a_pim + 0.4 * h2h_a_pim
@@ -535,8 +580,26 @@ def predict_tennis_match(all_rows, match, p1, p2):
     p_win1 = score1 / total if total else 0.5
     pred_winner = p1 if p_win1 >= 0.5 else p2
 
+    def h2h_ace_rate(player, opponent):
+        vals = []
+        for r in h2h:
+            v = r.get("w_ace") if r["winner_name"] == player else r.get("l_ace")
+            if {r["winner_name"], r["loser_name"]} != {player, opponent}:
+                continue
+            if v not in (None, ""):
+                try:
+                    vals.append(float(v))
+                except ValueError:
+                    pass
+        return (sum(vals) / len(vals), len(vals)) if vals else (None, 0)
+
     ace1, _ = player_rate(past, p1, "ace", cutoff, "w_ace", "l_ace")
     ace2, _ = player_rate(past, p2, "ace", cutoff, "w_ace", "l_ace")
+    h2h_ace1, h2h_ace_n = h2h_ace_rate(p1, p2)
+    h2h_ace2, _ = h2h_ace_rate(p2, p1)
+    if h2h_ace_n >= 3:
+        ace1 = 0.65 * (ace1 or 0) + 0.35 * h2h_ace1
+        ace2 = 0.65 * (ace2 or 0) + 0.35 * h2h_ace2
     ace_pick = "p1" if (ace1 or 0) - (ace2 or 0) > 0.5 else ("p2" if (ace2 or 0) - (ace1 or 0) > 0.5 else "vyrovnano")
 
     # dvojchyby - povrchove specificky prumer (hard/antuka/trava maji ruzny

@@ -63,16 +63,50 @@ skutečným výsledkům (viz `backtest.py --help` resp. hlavička souboru).
 | Trh | Přesnost | Baseline (náhoda) |
 |---|---|---|
 | Fotbal - výsledek | 46 % | ~33 % |
-| Fotbal - přesné skóre | 12 % | ~5-10 % |
-| Fotbal - víc rohů | 54 % | ~40-45 % |
+| Fotbal - přesné skóre | 14 % | ~5-10 % |
+| Fotbal - víc rohů | 52 % | ~40-45 % |
 | Fotbal - víc karet | 40 % | ~40-45 % |
 | Hokej - výsledek | 64 % | 50 % |
-| Hokej - víc střel na branku | 52 % | ~45-50 % |
+| Hokej - přesné skóre | 10 % | ~5-8 % |
+| Hokej - víc střel na branku | 56 % | ~45-50 % |
 | Hokej - víc trestných minut | 36 % | ~45 % |
 | Tenis - vítěz | 70 % | 50 % |
 | Tenis - přesný poměr setů | 52 % | ~35-50 % |
 | Tenis - víc es | 58 % | ~45 % |
 | Tenis - víc dvojchyb | 38 % | ~45 % |
+
+### Vzájemné zápasy (h2h) nejen u karet, ale u celého zápasu
+
+Výhra/remíza/prohra (`h2h_home_wr`/`h2h_away_wr`) počítala se vzájemnými zápasy
+odjakživa. Zpočátku ale **přesné skóre, rohy a střely na branku** vzájemné
+zápasy ignorovaly a počítaly jen z obecného průměru týmu - přitom styl dvou
+konkrétních týmů/soupeřů proti sobě je měřitelně jiný než jejich průměr proti
+komukoliv jinému:
+
+| Ukazatel | Odchylka h2h průměru od celkového průměru (dvojice se 3-4+ vzájemnými zápasy) |
+|---|---|
+| Fotbal - góly | ~22 % (0.6 gólu z průměru 2.7) |
+| Fotbal - rohy | ~12 % (1.2 rohu z průměru 9.8) |
+| Fotbal - karty | ~22 % (0.9 karty z průměru 4.25) |
+| Hokej - góly | ~9 % (0.59 gólu z průměru 6.23) |
+| Hokej - střely na branku | ~4 % (2.6 střely z průměru 59.7) |
+| Hokej - trestné minuty | ~21 % (3.8 minuty z průměru 18.2) |
+| Tenis - esa | značný rozptyl, ale v testu neprokázán reálný přínos (viz níže) |
+
+Proto teď **přesné skóre (Poisson λ) a rohy u fotbalu, přesné skóre a střely
+na branku u hokeje i esa u tenisu** používají stejnou kombinaci jako karty/PIM:
+65 % (fotbal/tenis) resp. 65 % (hokej) vlastní tým/hráč + 35 % vzájemné zápasy,
+pokud jich je aspoň 3. Efekt na přesnost: fotbalové přesné skóre 12 %→14 %,
+hokejové přesné skóre 6 %→10 %, hokejové střely na branku 52 %→56 %. Rohy a
+tenisová esa vyšly v tomhle konkrétním vzorku prakticky beze změny (52-54 %,
+resp. 58 %) - u tenisu navíc jen 7 z 50 testovaných zápasů vůbec mělo aspoň 3
+předchozí vzájemná utkání, takže tam se úprava uplatní jen zřídka (u hráčů,
+kteří proti sobě hrají opakovaně na túře, bude mít větší váhu).
+
+Vyzkoušel jsem i vzájemně specifický vzorec poměru setů v tenise místo
+obecně nejčastějšího vzorce pro daný počet setů - v testu nedal žádné
+zlepšení (vzájemných zápasů se stejným best_of je mezi dvěma konkrétními
+hráči obvykle málo), takže zůstal obecný vzorec.
 
 **Karty, trestné minuty a dvojchyby jsou dlouhodobě nejslabší disciplíny** - prostý
 průměr týmu/hráče na ně nestačí, protože je mnohem víc ovlivňují okolnosti
