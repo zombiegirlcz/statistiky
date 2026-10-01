@@ -144,6 +144,49 @@ Kdo podává v gamu 1 (a tím i ve všech lichých gamech) se losuje těsně př
 zápasem - to z dat předem zjistit nejde, je to 50:50 nezávisle na všem
 ostatním.
 
+## Pravděpodobnost výhry podle aktuálního stavu zápasu ("živý" zvrat)
+
+Zvrat se neděje na úrovni "kdo vyhrál první set" (to je jen výsledek) - děje
+se v konkrétních herních situacích uprostřed setu, přesně jak to popsal
+uživatel na příkladu: hráč prohrává 0:2 v druhém setu po ztraceném prvním
+(to je nejhorší bod zápasu, nejvyšší kurz/nejnižší šance), pak se srovná na
+5:1 nebo 6:1 (šance zpátky k 50:50), pak znovu klesne na 1:4 v rozhodujícím
+setu (téměř nulová šance), a přesto zápas otočí.
+
+`game_flow.py --zvrat` spočítá z `tenis/prubeh/games_{m,w}.csv` (Match
+Charting Project) empirickou pravděpodobnost výhry CELÉHO zápasu pro KAŽDOU
+kombinaci (rozdíl setů, rozdíl gamů v aktuálním setu) - tím, že projde
+všechny nachartované zápasy, a pro každý odehraný game zaznamená stav před
+ním z pohledu obou hráčů + jestli nakonec vyhráli. Žádná predikce dopředu -
+čistě "kolikrát se to v historii stalo a jak to dopadlo".
+
+Ověřené na datech (ATP, tisíce až desítky tisíc případů na řádek):
+
+| Stav (sety, gamy v aktuálním setu) | P(výhra zápasu) | n |
+|---|---|---|
+| Prohrál 1. set, prohrává 0:2 ve 2. setu | 5 % | 4 038 |
+| Prohrál 1. set, začátek 2. setu (0:0) | 21 % | 12 329 |
+| Vyrovnáno, začátek setu | 50 % | 31 484 |
+| Prohrává 0:4/1:4 v aktuálním setu | 11 % | 968 |
+| Prohrál 1. set, ale vede 5:1 ve 2. setu | 48 % | 54 |
+| Vede 1:0 na sety, vede 2:0 v gamech | 95 % | 4 038 |
+
+Přesně to, co uživatel popsal: pád na ~5 %, návrat k ~50 % po srovnání na
+5:1, a extrémy (95%+ favorit / pod 5% outsider) odpovídají intuici
+sázkových kurzů, i když tohle NEJSOU skutečné kurzy - je to empirická
+historická četnost, ne live tržní cena. `game_flow.py --state <sety_moje>
+<sety_soupere> <gamy_moje> <gamy_soupere> [m|w]` dá odpověď pro libovolný
+konkrétní stav.
+
+**Omezení**: stejné pokrytí jako zbytek `tenis/prubeh/` (~15-20 % zápasů,
+zkreslené k top hráčům) - tabulka je ale agregovaná přes VŠECHNY
+nachartované zápasy (ne jen konkrétní dvojici hráčů), takže funguje i když
+samotný dotazovaný zápas nachartovaný není - je to obecná "fyzika" tenisu
+(jak těžké je otočit z daného stavu), ne vlastnost konkrétních dvou hráčů.
+Rozdíl setů je omezen na ±2 a gamů na ±6 kvůli řídkým datům na okrajích
+(víc než ±6 gamů v jednom setu skoro nenastane). U extrémně řídkých buněk
+(`n < 20`) se automaticky použije širší odhad jen podle rozdílu setů.
+
 **Karty, trestné minuty a dvojchyby jsou dlouhodobě nejslabší disciplíny** - prostý
 průměr týmu/hráče na ně nestačí, protože je mnohem víc ovlivňují okolnosti
 konkrétního zápasu (rozhodčí, rivalita, aktuální forma podání) než historický

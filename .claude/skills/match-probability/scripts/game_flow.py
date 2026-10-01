@@ -118,6 +118,108 @@ def predict_server_win_prob(hold_rate, opp_break_rate, default=0.75):
     return (h + (1 - b)) / 2
 
 
+def reconstruct_set_and_match_winners(games_for_match):
+    """Z posloupnosti gamu v jednom zapase (games_m/w.csv radky) odvodi, kdo
+    vyhral kazdy set (vic vyhranych 'gamu' v danem set_num - plati i pro
+    tiebreak set, protoze zalomeny tiebreak je proste jeden dalsi radek/game
+    navic) a kdo vyhral cely zapas (vic setu). Vraci (set_winners: dict
+    set_num->slot, match_winner: '1'/'2'/None pri nejednoznacnosti/odhlaseni)."""
+    by_set = defaultdict(lambda: {"1": 0, "2": 0})
+    for g in games_for_match:
+        by_set[int(g["set_num"])][g["winner"]] += 1
+    set_winners = {}
+    for set_num, counts in by_set.items():
+        if counts["1"] == counts["2"]:
+            continue
+        set_winners[set_num] = "1" if counts["1"] > counts["2"] else "2"
+    sets_won = {"1": 0, "2": 0}
+    for w in set_winners.values():
+        sets_won[w] += 1
+    if sets_won["1"] == sets_won["2"]:
+        return set_winners, None
+    match_winner = "1" if sets_won["1"] > sets_won["2"] else "2"
+    return set_winners, match_winner
+
+
+def build_state_win_table(matches, games, best_of_filter=None):
+    """Projde VSECHNY nachartovane zapasy (dane pohlavi) a pro kazdy odehrany
+    game zaznamena stav 'pred timhle gamem' z pohledu OBOU hracu - (rozdil
+    vyhranych setu, rozdil vyhranych gamu v aktualnim setu) - a jestli dany
+    hrac nakonec zapas vyhral. Vysledek je tabulka {(set_diff, game_diff):
+    [vyhry, celkem]} - empiricka 'live' pravdepodobnost vyhry zapasu podle
+    aktualniho prubehu, misto jen statickeho konce setu."""
+    bo_by_match = {m["match_id"]: m.get("Best of") for m in matches}
+    table = defaultdict(lambda: [0, 0])
+
+    for match_id, g in games.items():
+        if best_of_filter and bo_by_match.get(match_id) != best_of_filter:
+            continue
+        g = sorted(g, key=lambda r: int(r["overall_game_num"]))
+        set_winners, match_winner = reconstruct_set_and_match_winners(g)
+        if match_winner is None:
+            continue
+
+        sets = {"1": 0, "2": 0}
+        games_in_set = {"1": 0, "2": 0}
+        cur_set = None
+        for row in g:
+            sn = int(row["set_num"])
+            if cur_set is None:
+                cur_set = sn
+            elif sn != cur_set:
+                # novy set zacina - pripocti vyhraneho predchoziho setu a vynuluj gamy
+                prev_winner = set_winners.get(cur_set)
+                if prev_winner:
+                    sets[prev_winner] += 1
+                games_in_set = {"1": 0, "2": 0}
+                cur_set = sn
+
+            for slot in ("1", "2"):
+                opp = "2" if slot == "1" else "1"
+                set_diff = max(-2, min(2, sets[slot] - sets[opp]))
+                game_diff = max(-6, min(6, games_in_set[slot] - games_in_set[opp]))
+                key = (set_diff, game_diff)
+                table[key][1] += 1
+                table[key][0] += (slot == match_winner)
+
+            games_in_set[row["winner"]] += 1
+    return table
+
+
+def query_state(table, set_diff, game_diff, min_n=20):
+    set_diff = max(-2, min(2, set_diff))
+    game_diff = max(-6, min(6, game_diff))
+    wins, total = table.get((set_diff, game_diff), [0, 0])
+    if total >= min_n:
+        return wins / total, total
+    # fallback: siri okoli (jen podle set_diff, bez ohledu na presny game_diff)
+    w2, t2 = 0, 0
+    for (sd, gd), (w, t) in table.items():
+        if sd == set_diff:
+            w2 += w
+            t2 += t
+    if t2:
+        return w2 / t2, t2
+    return None, 0
+
+
+def print_zvrat_table(gender_label, table):
+    print(f"\n=== Pravdepodobnost vyhry zapasu podle aktualniho stavu ({gender_label}) ===")
+    print(f"{'sety (rozdil)':<15}{'gamy v setu (rozdil)':<22}{'P(vyhra zapasu)':<18}{'n (vzorek)'}")
+    interesting = [
+        (-1, -2, "prohral 1. set, prohrava 0:2 ve 2. setu"),
+        (-1, 0, "prohral 1. set, zacatek 2. setu (0:0)"),
+        (0, 0, "vyrovnano, zacatek setu"),
+        (0, -4, "prohrava 1:4/0:4 v rozhodujicim/aktualnim setu"),
+        (-1, 5, "prohral 1. set, ale vede 5:1 ve 2. setu"),
+        (1, 2, "vede 1:0 na sety, vede 2:0 v gamu"),
+    ]
+    for sd, gd, label in interesting:
+        p, n = query_state(table, sd, gd)
+        p_str = f"{p:.0%}" if p is not None else "n/a"
+        print(f"{sd:+d}{'':<14}{gd:+d}{'':<21}{p_str:<18}{n}   {label}")
+
+
 def run_flow_backtest(n=40, seed=42):
     """POCTIVY test: nahodne vybere n nachartovanych zapasu (napric obema
     pohlavimi), a pro KAZDY game v kazdem zapase predikuje vitěze jen z dat
@@ -173,9 +275,34 @@ def main():
         n = int(sys.argv[2]) if len(sys.argv) > 2 else 40
         run_flow_backtest(n)
         return
+    if len(sys.argv) > 1 and sys.argv[1] == "--zvrat":
+        matches_m, matches_w = load_matches("m"), load_matches("w")
+        games_m, games_w = load_games("m"), load_games("w")
+        table_m = build_state_win_table(matches_m, games_m)
+        table_w = build_state_win_table(matches_w, games_w)
+        print_zvrat_table("ATP", table_m)
+        print_zvrat_table("WTA", table_w)
+        return
+    if len(sys.argv) > 1 and sys.argv[1] == "--state":
+        # --state <sety_pro_mne> <sety_pro_soupere> <gamy_pro_mne> <gamy_pro_soupere> [m|w]
+        sp, so, gp, go = (int(x) for x in sys.argv[2:6])
+        gender = sys.argv[6] if len(sys.argv) > 6 else "m"
+        matches = load_matches(gender)
+        games = load_games(gender)
+        table = build_state_win_table(matches, games)
+        p, n = query_state(table, sp - so, gp - go)
+        label = "ATP" if gender == "m" else "WTA"
+        if p is None:
+            print(f"Nedostatek dat pro tento stav ({label}).")
+        else:
+            print(f"Stav sety {sp}:{so}, gamy {gp}:{go} ({label}): "
+                  f"P(vyhra zapasu) = {p:.0%}  (vzorek n={n})")
+        return
     if len(sys.argv) < 3:
         print('Pouziti: game_flow.py "Hrac A" "Hrac B"')
         print('         game_flow.py --backtest [N]')
+        print('         game_flow.py --zvrat')
+        print('         game_flow.py --state <sety_moje> <sety_souperovy> <gamy_moje> <gamy_souperovy> [m|w]')
         sys.exit(1)
     name_a, name_b = sys.argv[1], sys.argv[2]
 
