@@ -25,6 +25,7 @@ sys.path.insert(0, _SCRIPT_DIR)
 import agents as reg                      # noqa: E402
 import live_tennis_simulator as base      # noqa: E402
 import live_game_bet as gem               # noqa: E402
+import bookmaker as bm                    # noqa: E402
 
 
 def _run_match_fav(a, cfg):
@@ -85,6 +86,12 @@ def run_all(only=None):
               f"banka {a['bank']:.0f} log {os.path.basename(a['log'])} =====")
         if run is None:
             print(f"  neznámá strategie: {a['strategy']}")
+            continue
+        # V REÁLNÉM režimu nelze sázet gem strategie (SX.bet nemá trh na gem)
+        # — v sim režimu v pořádku (jen papírové tikety).
+        if bm.is_real() and not bm.strategy_can_bet_real(a["strategy"]):
+            print(f"  PŘESKOČENO: strategie '{a['strategy']}' neumí reálné sázení "
+                  f"na SX.bet (chybí trh na vítěze gemu).")
             continue
         try:
             run(a, cfg)

@@ -485,3 +485,60 @@ nastavení na uživatelovo přání. Nikdy netvrď, že "spíš poroste" stejný
 tónem jako u opatrnějších režimů - tady je realistický výsledek buď rychlý
 růst k cíli, nebo rychlá ztráta všeho, bez průběžného "spíš nahoru". Řekni
 to takhle na rovinu, pokud se uživatel zeptá na pravděpodobnost úspěchu.
+
+---
+
+## 14. Zdroj kurzů a přepnutí na reálné sázení (SX.bet)
+
+Kurzy pro match-level agenta (`match_fav`) teď chodí ze **SX.bet** místo
+The Odds API. SX.bet je výhodnější: čtení kurzů je **zdarma a bez API klíče**
+a burza navíc **umí sázky reálně podávat** (na rozdíl od Odds API, které umí
+jen čtení). Klient je v `scripts/sxbet_client.py`, jednotná vrstva v
+`scripts/bookmaker.py`.
+
+### Přepínač režimu (proměnná `BOOKMAKER` v `~/.env`)
+
+| hodnota       | co dělá                                                        |
+| ------------- | -------------------------------------------------------------- |
+| `sxbet_sim`   | **výchozí** — živé kurzy ze SX.bet, sázky NA PAPÍR (fiktivní banka) |
+| `sxbet_real`  | živé kurzy ze SX.bet + **REÁLNÉ** sázky (nutný wallet + USDC)   |
+| `oddsapi`     | starý zdroj The Odds API (jen čtení kurzů) — fallback           |
+
+Změna režimu = přepsat jeden řádek v `~/.env` a restartovat cron. Víc není
+třeba — veškerá logika je v `bookmaker.py`.
+
+### Co je potřeba pro `sxbet_real`
+
+1. `SXBET_PRIVATE_KEY` a `SXBET_TAKER_ADDRESS` v `~/.env`.
+2. USDC na **SX Network** (chainId 4162) + schválený `TokenTransferProxy`
+   (approve) — jinak `/orders/fill/v2` selže.
+3. Knihovna pro EIP712 podpis (`eth-account`).
+
+Dokud tohle není splněné, `bookmaker.is_real()` sice vrátí `True`, ale
+`place_order()` vyhodí jasnou chybu — **nikdy tiše nevsadí špatně**.
+
+### DŮLEŽITÉ OMEZENÍ — SX.bet NEMÁ trh na vítěze gemu
+
+SX.bet nabízí jen trhy na **vítěze zápasu** (type 52/226) a na sety/hry.
+**Gem-level agenti** (`gem`, `gem_aggr`) sázejí na vítěze JEDNOTLIVÉHO GEMU,
+což na SX.bet neexistuje. Proto:
+- v režimu `sxbet_sim` gem agenti běží normálně dál (papírové tikety),
+- v režimu `sxbet_real` je `executor.py` **přeskočí** (bezpečnostní pojistka),
+  protože reálnou gem sázku nelze nikam poslat.
+
+### Diagnostika
+
+```bash
+cd scripts && source ~/.env
+python3 bookmaker.py                                   # stav režimu
+python3 sxbet_client.py tenis                          # živé tenisové kurzy
+python3 sxbet_client.py match "Daniil Medvedev" "Pablo Carreno Busta"
+python3 sxbet_client.py meta                           # metadata burzy
+```
+
+### Past, na kterou pozor
+
+Stará OrderBook V2 na SX.bet (`/orders`, `/metadata`) je **mrtvá** a vrací
+`"OrderBook V2 is no longer supported"`. Používáme výhradně **V3**
+(`/orderbook-v3/snapshot`), kde `showTakerPerspective=true` vrací kurz, za
+který reálně vsadíš: `decimal_odds = 1 / (percentageOdds/1e20)`.

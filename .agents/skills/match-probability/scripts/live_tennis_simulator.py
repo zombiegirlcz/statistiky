@@ -83,6 +83,7 @@ _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _SCRIPT_DIR)
 import game_flow as gf  # noqa: E402
 import odds_compare as oc  # noqa: E402
+import bookmaker as bm  # noqa: E402 - jednotná vrstva kurzů/sázení (SX.bet)
 
 LIVE_API_BASE = "https://api.livetennisapi.com/api/public/v1"
 _DATA_DIR = os.path.join(_SCRIPT_DIR, "..")
@@ -632,7 +633,7 @@ def cmd_watch():
         # --- sázková část (jen pokud máme model i skutečné kurzy) ---
         if not have_model or m["id"] in already_logged_ids or sc.get("stale"):
             continue
-        probs, best_odds = get_market_probs(name1, name2)
+        probs, best_odds, sx_market, src = bm.get_market_info(name1, name2)
         if not probs or probs.get(name1) is None or probs.get(name2) is None:
             n_nomkt += 1
             continue
@@ -670,7 +671,28 @@ def cmd_watch():
             "score_at_bet": (f"sety {cur['sets'][0]}:{cur['sets'][1]}, "
                              f"gemy {cur['games'][0]}:{cur['games'][1]}"),
             "stake": stake, "status": "pending",
+            # odkud kurz je + identifikátory pro pozdější reálné sázení
+            "odds_source": src,
+            "bookmaker_mode": bm.mode(),
         }
+        if sx_market:
+            entry["market_hash"] = sx_market.get("marketHash")
+            # strana, na kterou sázíme (1 = outcomeOne, 2 = outcomeTwo)
+            entry["outcome_side"] = bm.outcome_side_for(name, sx_market)
+
+        # v režimu 'sxbet_real' pošle skutečnou sázku (jinak jen papírová)
+        if bm.is_real():
+            try:
+                res = bm.place_bet(
+                    name1, name2, pick=name, odds=odds, stake=stake,
+                    market=sx_market, outcome_side=entry.get("outcome_side"),
+                )
+                entry["real_bet"] = res
+                print(f"      => REÁLNÁ SÁZKA odeslána: {res}")
+            except Exception as ex:
+                print(f"      ! reálná sázka selhala: {ex}")
+                continue
+
         append_log(entry)
         log.append(entry)
         n_bets += 1
