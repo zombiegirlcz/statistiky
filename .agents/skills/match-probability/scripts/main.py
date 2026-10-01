@@ -241,9 +241,20 @@ def dashboard():
                         f"(alokováno {_fmt(s['alokovano'])}, celkem {_fmt(s['celkem'])})",
              curses.color_pair(CT))
         y += 2
-        _add(scr, y, 0, "┌─ AGENTI & CRON " + "─" * (w - 18), curses.color_pair(CT))
+        _add(scr, y, 0, "┌─ AGENTI (stav v registru) " + "─" * (w - 32), curses.color_pair(CT))
         y += 1
-        for lbl, running in running_agents():
+        for a, banka, won, lost, pend in agent_rows():
+            if a["active"]:
+                stav, attr = "ZAPNUT → pojede v cronu", curses.color_pair(CO)
+            else:
+                stav, attr = "VYPNUT (cron ho přeskočí)", curses.color_pair(CW)
+            _add(scr, y, 2, f"{a['id']:<12} {stav}", attr)
+            y += 1
+        run = running_agents()
+        run_any = any(r for _, r in run)
+        _add(scr, y, 0, "┌─ PROCESY (běží právě teď) " + "─" * (w - 30), curses.color_pair(CT))
+        y += 1
+        for lbl, running in run:
             attr = curses.color_pair(CO) if running else curses.color_pair(CD)
             _add(scr, y, 2, f"{lbl:<16} {'● běží' if running else '○ neběží'}", attr)
             y += 1
