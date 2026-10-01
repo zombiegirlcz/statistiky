@@ -1,7 +1,7 @@
 #!/bin/bash
 # Jeden tik živého tenisového simulátoru. Spouští ho cron každých 20 minut
 # mezi 16:00 a 23:59. Sleduje zápasy a sází; po 23:40 se sám odstraní z cronu.
-DIR=/root/statistiky/.claude/skills/match-probability/scripts
+DIR=/root/statistiky/.agents/skills/match-probability/scripts
 cd "$DIR" || exit 1
 source ~/.env
 LOG=$DIR/run_until_midnight.log

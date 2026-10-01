@@ -24,7 +24,7 @@ from math import exp, factorial
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(_SCRIPT_DIR))))
-# _SCRIPT_DIR = <BASE>/.claude/skills/match-probability/scripts -> BASE = /root/statistiky
+# _SCRIPT_DIR = <BASE>/.agents/skills/match-probability/scripts -> BASE = /root/statistiky
 
 NHL_ALIASES = {
     "ANA": ["anaheim", "ducks", "ana"], "BOS": ["boston", "bruins", "bos"],

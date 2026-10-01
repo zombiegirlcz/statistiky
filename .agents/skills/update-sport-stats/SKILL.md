@@ -16,7 +16,7 @@ Je to návazný nástroj na prvotní historický sběr (ten stáhl 5 kompletníc
 Spusť skript, nic jiného není potřeba řešit ručně:
 
 ```bash
-python3 /root/statistiky/.claude/skills/update-sport-stats/scripts/update_stats.py
+python3 /root/statistiky/.agents/skills/update-sport-stats/scripts/update_stats.py
 ```
 
 Skript sám:

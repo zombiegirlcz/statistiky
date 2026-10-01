@@ -20,9 +20,9 @@ Z dotazu urči, jde-li o fotbal, tenis nebo hokej, a jména obou stran. Pokud je
 Soubory v `fotbal/` mají až tisíce řádků a `tenis/` desetitisíce - ruční prohledávání `grep`em je pomalé a náchylné k tomu, že něco přehlédneš (např. zápas ve staré sezóně, nebo zápas, kde je tým uvedený pod mírně jiným zápisem). Skript `scripts/aggregate_stats.py` projde VŠECHNY relevantní soubory pro daný sport, najde VŠECHNY zápasy obou stran i jejich vzájemné duely, a spočítá to spolehlivě:
 
 ```bash
-python3 .claude/skills/match-probability/scripts/aggregate_stats.py fotbal "Arsenal" "Chelsea"
-python3 .claude/skills/match-probability/scripts/aggregate_stats.py tenis "Sinner" "Alcaraz"
-python3 .claude/skills/match-probability/scripts/aggregate_stats.py hokej "Toronto" "Edmonton"
+python3 .agents/skills/match-probability/scripts/aggregate_stats.py fotbal "Arsenal" "Chelsea"
+python3 .agents/skills/match-probability/scripts/aggregate_stats.py tenis "Sinner" "Alcaraz"
+python3 .agents/skills/match-probability/scripts/aggregate_stats.py hokej "Toronto" "Edmonton"
 ```
 
 Jména nemusí sedět na znak přesně (skript dělá fuzzy matching), ale musí být rozpoznatelná - u fotbalu/hokeje zkus nejdřív běžný název klubu (viz `references/nazvy_tymu.md` pro mapování na přesné názvy/zkratky v datech, hlavně u hokeje, kde se v CSV používají 3písmenné zkratky jako TOR, EDM).
@@ -54,7 +54,7 @@ Uživatel chce HOLÁ PROCENTA, ne esej. Formát odpovědi:
 Hlavní tenisová data (`tenis/*.csv`) mají jen konečné skóre setu (např. "7-6 6-4"), ne pořadí jednotlivých gamů. Pro to existuje doplňkový nástroj nad `tenis/prubeh/` (Match Charting Project):
 
 ```bash
-python3 .claude/skills/match-probability/scripts/game_flow.py "Jannik Sinner" "Carlos Alcaraz"
+python3 .agents/skills/match-probability/scripts/game_flow.py "Jannik Sinner" "Carlos Alcaraz"
 ```
 
 Vrátí pravděpodobnost udržení podání pro oba hráče z jejich historie - ale **pokrytí je jen ~15-20 % zápasů od 2020, silně zkreslené k top hráčům** (viz `README.md`). Pokud skript řekne, že zápas není nachartovaný, neznamená to chybu - prostě ta úroveň detailu u tohohle zápasu/hráče není k dispozici, řekni to uživateli stejně přímo jako u chybějících dat jinde.
@@ -68,8 +68,8 @@ Vrátí pravděpodobnost udržení podání pro oba hráče z jejich historie - 
 Pokud se uživatel zeptá na KONKRÉTNÍHO hráče (ne na zápas) - jeho věk, aktuální klub, přestupovou historii, sezónní statistiky (starty/góly/asistence/karty u fotbalu, góly/asistence/+-/trestné minuty u hokeje, nebo výhry/% zákroků u brankáře) - použij:
 
 ```bash
-python3 .claude/skills/match-probability/scripts/player_profile.py fotbal "Erling Haaland"
-python3 .claude/skills/match-probability/scripts/player_profile.py hokej "Connor McDavid"
+python3 .agents/skills/match-probability/scripts/player_profile.py fotbal "Erling Haaland"
+python3 .agents/skills/match-probability/scripts/player_profile.py hokej "Connor McDavid"
 ```
 
 **Pokrytí**: fotbal jen 11 z 22 lig (jen NEJVYŠŠÍ soutěž každé země - Premier League, Bundesliga, Serie A, La Liga, Ligue 1 atd., žádné druhé ligy ani nižší skotské soutěže) a data aktuální k 6. 7. 2026 (zdroj - Transfermarkt - má od poloviny července 2026 pozastavenou aktualizaci, takže úplně čerstvé přestupy/zápasy chybět mohou). Hokej pokrývá celou NHL průběžně. Pokud skript hráče nenajde, řekni to rovnou - je to buď mimo pokrytí, nebo nesedí jméno (zkus jinou variantu).
@@ -81,7 +81,7 @@ Tohle je DOPLNĚK k `aggregate_stats.py` (ten počítá pravděpodobnost výsled
 Pokud je nastavená proměnná prostředí `ODDS_API_KEY` (klíč z the-odds-api.com, zdarma 500 kreditů/měsíc - viz hlavička `scripts/odds_compare.py`), můžeš navíc spustit:
 
 ```bash
-python3 .claude/skills/match-probability/scripts/odds_compare.py fotbal "Arsenal" "Leeds"
+python3 .agents/skills/match-probability/scripts/odds_compare.py fotbal "Arsenal" "Leeds"
 ```
 
 Tohle vrátí implikovanou pravděpodobnost z průměru živých bookmakerských kurzů (bez marže) pro nadcházející zápas - je to dobrá kontrola, jestli náš odhad z historie nejede mimo realitu, protože trh v sobě má zaceněné i věci, co náš model neumí (zranění, čerstvá forma, motivace - viz `references/metodika.md`). Velký rozdíl (>15-20 procentních bodů) stojí za zmínku uživateli jako "náš odhad se dost liší od trhu, pravděpodobně kvůli něčemu, co data nezachycují."
@@ -93,8 +93,8 @@ Tohle vrátí implikovanou pravděpodobnost z průměru živých bookmakerských
 Pokud uživatel chce rovnou TIKET (konkrétní sázku s vkladem, ne jen procenta) - "slož mi sázku", "jaký tiket na dnešek", "udělej kombinaci" - použij:
 
 ```bash
-python3 .claude/skills/match-probability/scripts/ticket_builder.py den 2024-03-16   # historický den (má smysl jen na už odehraný den, kde známe i kurzy)
-python3 .claude/skills/match-probability/scripts/ticket_builder.py backtest 40       # 40 náhodných dní, změří úspěšnost
+python3 .agents/skills/match-probability/scripts/ticket_builder.py den 2024-03-16   # historický den (má smysl jen na už odehraný den, kde známe i kurzy)
+python3 .agents/skills/match-probability/scripts/ticket_builder.py backtest 40       # 40 náhodných dní, změří úspěšnost
 ```
 
 Funguje jen pro **fotbal** (jediný sport, kde máme v `fotbal/*.csv` i skutečné historické kurzy - sloupce `Avg*`, průměr víc sázkových kanceláří, NE přímo Fortuna). Hledá "hodnotové sázky" (edge mezi modelem a odvigovaným trhem) na obou stranách každého trhu (1X2, přes/pod 2.5 gólu, hendikep) - takže klidně navrhne i sázku na outsidera nebo hendikep na poraženého, ne jen na favorita. Staví SÓLO i AKO (kombinované) tikety podle pravidel Fortuny (AKO = kurzy se násobí, kombinuje se vždy jen přes různé zápasy).
@@ -106,10 +106,10 @@ Funguje jen pro **fotbal** (jediný sport, kde máme v `fotbal/*.csv` i skutečn
 Pokud se uživatel zeptá, jestli lze postavit automatického sázecího bota na tenis (nebo obecně "má tenhle model sázkovou výhodu"), nejdřív stáhni historické kurzy (jen WTA, viz hlavička skriptu proč jen ta tura) a pak spusť test:
 
 ```bash
-python3 .claude/skills/match-probability/scripts/fetch_tennis_odds.py           # jednorázově stáhne kurzy
-python3 .claude/skills/match-probability/scripts/tennis_value_backtest.py --diagnostika
-python3 .claude/skills/match-probability/scripts/tennis_value_backtest.py --pridana-hodnota   # nejpřísnější test
-python3 .claude/skills/match-probability/scripts/tennis_value_backtest.py --segmenty          # rozpad podle kurzu/povrchu/kola
+python3 .agents/skills/match-probability/scripts/fetch_tennis_odds.py           # jednorázově stáhne kurzy
+python3 .agents/skills/match-probability/scripts/tennis_value_backtest.py --diagnostika
+python3 .agents/skills/match-probability/scripts/tennis_value_backtest.py --pridana-hodnota   # nejpřísnější test
+python3 .agents/skills/match-probability/scripts/tennis_value_backtest.py --segmenty          # rozpad podle kurzu/povrchu/kola
 ```
 
 **Poctivý nález** (viz `references/metodika.md` pro plná čísla): model (ani jednoduchý `forma+h2h`, ani Elo) **nemá žádnou prokázanou sázkovou výhodu** - trh tipuje vítěze přesněji (66,0 % vs. 60,6-63,8 %), hodnotové sázky jsou ztrátové (ROI -7,7 % až -10,1 %) a nejpřísnější test (namíchání modelu do tržní ceny) ukázal, že **žádná váha modelu nezlepší predikci nad čistý trh** - model nedrží vůbec žádnou informaci navíc. Řekni tohle uživateli přímo, pokud se zeptá na stavbu automatizovaného sázecího bota - není to nedostatek implementace (zkusily se dvě různé metodiky), je to důsledek toho, že ATP/WTA kurzy jsou jeden z nejlikvidnějších a nejefektivnějších sportovních trhů - veřejná data, ze kterých model počítá, už má trh dávno zaceněná.
@@ -119,7 +119,7 @@ python3 .claude/skills/match-probability/scripts/tennis_value_backtest.py --segm
 Pokud uživatel chce sledovat **právě probíhající** tenisové zápasy a nechat model zakládat fiktivní tikety "za běhu" (mezi gemy/sety), použij dvojici skriptů. Potřebují dva klíče v `~/.env`: `LIVE_TENNIS_API_KEY` (livetennisapi.com - živé skóre po gemech a bodech) a `ODDS_API_KEY` (skutečné živé kurzy).
 
 ```bash
-cd /root/statistiky/.claude/skills/match-probability/scripts && source ~/.env
+cd /root/statistiky/.agents/skills/match-probability/scripts && source ~/.env
 python3 live_tennis_simulator.py watch   # sleduje průběh VŠECH živých zápasů, hlásí události, zakládá tikety
 python3 live_tennis_simulator.py status  # rychlý přehled, nestojí API kvótu
 python3 bet_evaluator.py vyhodnot        # zjistí výsledky dohraných zápasů a připíše je do banky
@@ -135,8 +135,8 @@ python3 bet_evaluator.py report          # jen přehled s podílem výher, ROI a
 Oddělený skript, oddělená banka (`live_game_bets_log.jsonl`) - sází na vítěze PRÁVĚ ROZEHRANÉHO GEMU, ne celého zápasu. Mnohem vyšší frekvence (gem trvá pár minut), ale **bez nezávislého trhu kurzů na ověření** (Odds API nemá kurzy na jednotlivé gemy) - sází čistě na historický hold rate přepočítaný na pravděpodobnost z aktuálního bodového skóre (matematický přepočet téhož čísla, ne nová informace).
 
 ```bash
-python3 .claude/skills/match-probability/scripts/live_game_bet.py tick     # jedno kolo: vyhodnotí + hledá nové
-python3 .claude/skills/match-probability/scripts/live_game_bet.py status   # přehled, nestojí API kvótu
+python3 .agents/skills/match-probability/scripts/live_game_bet.py tick     # jedno kolo: vyhodnotí + hledá nové
+python3 .agents/skills/match-probability/scripts/live_game_bet.py status   # přehled, nestojí API kvótu
 ```
 
 Potřebuje spouštět **mnohem častěji** než `watch` (řádově co 1-3 minuty, ne co 15-30) - při free tieru (100 volání/den) to vydrží jen pár hodin provozu, takže ho spouštěj v časově omezené smyčce, ne natrvalo, a vždy zkontroluj `/usage` a `crontab -l`, jestli neběží souběžně i `watch` na stejný klíč. Kompletní návod včetně modelu a příkladu smyčky je v `AGENT_NAVOD.md`, sekce 12.
@@ -146,8 +146,8 @@ Potřebuje spouštět **mnohem častěji** než `watch` (řádově co 1-3 minuty
 Třetí, oddělený režim ve stejném skriptu (vlastní banka `live_game_bet_aggressive_log.jsonl`) - na výslovné přání uživatele, který chtěl "rychle znásobit" a potvrdil, že chce i riziko okamžité ztráty všeho ("risk je zisk, proto to existuje"). **Sází se CELÁ aktuální banka na jeden tiket** (vybírá se zápas s nejnižší pravděpodobností, co ještě splní bezpečnostní práh 70 %, pro nejvyšší dostupný kurz). Po dosažení cíle 6000 (6× start) se přepne do ochranné fáze (sází se už jen nejvýš 1000 z banky) a sleduje vrchol - jakmile banka klesne o 1000 od vrcholu, agent se **natrvalo zastaví**.
 
 ```bash
-python3 .claude/skills/match-probability/scripts/live_game_bet.py agresivni-tick     # jedno kolo
-python3 .claude/skills/match-probability/scripts/live_game_bet.py agresivni-status   # přehled, nestojí API kvótu
+python3 .agents/skills/match-probability/scripts/live_game_bet.py agresivni-tick     # jedno kolo
+python3 .agents/skills/match-probability/scripts/live_game_bet.py agresivni-status   # přehled, nestojí API kvótu
 ```
 
 **Tohle není "spíš poroste" nástroj jako ostatní dva** - je to vědomě vysoce rizikové nastavení. Realistický výsledek je buď rychlý růst k cíli, nebo rychlá ztráta všeho - žádné plynulé mezistádium. Mluv o tom s uživatelem takhle na rovinu. Jakmile hlásí "ZASTAVENO", dál to nespouštěj (agent sám odmítne nový tiket). Podrobnosti a zdůvodnění 50%→100% kompromisu v `AGENT_NAVOD.md`, sekce 13, a v `references/metodika.md`.

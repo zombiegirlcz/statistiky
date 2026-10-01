@@ -1,7 +1,7 @@
 #!/bin/bash
 # Aktivní agentní smyčka: sleduj živé tenisové zápasy, zakládej tikety a průběžně
 # vyhodnocuj — dokud běží zápasy nebo dokud není půlnoc. Běží v popředí, píše na stdout.
-DIR=/root/statistiky/.claude/skills/match-probability/scripts
+DIR=/root/statistiky/.agents/skills/match-probability/scripts
 cd "$DIR" || exit 1
 source ~/.env
 

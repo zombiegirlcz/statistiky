@@ -35,7 +35,7 @@ Proto se sází jen na jasné favority, ne na "hodnotové" sázky proti trhu
 Přesné příkazy (vždy z kořene repozitáře, vždy s `source ~/.env`):
 
 ```bash
-cd /root/statistiky/.claude/skills/match-probability/scripts && source ~/.env
+cd /root/statistiky/.agents/skills/match-probability/scripts && source ~/.env
 
 python3 live_tennis_simulator.py watch      # sledování průběhu + zakládání tiketů
 python3 live_tennis_simulator.py status     # rychlý přehled, NESTOJÍ žádnou kvótu
@@ -281,7 +281,7 @@ tiketů se i spolehlivý dlouhodobý favorit (90% šance) může sejít hůř.
 
 ## 8. Soubory se stavem
 
-Oba leží v `.claude/skills/match-probability/`:
+Oba leží v `.agents/skills/match-probability/`:
 
 | Soubor | Co v něm je |
 |---|---|
@@ -363,7 +363,7 @@ Je to defenzivně obalené (nikdy nespadne skript, i kdyby `nh` chybělo).
 
 ```
 /root/statistiky/
-├── .claude/skills/match-probability/
+├── .agents/skills/match-probability/
 │   ├── AGENT_NAVOD.md              ← tenhle soubor
 │   ├── SKILL.md                    ← popis celého skillu (predikce zápasů)
 │   ├── live_bets_log.jsonl         ← stav fiktivních tiketů (NEMAZAT)
@@ -394,7 +394,7 @@ kdo vyhraje PRÁVĚ ROZEHRANÝ gem, ne celý zápas - mnohem vyšší frekvence
 (gem trvá pár minut, zápas jich má desítky).
 
 ```bash
-cd /root/statistiky/.claude/skills/match-probability/scripts && source ~/.env
+cd /root/statistiky/.agents/skills/match-probability/scripts && source ~/.env
 python3 live_game_bet.py tick     # jedno kolo: vyhodnotí dřívější tikety + hledá nové
 python3 live_game_bet.py status   # přehled, NESTOJÍ API kvótu
 ```
@@ -429,7 +429,7 @@ Příklad spuštění ve smyčce na omezenou dobu (30 kol po 90 s = cca 45 minut
 ~30 volání API):
 
 ```bash
-cd /root/statistiky/.claude/skills/match-probability/scripts && source ~/.env
+cd /root/statistiky/.agents/skills/match-probability/scripts && source ~/.env
 for i in $(seq 1 30); do
   echo "=== tick $i $(date '+%H:%M:%S') ==="
   python3 live_game_bet.py tick
