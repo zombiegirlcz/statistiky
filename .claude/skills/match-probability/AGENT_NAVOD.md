@@ -11,9 +11,14 @@ předchozí konverzaci ani kontext - všechno podstatné je tady.
 ## 1. Co to je jednou větou
 
 Dva skripty: první průběžně **sleduje průběh každého právě běžícího tenisového
-zápasu** a kde vidí hodnotu proti skutečným kurzům, založí **fiktivní tiket**
-z rozpočtu 1000 vymyšlených mincí. Druhý skript tikety **vyhodnocuje a připisuje
-do banky**.
+zápasu** a kde vidí **silného, oběma nezávislými zdroji (model + skutečný trh)
+potvrzeného favorita**, založí **fiktivní tiket** z rozpočtu 1000 vymyšlených
+mincí. Druhý skript tikety **vyhodnocuje a připisuje do banky**.
+
+**Cíl strategie:** ne porazit trh, ale aby **mezi jednotlivými tikety
+převažoval růst banky nad poklesem** - tedy vysoký podíl vyhraných tiketů.
+Proto se sází jen na jasné favority, ne na "hodnotové" sázky proti trhu
+(viz sekce 4.1 pro přesné vysvětlení rozdílu a jeho limity).
 
 **Nikdy se nevsázejí skutečné peníze. Žádný sázkový účet neexistuje a skripty
 žádný neovládají.** Je to měřicí nástroj, ne sázecí bot.
@@ -80,28 +85,37 @@ soubor `live_bets_log.jsonl`.
 
 ## 4. Co MUSÍŠ vědět, než to spustíš
 
-### 4.1 Cíl není "vydělat mince"
+### 4.1 Cíl: ať banka mezi tikety spíš roste - ne porazit trh
 
-Cíl je **změřit, jestli model má nebo nemá reálnou výhodu nad trhem**. Pravdivá
-odpověď může klidně být "nemá". Ve fotbalové části tohohle projektu
-(`ticket_builder.py`) vyšla po poctivém měření ztráta ve VŠECH testovaných
-variantách (viz `references/metodika.md`). Tady může vyjít totéž.
+**Toto je důležité rozlišení.** Existuje poctivý, rigorózní backtest
+(`scripts/tennis_value_backtest.py`, 11 730 skutečných historických kurzů
+WTA 2021-2025), který ukázal, že tenhle model **nemá žádnou prokázanou
+výhodu nad trhem** - trh tipuje vítěze přesněji, "hodnotové" sázky (kde
+model vidí vyšší pravděpodobnost než trh) jsou v dlouhém běhu ztrátové
+(ROI -7,7 % až -10,1 %). To platí a nic na tom tenhle nástroj nemění.
 
-**Mezitím už existuje mnohem silnější důkaz přesně tohohle u tenisu**
-(`scripts/tennis_value_backtest.py`, běh na 11 730 skutečných historických
-kurzech WTA 2021-2025) - model **nemá žádnou prokázanou výhodu** (ROI -7,7 %
-až -10,1 %, trh tipuje vítěze přesněji, a nejpřísnější test ukázal, že žádná
-váha modelu nezlepší čistý trh - model nedrží vůbec žádnou informaci navíc).
-Tenhle živý nástroj je stejná rodina modelu (hold/break rate ze stejných
-veřejných dat), jen uvnitř zápasu místo před ním - **čekej stejný výsledek**.
-Hodnota nástroje je ve sledování a poctivém měření, ne v očekávaném zisku.
-Podrobnosti v `references/metodika.md`, sekce "Automatizované sázení na
-tenis pomocí AI".
+Proto `watch` NEHLEDÁ "hodnotu" (rozdíl model vs. trh, ve starší verzi
+`EDGE_MIN`/`EDGE_MAX`) - hledá **silné favority**, na kterých se model i
+skutečný trh NEZÁVISLE shodnou (`FAV_MODEL_MIN`, `FAV_MARKET_MIN`,
+`FAV_MAX_ODDS` v kódu). Favorité v historických datech vyhrávají velmi
+často (u kurzů do 1,2 to je řádově 90%+ úspěšnost) - to znamená, že
+**většina jednotlivých tiketů vyhraje**, tedy banka se mezi tikety
+mnohem častěji zvedá než propadá.
 
-**Když banka klesá, je to platný výsledek, ne chyba, kterou máš opravit.**
-Neupravuj parametry dodatečně tak, aby výsledek vyšel hezky - to je přefitování
-a výsledek pak nic neznamená. Když chceš parametry měnit, změň je PŘED dalším
-sběrem dat a nový vzorek počítej zvlášť.
+**Ale pozor na past v uvažování:** vysoký podíl výher NENÍ totéž co kladné
+ROI ani zaručený dlouhodobý růst banky. Sázková marže zůstává zaceněná
+i v kurzu na favorita - i při 90% úspěšnosti může jedna neočekávaná prohra
+smazat zisk z mnoha malých výher, a v součtu přes stovky tiketů může ROI
+vyjít mírně záporné. "Mince mají spíš stoupat než klesat" je o **frekvenci
+jednotlivých pohybů nahoru/dolů**, ne o matematické záruce zisku - tu
+nemůže dát žádná sázková strategie. Řekni tohle uživateli přesně takhle,
+když se zeptá na výsledky - je to jiné tvrzení než "model vydělává".
+
+**Když banka i přes vysoký podíl výher dlouhodobě klesá, je to platný
+výsledek, ne chyba, kterou máš opravit.** Neupravuj parametry dodatečně tak,
+aby výsledek vyšel hezky - to je přefitování a výsledek pak nic neznamená.
+Když chceš parametry měnit, změň je PŘED dalším sběrem dat a nový vzorek
+počítej zvlášť.
 
 ### 4.2 Tři pasti, do kterých se tenhle projekt už chytil (neopakuj je)
 
@@ -118,10 +132,13 @@ přesto vyrostla na 172 643.
 starší verzí. Současné skripty to dělají správně. Když je budeš upravovat,
 tohle neporušuj.
 
-**Past č. 2 - "obrovský edge" obvykle znamená zastaralá data, ne nalezenou
-hodnotu.** Když model řekne 97 % a trh 40 %, skoro jistě nevidíš příležitost,
-ale máš staré nebo špatně přečtené skóre. Proto existuje `EDGE_MAX = 0.25` -
-rozdíly nad 25 procentních bodů se **ignorují**. Nezvyšuj ten strop.
+**Past č. 2 - velký NESOULAD mezi modelem a trhem obvykle znamená zastaralá
+data, ne nalezenou příležitost.** Když model řekne 97 % a trh 40 %, skoro
+jistě nevidíš příležitost, ale máš staré nebo špatně přečtené skóre. Proto
+`watch` vyžaduje, aby se model i trh na favoritovi SHODLY (`FAV_MODEL_MIN`
+i `FAV_MARKET_MIN` musí být splněné zároveň) - žádný tiket nevznikne jen
+z toho, že model tvrdí něco, co trh nepotvrzuje. Nesnižuj `FAV_MARKET_MIN`
+pod rozumnou hranici (0,65) a nezvyšuj `FAV_MAX_ODDS` nad bezpečné favority.
 
 **Past č. 3 - málo historických dat = nesmyslný odhad.** Hráč s pěti
 zaznamenanými podáváními má "hold rate" čistý šum. Proto `MIN_HOLD_N = 20`.
@@ -196,9 +213,18 @@ Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
 - **`bez živých kurzů v nabídce`** = Odds API tenhle zápas nemá (pokrývá hlavně
   ATP/WTA tour, ne Challenger/ITF). **Taky v pořádku.**
 
-**Když `watch` nenajde žádný tiket, není to chyba.** Je naprosto normální, že
-z 15 dvouher nevznikne žádný tiket. Neopakuj spuštění hned znovu ve snaze
-"něco najít" - jen bys spálil kvótu. Počkej na další interval.
+Když se favorit najde, `watch` vypíše navíc řádek jako:
+
+```
+      => TIKET na favorita Xinyu Gao @ 1.27 (model 95%, trh 87%), vklad 20 mincí
+```
+
+**Když `watch` nenajde žádný tiket, není to chyba.** Protože se teď vyžaduje
+shoda modelu i trhu na jasném favoritovi (ne jen nejmenší rozdíl), je
+naprosto normální, že z 15-20 dvouher nevznikne žádný tiket - většina živých
+zápasů zrovna není v situaci "jasný favorit s kurzem pod 1,60 a dostupnými
+kurzy". Neopakuj spuštění hned znovu ve snaze "něco najít" - jen bys spálil
+kvótu. Počkej na další interval.
 
 ### Jaké události `watch` hlásí
 
@@ -223,28 +249,33 @@ od druhého spuštění dál.
 
 ```
 ==================================================================
-PŘEHLED FIKTIVNÍCH TENISOVÝCH SÁZEK
+PŘEHLED FIKTIVNÍCH TENISOVÝCH SÁZEK (strategie: silný favorit)
 ==================================================================
+Podíl rostoucích tiketů (výher):  100.0%  -> PŘEVAŽUJE RŮST
+  (1 roste / 0 klesá z 1 vyhodnocených)
+
 Rozpočet na start:          1000 mincí
 Banka teď:                  1005 mincí  (+5)
 Vázáno v nevyřízených:         0 mincí (0 tiketů)
 
 Tiketů celkem:                 1
   vyhodnocených:               1  (výhra 1, prohra 0)
-  úspěšnost:             100.0%
   vsazeno / vráceno:          20 / 25 mincí
-  ROI:                   +27.0%
+  ROI:                   +27.0%  (poctivé měřítko peněz - i vysoký podíl výher může dát záporné ROI)
 ```
 
 Při pěti a více vyhodnocených tiketech přidá navíc graf vývoje banky a rozpad
-podle kurzových a edge pásem.
+podle kurzových pásem.
 
-**`ROI`** je jediné číslo, které o kvalitě modelu vypovídá - ne banka a ne
-úspěšnost. Sázky na favority s kurzem 1,2 můžou mít 85 % úspěšnost a přitom
-být ztrátové.
+**`Podíl rostoucích tiketů`** je hlavní metrika pro tenhle cíl (viz 4.1) -
+jestli převažuje `V` (výhra/růst) nad `P` (prohra/pokles). **`ROI`** je
+oddělené, poctivé peněžní měřítko - i strategie s 85 % úspěšností (vysoký
+podíl růstu) může mít mírně záporné ROI, protože jedna velká prohra smaže
+víc malých výher. Oba řádky říkej uživateli zvlášť, nepleť je dohromady.
 
-Skript sám na konci připomíná, kolik tiketů je potřeba (řádově 100+), aby se
-dalo mluvit o něčem jiném než o šumu. **Ber to vážně a opakuj to uživateli.**
+Skript sám na konci připomíná, kolik tiketů je potřeba (řádově 100+), aby byl
+podíl výher spolehlivý. **Ber to vážně a opakuj to uživateli** - u pár desítek
+tiketů se i spolehlivý dlouhodobý favorit (90% šance) může sejít hůř.
 
 ---
 
@@ -262,10 +293,13 @@ Skutečný řádek z logu sázek:
 ```json
 {"match_id": 196994, "logged_at": "2026-10-01T13:34:44+00:00", "tournament": "Beijing",
  "player1": "Panna Udvardy", "player2": "Xinyu Gao", "pick": "Xinyu Gao", "odds": 1.27,
- "edge": 0.0789, "model_p": 0.9483, "market_p": 0.8694, "score_at_bet": "sety 0:1, gemy 3:5",
+ "model_p": 0.9483, "market_p": 0.8694, "score_at_bet": "sety 0:1, gemy 3:5",
  "stake": 20.0, "status": "won", "resolved_at": "2026-10-01T13:39:03+00:00",
  "actual_winner": "Xinyu Gao", "profit": 5.4}
 ```
+
+(Starší záznamy z dřívější "hodnotové" strategie mají navíc pole `"edge"` -
+oba skripty to zpětně zvládají, nic se s tím dělat nemusí.)
 
 `status` jde `pending` → `won` / `lost`.
 
@@ -296,13 +330,29 @@ nic se neztratí a nic se nezduplikuje.
 
 ---
 
+## 9a. Systémové notifikace při změně banky
+
+Tohle prostředí běží v **NetHunter AI Operator PRoot** (viz `~/nethunter_docs.md`
+pro kompletní dokumentaci jeho nástrojů). `bet_evaluator.py` i `live_game_bet.py`
+automaticky pošlou systémovou notifikaci **při každém vyhodnocení tiketu**
+(výhra/prohra - ne při založení tiketu a ne při zrušení/`void`, protože ani
+jedno z toho banku nemění) přes `nh system notification -t <titulek> -c <text>`.
+Nemusíš to nijak spouštět navíc - děje se to samo uvnitř `vyhodnot`/`tick`.
+Je to defenzivně obalené (nikdy nespadne skript, i kdyby `nh` chybělo).
+
+---
+
 ## 10. Jak o výsledcích mluvit s uživatelem
 
 - Mluv o **"fiktivních mincích"**, nikdy o korunách ani o zisku.
-- Při malém počtu tiketů (pod ~100) **jakýkoli výsledek je šum**. Deset výher
-  v řadě nedokazuje nic. Řekni to na rovinu, i když banka roste.
-- Když banka klesá, **neomlouvej to a neslibuj nápravu** - je to legitimní
-  zjištění, které stojí za víc než vymyšlený úspěch.
+- Cíl je "podíl rostoucích tiketů převažuje nad klesajícími" - to je jiné
+  tvrzení než "model vydělává" nebo "porazí trh". Nepleť ta dvě tvrzení
+  dohromady, ani když to vyzní hůř.
+- Při malém počtu tiketů (pod ~100) **je podíl výher nespolehlivý odhad**.
+  Deset výher v řadě u skutečného 90% favorita nedokazuje, že strategie bude
+  takhle úspěšná napořád. Řekni to na rovinu, i když banka roste.
+- Když banka i přes vysoký podíl výher klesá, **neomlouvej to a neslibuj
+  nápravu** - je to legitimní výsledek (sázková marže), ne chyba.
 - Nikdy netvrď, že nějaká strategie zaručí, že banka neklesne pod startovní
   hodnotu. To matematicky nejde - u každé sázky je nenulová šance prohry.
 - Když si nejsi jistý, jestli výsledek o něčem svědčí, řekni že nesvědčí.
@@ -333,3 +383,57 @@ nic se neztratí a nic se nezduplikuje.
 **Než budeš cokoli měnit, přečti si `references/metodika.md`.** Jsou tam
 naměřená čísla ke všemu, co se v tomhle projektu zkoušelo, včetně věcí, co
 nefungovaly - ušetří ti to opakování slepých uliček.
+
+---
+
+## 12. Druhý, rychlejší trh: vítěz AKTUÁLNÍHO GEMU (`live_game_bet.py`)
+
+Oddělený skript, **vlastní banka** (`live_game_bets_log.jsonl`, taky start
+1000 mincí - NENÍ sdílená s `live_bets_log.jsonl` od `watch`). Sází na to,
+kdo vyhraje PRÁVĚ ROZEHRANÝ gem, ne celý zápas - mnohem vyšší frekvence
+(gem trvá pár minut, zápas jich má desítky).
+
+```bash
+cd /root/statistiky/.claude/skills/match-probability/scripts && source ~/.env
+python3 live_game_bet.py tick     # jedno kolo: vyhodnotí dřívější tikety + hledá nové
+python3 live_game_bet.py status   # přehled, NESTOJÍ API kvótu
+```
+
+**Zásadní rozdíl oproti `watch`:** pro "kdo vyhraje tenhle gem" neexistuje
+nezávislý skutečný trh kurzů, proti kterému by šlo model ověřit (Odds API
+nabízí nanejvýš vítěze zápasu/setu). Sází se čistě na historický hold rate
+hráče přepočítaný na pravděpodobnost z AKTUÁLNÍHO bodového skóre (matematický
+přepočet téhož čísla, ne nová informace - podrobnosti v hlavičce skriptu
+a v `references/metodika.md`). Práh je proto přísnější (`GAME_FAV_MIN = 0,70`)
+a tiebreaky se úplně přeskakují (jiné skórování).
+
+**Vyhodnocení je OKAMŽITÉ, v rámci stejného `tick`** - žádný samostatný
+`resolve` skript. Při každém kole se nejdřív ze stejného stažení dat
+vyhodnotí tikety z MINULÉHO kola (porovná se zaznamenaný stav gemu s
+aktuálním), a teprve pak se hledají nové příležitosti. Pokud mezi dvěma
+koly proběhlo víc než jeden gem (= `tick` se nevolal dost často), tiket se
+označí jako `void` (zrušen, banka se nemění) - radši nehádat vítěze, než
+tvrdit něco nepodloženého.
+
+**Kvóta: tenhle skript potřebuje MNOHEM kratší interval než `watch`** - gem
+skončí za pár minut, takže dává smysl spouštět `tick` řádově **každých
+1-3 minuty**, ne každých 15-30 jako `watch`. To spotřebuje kvótu rychle
+(100 volání/den při 1 volání/tick vydrží jen ~2-5 hodin provozu podle
+intervalu). **Před spuštěním smyčky vždy zkontroluj `/usage` a `crontab -l`**
+- `watch` může běžet souběžně (jiný cron, viz `cron_tick.sh`) a sdílí stejný
+klíč a denní limit. Naplánuj interval tak, aby oběma zbyla rezerva, nebo
+pusť `live_game_bet.py` jen na omezenou dobu (např. jednu hodinu, pak
+zastav), ne natrvalo.
+
+Příklad spuštění ve smyčce na omezenou dobu (30 kol po 90 s = cca 45 minut,
+~30 volání API):
+
+```bash
+cd /root/statistiky/.claude/skills/match-probability/scripts && source ~/.env
+for i in $(seq 1 30); do
+  echo "=== tick $i $(date '+%H:%M:%S') ==="
+  python3 live_game_bet.py tick
+  sleep 90
+done
+python3 live_game_bet.py status
+```

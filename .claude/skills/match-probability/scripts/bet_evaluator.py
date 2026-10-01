@@ -5,8 +5,9 @@ Vyhodnocovač fiktivních tenisových sázek z `live_tennis_simulator.py`.
 Dělá dvě věci:
   1. Dotáhne skutečné výsledky zápasů, na které jsou nevyřízené tikety
      (Live Tennis API), označí je jako výhru/prohru a PŘIPÍŠE DO BANKY.
-  2. Vypíše poctivý přehled - vývoj banky, úspěšnost, ROI a rozpad podle
-     kurzových a edge pásem.
+  2. Vypíše poctivý přehled - hlavně PODÍL ROSTOUCÍCH TIKETŮ (cíl strategie
+     "silný favorit" v live_tennis_simulator.py, viz jeho docstring), dál
+     vývoj banky, ROI a rozpad podle kurzových pásem.
 
 Banka startuje na 1000 fiktivních mincí a nikde se neukládá jako číslo -
 vždy se dopočítá z `live_bets_log.jsonl` (výhra: +vklad*(kurz-1),
@@ -19,11 +20,15 @@ Režimy:
 Kvóta: `vyhodnot` spotřebuje 1 volání Live Tennis API za každý nevyřízený
 tiket (free tier má 100 volání/den). `report` nespotřebuje nic.
 
-POZOR na interpretaci: při řádově desítkách tiketů je jakýkoli výsledek šum.
-Deset výher v řadě nedokazuje, že model má nad trhem výhodu, a klesající
-banka je legitimní zjištění, ne chyba k opravení. Ve fotbalové části tohohle
-projektu vyšla po poctivém měření ztráta ve VŠECH testovaných variantách
-(viz references/metodika.md) - tady může vyjít totéž.
+POZOR na interpretaci: strategie "silný favorit" cílí na vysoký PODÍL
+vyhraných (= rostoucích) tiketů, ne na porážku trhu - to se u malého vzorku
+projeví rychle (vysoká úspěšnost je vidět i po desítkách tiketů). ALE ani
+vysoký podíl výher neznamená kladné ROI ani zaručený dlouhodobý růst -
+sázková marže zůstává v kurzu i u favoritů. Klesající banka i při vysoké
+úspěšnosti (jedna velká prohra smaže víc malých výher) je legitimní
+výsledek, ne chyba k opravení. Viz references/metodika.md pro poctivý
+backtest, který ukázal, že tenhle model nemá nad trhem žádnou prokázanou
+výhodu - jen vysokou úspěšnost u bezpečných favoritů.
 """
 import os
 import sys
@@ -48,6 +53,7 @@ def settle_pending():
 
     print(f"Nevyřízených tiketů: {len(pending)} - zjišťuji výsledky...\n")
     n_settled = 0
+    bank_running = sim.current_bank(log)
     for e in pending:
         m = sim.fetch_match(e["match_id"])
         # OVĚŘENO na skutečném dokončeném zápase (id 196994, 1. 10. 2026):
@@ -71,6 +77,15 @@ def settle_pending():
         mark = "VÝHRA" if e["status"] == "won" else "PROHRA"
         print(f"  [{mark:<6}] {e['player1']} vs {e['player2']} - tiket na {e['pick']} "
               f"@ {e['odds']}, vyhrál {winner_name} ({e['profit']:+.0f} mincí)")
+
+        bank_before = bank_running
+        bank_running += e["profit"]
+        emoji = "📈" if e["profit"] > 0 else "📉"
+        sim.notify(
+            f"{emoji} Tiket {mark.lower()}: {e['pick']}",
+            f"{e['player1']} vs {e['player2']} @ {e['odds']}\n"
+            f"Banka: {bank_before:.0f} -> {bank_running:.0f} mincí ({e['profit']:+.0f})",
+        )
 
     if n_settled:
         sim.rewrite_log(log)
@@ -114,8 +129,16 @@ def report():
     roi = (returned - staked) / staked if staked else 0.0
 
     print("=" * 66)
-    print("PŘEHLED FIKTIVNÍCH TENISOVÝCH SÁZEK")
+    print("PŘEHLED FIKTIVNÍCH TENISOVÝCH SÁZEK (strategie: silný favorit)")
     print("=" * 66)
+    if settled:
+        up_share = len(won) / len(settled)
+        trend = "PŘEVAŽUJE RŮST" if up_share > 0.5 else (
+            "PŘEVAŽUJE POKLES" if up_share < 0.5 else "VYROVNANÉ")
+        print(f"Podíl rostoucích tiketů (výher): {up_share:>6.1%}  -> {trend}")
+        print(f"  ({len(won)} roste / {len(settled) - len(won)} klesá "
+              f"z {len(settled)} vyhodnocených)")
+    print()
     print(f"Rozpočet na start:    {sim.STARTING_BANK:>10.0f} mincí")
     print(f"Banka teď:            {bank:>10.0f} mincí  "
           f"({bank - sim.STARTING_BANK:+.0f})")
@@ -125,13 +148,11 @@ def report():
     print(f"  vyhodnocených:      {len(settled):>10}  "
           f"(výhra {len(won)}, prohra {len(settled) - len(won)})")
     if settled:
-        print(f"  úspěšnost:          {len(won) / len(settled):>9.1%}")
         print(f"  vsazeno / vráceno:  {staked:>10.0f} / {returned:.0f} mincí")
-        print(f"  ROI:                {roi:>+9.1%}")
+        print(f"  ROI:                {roi:>+9.1%}  (poctivé měřítko peněz - "
+              f"i vysoký podíl výher může dát záporné ROI)")
         avg_odds = sum(e["odds"] for e in settled) / len(settled)
-        avg_edge = sum(e["edge"] for e in settled) / len(settled)
         print(f"  průměrný kurz:      {avg_odds:>10.2f}")
-        print(f"  průměrný edge:      {avg_edge:>+9.1%}")
 
     if len(settled) >= 2:
         print("\nVÝVOJ BANKY (chronologicky podle vyhodnocení)")
@@ -148,29 +169,26 @@ def report():
         print("  posledních 10 tiketů:")
         for e, b in list(zip(chron, curve[1:]))[-10:]:
             mark = "V" if e["status"] == "won" else "P"
-            print(f"    [{mark}] {e['pick'][:22]:<22} @ {e['odds']:>5.2f} "
-                  f"edge {e['edge']:+.0%}  -> banka {b:.0f}")
+            print(f"    [{mark}] {e['pick'][:22]:<22} @ {e['odds']:>5.2f}  -> banka {b:.0f}")
 
     if len(settled) >= 5:
         print("\nROZPAD PODLE KURZU")
         _breakdown(settled, lambda e: _band(
             e["odds"], [1.5, 2.5, 4.0], ["pod 1,50", "1,50-2,49", "2,50-3,99", "4,00+"]))
-        print("\nROZPAD PODLE EDGE (rozdíl model vs. trh)")
-        _breakdown(settled, lambda e: _band(
-            e["edge"], [0.10, 0.15], ["6-9 p.b.", "10-14 p.b.", "15-25 p.b."]))
 
     print("\n" + "-" * 66)
     if len(settled) < N_MEANINGFUL:
-        print(f"POZOR: vyhodnocených tiketů je {len(settled)}, to je na jakýkoli závěr")
-        print(f"málo. Smysluplně se o výhodě nad trhem dá mluvit řádově od "
-              f"{N_MEANINGFUL} tiketů")
-        print("výš. Cokoli z téhle tabulky je zatím šum - i kdyby banka rostla.")
+        print(f"POZOR: vyhodnocených tiketů je {len(settled)}, to je málo na "
+              f"spolehlivý podíl výher. I u skutečných favoritů se pár desítek")
+        print(f"tiketů může sejít příznivěji nebo hůř, než je jejich dlouhodobá")
+        print(f"úspěšnost. Spolehlivější obrázek dá řádově {N_MEANINGFUL}+ tiketů.")
     else:
-        print(f"Vzorek {len(settled)} tiketů už něco naznačuje, ale pořád platí, že")
-        print("ROI blízko nuly nerozhodne nic. Rozhodně neupravuj parametry")
-        print("dodatečně tak, aby výsledek vyšel hezky - tím se měření znehodnotí.")
-    print("Mince jsou FIKTIVNÍ. Žádná sázková strategie nemůže zaručit, že banka")
-    print("neklesne pod startovní hodnotu - u každé sázky je nenulová šance prohry.")
+        print(f"Vzorek {len(settled)} tiketů už dává slušnou představu o podílu výher.")
+        print("Neupravuj parametry dodatečně tak, aby výsledek vyšel hezky -")
+        print("tím se měření znehodnotí.")
+    print("Mince jsou FIKTIVNÍ. I strategie se spoustou výherních tiketů může mít")
+    print("záporné ROI (jedna velká prohra smaže víc malých výher) a žádná")
+    print("strategie nemůže zaručit, že banka neklesne pod startovní hodnotu.")
     print("-" * 66)
 
 

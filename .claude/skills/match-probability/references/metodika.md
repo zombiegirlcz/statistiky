@@ -525,3 +525,97 @@ rozehraný set se pozná podle počtu záznamů v poli (`games[0]` má víc prvk
 než je dohraných setů) - pokud ne, gemy jsou 0:0 a zápas je "mezi sety".
 Ověřeno na reálném běhu: po opravě hlásí skript smysluplné "MEČBOL"/"setbol"
 a žádné falešné brejky při přechodu mezi sety.
+
+### Změna cíle: "silný favorit" místo "hodnotová sázka" (1. 10. 2026)
+
+Po poctivém backtestu výš (`tennis_value_backtest.py`) je jasné, že model
+nemá žádnou výhodu nad trhem - "hodnotové" sázky (kde model vidí vyšší
+pravděpodobnost než trh) jsou systematicky ztrátové. Uživatel upřesnil cíl:
+nejde o to porazit trh, ale o to, **aby banka mezi jednotlivými tikety
+spíš rostla než klesala** - tedy vysoký podíl vyhraných tiketů, ne edge.
+
+To je jiná, dosažitelná metrika. Strategie `watch` se přepsala z
+"edge mezi modelem a trhem" (`EDGE_MIN`/`EDGE_MAX`, odstraněno) na
+"silný favorit potvrzený dvěma nezávislými zdroji":
+
+| Parametr | Hodnota | Proč |
+|---|---|---|
+| `FAV_MODEL_MIN` | 0,75 | náš model musí hráče vidět jako jasného favorita |
+| `FAV_MARKET_MIN` | 0,65 | a SKUTEČNÝ trh ho musí vidět jako favorita taky - nezávislé potvrzení, chrání proti chybě/zastaralosti v našem čtení živého skóre (viz oprava "games" výš) |
+| `FAV_MAX_ODDS` | 1,60 | kurz nad tohle už není "bezpečný" favorit |
+
+Důvod, proč tohle má šanci fungovat na úrovni "podíl výher", i když edge
+nefunguje na úrovni "ROI": favorité v historických datech vyhrávají velmi
+často (u kurzů do 1,2 to vychází na desítky procent nad 85% úspěšnost -
+viz segmentový rozpad v `tennis_value_backtest.py --segmenty`). Vysoká
+úspěšnost jednotlivých sázek je matematicky jiná vlastnost než kladné
+očekávané ROI - **obojí spolu nesouvisí tak, jak by se mohlo zdát.**
+Sázka s 90% šancí na výhru a kurzem 1,05 má v průměru i tak mírně zápornou
+očekávanou hodnotu (bookmakerská marže je zaceněná i do kurzů na favority -
+stejný segmentový rozpad ukázal ROI -2,4 % i v nejbezpečnějším pásmu).
+
+**Co se tím získává:** vizuálně a prakticky banka "mezi tikety roste
+častěji, než klesá" - to je to, co uživatel chtěl. **Co se tím NEzíská:**
+žádná záruka, že banka v dlouhém běhu (stovky tiketů) skončí nad startovní
+hodnotou - to zůstává matematicky nemožné zaručit u jakékoliv sázkové
+strategie. `bet_evaluator.py` teď hlásí obojí zvlášť a výslovně odlišeně:
+"podíl rostoucích tiketů" (hlavní sledovaná metrika) a ROI (poctivé peněžní
+měřítko, které může být záporné i při vysokém podílu výher).
+
+### Druhý trh: vítěz aktuálního gemu (`live_game_bet.py`, 1. 10. 2026)
+
+Na výslovné přání uživatele ("sledovat průběh zápasu a sázet na to, kdo
+vyhraje aktuální gem") vznikl oddělený nástroj pro mnohem vyšší frekvenci
+sázek - vítěz PRÁVĚ ROZEHRANÉHO gemu, ne celého zápasu. Vlastní banka
+(`live_game_bets_log.jsonl`), neslučuje se s `live_bets_log.jsonl`.
+
+**Model (odvozený, ne nový odhad):** hold rate hráče (pravděpodobnost výhry
+celého gemu na podání od stavu 0:0) se binárním hledáním převede na
+pravděpodobnost výhry JEDNOHO BODU na podání `p`, která při standardním
+skórování (0/15/30/40, výhoda od 40:40) dá přesně tenhle hold rate zpátky.
+Z `p` a aktuálního bodového skóre se klasickou rekurzí (shodný mechanismus
+jako `match_win_prob`, jen na úrovni bodů místo gemů) spočítá pravděpodobnost
+výhry rozehraného gemu. Ověřeno výpočtem: hold 0,55/0,65/0,75/0,85 →
+invertované `p` → zpětně dosazené do vzorce dá přesně původní hold rate
+(na 4 desetinná místa). Krajní stavy dávají očekávané hodnoty (hold 0,55 při
+40:0 → 94,9 %, při 0:40 → 7,6 %; hold 0,60 na výhodu podávajícího → 80,7 %,
+na výhodu přijímajícího → 31,4 %).
+
+**Tohle NENÍ nová informace** - je to stejné historické číslo jako všude
+jinde v projektu (hold rate z `game_flow.py`/Match Charting), jen vyjádřené
+na jemnější časové škále. Proto skript ani netvrdí nic o "hodnotě" - cíl je
+stejný jako u `watch` (ať banka mezi tikety spíš roste), ne objev edge.
+
+**Chybí nezávislé ověření:** na rozdíl od `watch` (kde model musí souhlasit
+se SKUTEČNÝM trhem) pro vítěze jednotlivého gemu žádný reálný trh kurzů
+neexistuje (Odds API nabízí nanejvýš zápas/set) - nejde tedy stejným
+způsobem chránit proti chybě ve čtení živého skóre. Jediná ochrana je vyšší
+práh (`GAME_FAV_MIN = 0,70` vs. 0,65 u trhu v `watch`) a úplné vynechání
+tiebreaků (jiné skórování, model na ně neplatí).
+
+**Vyhodnocení bez extra volání API:** `tick` vyhodnotí tikety z PŘEDCHOZÍHO
+kola ze stejných dat, která stahuje pro hledání nových příležitostí (žádný
+samostatný `resolve`). Pokud mezi dvěma koly proběhl víc než jeden gem
+(= `tick` se nevolal dost často), tiket se označí `void` (zrušen, banka se
+nemění) - princip "radši nehádat, než tvrdit nepodložené", stejný jako jinde
+v projektu.
+
+**Kvótové omezení:** gem trvá řádově minuty, takže `tick` potřebuje interval
+1-3 minuty (ne 15-30 jako `watch`) - to vyčerpá denní limit (100 volání)
+za pár hodin provozu. Nástroj je proto určený ke spouštění v časově
+omezených smyčkách, ne natrvalo, a sdílí API klíč/kvótu s `watch` (pokud
+běží souběžně přes `cron_tick.sh`), takže je potřeba kontrolovat `/usage`
+před spuštěním.
+
+### Systémové notifikace při změně banky (1. 10. 2026)
+
+Na přání uživatele posílá `notify()` (v `live_tennis_simulator.py`, sdílená
+přes `bet_evaluator.py` i `live_game_bet.py`) systémovou notifikaci PŘI
+KAŽDÉM vyhodnocení tiketu (won/lost - ne při `void` ani při pouhém založení
+tiketu, protože ani jedno z toho banku nemění). Prostředí běží v
+NetHunter AI Operator PRoot (viz `~/nethunter_docs.md`), notifikace jde
+přes jeho sjednocené CLI: `nh system notification -t <titulek> -c <text>`.
+
+Implementace je defenzivní - `notify()` je obalená v `try/except` a nikdy
+nespadne, i kdyby `nh` chybělo nebo selhalo (notifikace je bonus, ne
+kritická funkce; skript musí fungovat i mimo NetHunter prostředí).

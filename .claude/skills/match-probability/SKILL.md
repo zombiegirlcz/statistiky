@@ -114,7 +114,7 @@ python3 .claude/skills/match-probability/scripts/tennis_value_backtest.py --segm
 
 **Poctivý nález** (viz `references/metodika.md` pro plná čísla): model (ani jednoduchý `forma+h2h`, ani Elo) **nemá žádnou prokázanou sázkovou výhodu** - trh tipuje vítěze přesněji (66,0 % vs. 60,6-63,8 %), hodnotové sázky jsou ztrátové (ROI -7,7 % až -10,1 %) a nejpřísnější test (namíchání modelu do tržní ceny) ukázal, že **žádná váha modelu nezlepší predikci nad čistý trh** - model nedrží vůbec žádnou informaci navíc. Řekni tohle uživateli přímo, pokud se zeptá na stavbu automatizovaného sázecího bota - není to nedostatek implementace (zkusily se dvě různé metodiky), je to důsledek toho, že ATP/WTA kurzy jsou jeden z nejlikvidnějších a nejefektivnějších sportovních trhů - veřejná data, ze kterých model počítá, už má trh dávno zaceněná.
 
-## Volitelně: živé sledování probíhajících tenisových zápasů (fiktivní tikety)
+## Volitelně: živé sledování probíhajících tenisových zápasů (fiktivní tikety na favority)
 
 Pokud uživatel chce sledovat **právě probíhající** tenisové zápasy a nechat model zakládat fiktivní tikety "za běhu" (mezi gemy/sety), použij dvojici skriptů. Potřebují dva klíče v `~/.env`: `LIVE_TENNIS_API_KEY` (livetennisapi.com - živé skóre po gemech a bodech) a `ODDS_API_KEY` (skutečné živé kurzy).
 
@@ -123,12 +123,23 @@ cd /root/statistiky/.claude/skills/match-probability/scripts && source ~/.env
 python3 live_tennis_simulator.py watch   # sleduje průběh VŠECH živých zápasů, hlásí události, zakládá tikety
 python3 live_tennis_simulator.py status  # rychlý přehled, nestojí API kvótu
 python3 bet_evaluator.py vyhodnot        # zjistí výsledky dohraných zápasů a připíše je do banky
-python3 bet_evaluator.py report          # jen přehled s ROI a vývojem banky, nestojí API kvótu
+python3 bet_evaluator.py report          # jen přehled s podílem výher, ROI a vývojem banky, nestojí API kvótu
 ```
 
-Rozpočet je **1000 fiktivních mincí** (žádné skutečné peníze, žádný sázkový účet), stav žije v `live_bets_log.jsonl` a `live_progress_log.jsonl` - skripty jsou mezi spuštěními bezstavové, dají se spouštět opakovaně v čase (doporučeně `watch` každých 15-30 minut, limit free tieru je 100 volání/den). **Kompletní samostatný návod je v `AGENT_NAVOD.md`.**
+**Cíl tohohle nástroje NENÍ porazit trh** (viz nález výš - žádná prokázaná výhoda) - je to, aby banka **mezi jednotlivými tikety spíš rostla než klesala**. Proto nehledá "hodnotu" proti trhu, ale **silné favority, na kterých se nezávisle shodnou model i skutečný trh** (model aspoň 75 % šance, trh aspoň 65 %, kurz do 1,60) - ti v historických datech vyhrávají velmi často. Rozpočet je **1000 fiktivních mincí** (žádné skutečné peníze, žádný sázkový účet), stav žije v `live_bets_log.jsonl` a `live_progress_log.jsonl` - skripty jsou mezi spuštěními bezstavové, dají se spouštět opakovaně v čase (doporučeně `watch` každých 15-30 minut, limit free tieru je 100 volání/den). **Kompletní samostatný návod je v `AGENT_NAVOD.md`.**
 
-Po nálezu výš **neočekávej skutečnou výhodu ani tady** - je to stejná rodina modelu, jen uvnitř zápasu místo před ním. Hodnota nástroje je ve sledování a poctivém měření (ROI, ne banka ani úspěšnost), ne v očekávaném zisku.
+**Důležité rozlišení, které je třeba uživateli říkat přesně:** vysoký podíl vyhraných tiketů (= banka mezi tikety spíš roste) NENÍ totéž co kladné ROI nebo zaručený dlouhodobý zisk. Sázková marže zůstává zaceněná i v kurzu na favorita - i při 90% úspěšnosti může jedna prohra smazat zisk z mnoha malých výher. `bet_evaluator.py report` proto hlásí obojí zvlášť: "podíl rostoucích tiketů" (hlavní cíl) a ROI (poctivé peněžní měřítko) - nepleť je dohromady, když referuješ výsledky.
+
+### Rychlejší varianta: sázka na vítěze AKTUÁLNÍHO GEMU (`live_game_bet.py`)
+
+Oddělený skript, oddělená banka (`live_game_bets_log.jsonl`) - sází na vítěze PRÁVĚ ROZEHRANÉHO GEMU, ne celého zápasu. Mnohem vyšší frekvence (gem trvá pár minut), ale **bez nezávislého trhu kurzů na ověření** (Odds API nemá kurzy na jednotlivé gemy) - sází čistě na historický hold rate přepočítaný na pravděpodobnost z aktuálního bodového skóre (matematický přepočet téhož čísla, ne nová informace).
+
+```bash
+python3 .claude/skills/match-probability/scripts/live_game_bet.py tick     # jedno kolo: vyhodnotí + hledá nové
+python3 .claude/skills/match-probability/scripts/live_game_bet.py status   # přehled, nestojí API kvótu
+```
+
+Potřebuje spouštět **mnohem častěji** než `watch` (řádově co 1-3 minuty, ne co 15-30) - při free tieru (100 volání/den) to vydrží jen pár hodin provozu, takže ho spouštěj v časově omezené smyčce, ne natrvalo, a vždy zkontroluj `/usage` a `crontab -l`, jestli neběží souběžně i `watch` na stejný klíč. Kompletní návod včetně modelu a příkladu smyčky je v `AGENT_NAVOD.md`, sekce 12.
 
 ## Když data chybí
 

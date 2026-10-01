@@ -23,13 +23,27 @@ REŽIMY:
                  s minulým snímkem a vypíše, CO SE MEZITÍM STALO (brejk,
                  uzavřený set, tiebreak, setbol/mečbol, výrazný posun
                  pravděpodobnosti, změna favorita). Kde zároveň vidí
-                 hodnotu proti skutečným kurzům a má volný rozpočet,
-                 založí fiktivní tiket.
+                 SILNÉHO FAVORITA (viz níže) a má volný rozpočet, založí
+                 fiktivní tiket.
   2. `scan`    - jen alias na `watch` (zpětná kompatibilita).
   3. `status`  - rychlý přehled banky a tiketů, BEZ volání API.
 
 Vyhodnocování sázek a připisování do banky dělá SAMOSTATNÝ skript
 `bet_evaluator.py` (spouštěj ho zvlášť, viz AGENT_NAVOD.md).
+
+CÍL A STRATEGIE (DŮLEŽITÁ ZMĚNA oproti dřívější verzi): cílem NENÍ porazit
+trh (viz `references/metodika.md` - poctivý backtest ukázal, že tenhle model
+žádnou prokázanou výhodu nad trhem nemá a mít nebude). Cílem je, aby banka
+**mezi jednotlivými tikety spíš rostla, než klesala** - tedy vysoký podíl
+vyhraných tiketů, i za cenu nižšího zisku na vyhraném tiketu. Proto se sází
+výhradně na SILNÉ FAVORITY (viz FAV_MODEL_MIN/FAV_MARKET_MIN/FAV_MAX_ODDS
+níže) - ti v historických datech vyhrávají nejčastěji (naměřeno: u kurzů do
+1,2 vychází úspěšnost v řádu 90 % a ROI je nejméně záporné ze všech
+kurzových pásem, viz metodika.md). I tak: sázková marže znamená, že se
+OČEKÁVANÁ hodnota každého tiketu nikdy nedostane nad nulu - "spíš roste než
+klesá" je o tom, že většina JEDNOTLIVÝCH tiketů vyhraje, ne o tom, že se tím
+porazí matematika sázení. Řekni tohle uživateli na rovinu, nikdy to
+nezamlčuj ani neslibuj zaručený růst.
 
 ROZPOČET: 1000 fiktivních mincí. Vklad je STAKE_PCT z aktuální banky
 (minimálně MIN_STAKE), a zároveň platí strop na souběžnou expozici
@@ -43,11 +57,12 @@ DŮLEŽITÁ OMEZENÍ (poctivé nálezy z dřívějšího ladění):
     nevidí aktuální zranění, únavu ani počasí. Proto má pravděpodobnost
     podlahu a strop (MIN_PROB/MAX_PROB), aby nikdy netvrdil "100 % jisté".
   - MIN_HOLD_N chrání proti nesmyslným odhadům u málo zaznamenaných hráčů.
-  - EDGE_MAX chrání proti tomu, aby se obrovský rozdíl vůči trhu bral jako
-    "objevená hodnota" - častěji je to známka zastaralého nebo špatně
-    přečteného skóre. Přesně tohle se stalo u zápasu Bublik-Mensik
-    1. 10. 2026, kde špatně čtená struktura pole "games" vyrobila zdánlivý
-    edge přes 50 procentních bodů (viz references/metodika.md).
+  - FAV_MARKET_MIN vyžaduje, aby i SKUTEČNÝ trh (nezávislý zdroj) viděl
+    stejného hráče jako jasného favorita - to je ochrana proti tomu, aby
+    chyba nebo zastaralost v našem čtení živého skóre (přesně tohle se
+    stalo u zápasu Bublik-Mensik 1. 10. 2026, viz references/metodika.md)
+    vyrobila sázku na špatnou stranu. Model a trh se tu NEPOROVNÁVAJÍ kvůli
+    hledání edge, ale kvůli vzájemnému ověření.
   - NIKDY nesmí vzniknout "trh" jako zpožděná kopie vlastního modelu - to je
     tautologie, která vyrobí zisk i při nulové předvídací schopnosti (viz
     metodika.md). Tenhle skript proto porovnává výhradně se skutečnými kurzy.
@@ -58,6 +73,7 @@ Použití:
 """
 import json
 import os
+import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -74,10 +90,15 @@ LOG_PATH = os.path.join(_DATA_DIR, "live_bets_log.jsonl")
 PROGRESS_PATH = os.path.join(_DATA_DIR, "live_progress_log.jsonl")
 
 MIN_HOLD_N = 20          # min. počet dřívějších podávacích gemů KAŽDÉHO hráče
-EDGE_MIN = 0.06          # min. rozdíl model vs. trh na založení tiketu
-EDGE_MAX = 0.25          # nad tohle je rozdíl podezřelý (zastaralá data), ne hodnota
 MIN_PROB = 0.02          # nikdy netvrdit míň než 2 % - skutečná míra skreče/walkoveru
 MAX_PROB = 0.98          # je v našich datech 3,59 % všech zápasů (30 885 zápasů)
+
+# Strategie "silný favorit" (cíl: ať banka mezi tikety spíš roste než klesá,
+# ne porazit trh - viz docstring výš). Sází se jen když SE SHODNOU oba
+# nezávislé zdroje - náš model i skutečný trh:
+FAV_MODEL_MIN = 0.75     # náš model musí hráče vidět aspoň na 75 % šanci
+FAV_MARKET_MIN = 0.65    # a skutečný trh ho taky musí vidět jako jasného favorita
+FAV_MAX_ODDS = 1.60      # kurz nad tohle už není "bezpečný" favorit, nesázet
 
 STARTING_BANK = 1000.0   # rozpočet ve fiktivních mincích
 STAKE_PCT = 0.02         # vklad = 2 % aktuální banky
@@ -85,6 +106,26 @@ MIN_STAKE = 10.0         # pod tohle se nesází (odpovídá minimálnímu vklad
 MAX_EXPOSURE_PCT = 0.25  # max. podíl banky vázaný v nevyřízených tiketech zároveň
 
 BIG_PROB_SHIFT = 0.10    # od jakého posunu pravděpodobnosti to hlásit jako událost
+
+
+# ---------------------------------------------------------------------------
+# Systémová notifikace (NetHunter AI Operator `nh` CLI, pokud je dostupné)
+# ---------------------------------------------------------------------------
+def notify(title, content):
+    """Pošle systémovou notifikaci přes `nh system notification`. Tohle
+    prostředí běží v NetHunter AI Operator PRoot - `nh` je jeho sjednocený
+    CLI bridge na Android notifikace (viz ~/nethunter_docs.md). Sdílí ji i
+    `bet_evaluator.py` a `live_game_bet.py` (import live_tennis_simulator
+    jako base/sim). NIKDY nesmí shodit volající skript - když `nh` chybí
+    nebo selže (jiné prostředí, appka vypnutá...), jen se to potichu
+    přeskočí, notifikace je bonus, ne kritická funkce."""
+    try:
+        subprocess.run(
+            ["nh", "system", "notification", "-t", title, "-c", content],
+            capture_output=True, timeout=10, check=False,
+        )
+    except Exception:
+        pass
 
 
 # ---------------------------------------------------------------------------
@@ -544,28 +585,35 @@ def cmd_watch():
             continue
 
         p1_model = cur["model_p1"]
-        edge1 = p1_model - probs[name1]
-        edge2 = (1 - p1_model) - probs[name2]
+        # Strategie "silný favorit": sází se jen když se SHODNOU model i
+        # skutečný trh, že je některý hráč jasný favorit (ne na edge mezi
+        # nimi - viz docstring, cíl je vysoký podíl vyhraných tiketů, ne
+        # hledání hodnoty proti trhu). Jen jedna strana může podmínku
+        # splnit zároveň, protože pravděpodobnosti dávají dohromady 1.
+        candidates = ((name1, p1_model), (name2, 1 - p1_model))
         pick = None
-        if EDGE_MIN <= edge1 <= EDGE_MAX and name1 in best_odds:
-            pick = (name1, best_odds[name1], edge1, p1_model)
-        elif EDGE_MIN <= edge2 <= EDGE_MAX and name2 in best_odds:
-            pick = (name2, best_odds[name2], edge2, 1 - p1_model)
+        for name, p_model in candidates:
+            p_mkt = probs.get(name)
+            odds = best_odds.get(name)
+            if p_mkt is None or odds is None:
+                continue
+            if p_model >= FAV_MODEL_MIN and p_mkt >= FAV_MARKET_MIN and odds <= FAV_MAX_ODDS:
+                pick = (name, odds, p_model, p_mkt)
+                break
         if not pick:
             continue
 
         stake, reason = next_stake(log)
         if stake is None:
-            print(f"      ! hodnota na {pick[0]} @ {pick[1]} (edge {pick[2]:+.0%}), "
+            print(f"      ! favorit {pick[0]} @ {pick[1]} (model {pick[2]:.0%}/trh {pick[3]:.0%}), "
                   f"ale tiket se nezakládá: {reason}")
             continue
 
-        name, odds, edge, model_p = pick
+        name, odds, model_p, market_p = pick
         entry = {
             "match_id": m["id"], "logged_at": ts, "tournament": m.get("tournament"),
             "player1": name1, "player2": name2, "pick": name, "odds": odds,
-            "edge": round(edge, 4), "model_p": round(model_p, 4),
-            "market_p": round(probs[name], 4),
+            "model_p": round(model_p, 4), "market_p": round(market_p, 4),
             "score_at_bet": (f"sety {cur['sets'][0]}:{cur['sets'][1]}, "
                              f"gemy {cur['games'][0]}:{cur['games'][1]}"),
             "stake": stake, "status": "pending",
@@ -573,7 +621,8 @@ def cmd_watch():
         append_log(entry)
         log.append(entry)
         n_bets += 1
-        print(f"      => TIKET na {name} @ {odds} (edge {edge:+.0%}), vklad {stake:.0f} mincí")
+        print(f"      => TIKET na favorita {name} @ {odds} "
+              f"(model {model_p:.0%}, trh {market_p:.0%}), vklad {stake:.0f} mincí")
 
     print(f"\nSledováno zápasů: {n_tracked}")
     print(f"  bez modelu (málo historických dat na hráče): {n_nodata}")
@@ -599,8 +648,10 @@ def cmd_status():
               f"vázáno {pending_exposure(log):.0f}")
         print("\nPosledních 5 tiketů:")
         for e in log[-5:]:
+            info = (f"edge {e['edge']:+.0%}" if "edge" in e
+                    else f"model {e.get('model_p', 0):.0%}/trh {e.get('market_p', 0):.0%}")
             print(f"  [{e['status']:<8}] {e['player1']} vs {e['player2']} - na {e['pick']} "
-                  f"@ {e['odds']} (edge {e['edge']:+.0%}) při {e.get('score_at_bet', '?')}")
+                  f"@ {e['odds']} ({info}) při {e.get('score_at_bet', '?')}")
     snaps = last_snapshots()
     if snaps:
         print(f"\nSledovaných zápasů v průběhovém logu: {len(snaps)} "
