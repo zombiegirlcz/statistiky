@@ -156,3 +156,83 @@ Nových fiktivních tiketů: 0
 Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
 
 Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+
+########## 2026-10-01 16:00:00 UTC ##########
+Žádné nevyřízené tikety.
+
+==================================================================
+PŘEHLED FIKTIVNÍCH TENISOVÝCH SÁZEK (strategie: silný favorit)
+==================================================================
+Podíl rostoucích tiketů (výher): 100.0%  -> PŘEVAŽUJE RŮST
+  (1 roste / 0 klesá z 1 vyhodnocených)
+
+Rozpočet na start:          1000 mincí
+Banka teď:                  1005 mincí  (+5)
+Vázáno v nevyřízených:         0 mincí (0 tiketů)
+
+Tiketů celkem:                 1
+  vyhodnocených:               1  (výhra 1, prohra 0)
+  vsazeno / vráceno:          20 / 25 mincí
+  ROI:                   +27.0%  (poctivé měřítko peněz - i vysoký podíl výher může dát záporné ROI)
+  průměrný kurz:            1.27
+
+------------------------------------------------------------------
+POZOR: vyhodnocených tiketů je 1, to je málo na spolehlivý podíl výher. I u skutečných favoritů se pár desítek
+tiketů může sejít příznivěji nebo hůř, než je jejich dlouhodobá
+úspěšnost. Spolehlivější obrázek dá řádově 100+ tiketů.
+Mince jsou FIKTIVNÍ. I strategie se spoustou výherních tiketů může mít
+záporné ROI (jedna velká prohra smaže víc malých výher) a žádná
+strategie nemůže zaručit, že banka neklesne pod startovní hodnotu.
+------------------------------------------------------------------
+Živých zápasů: 32 (z toho dvouhry: 19)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Amandine Monnot vs Salma Djoubri [W35 Reims] sety 0:1, gemy 6:5, body 15:15 | model: 26% / 74%
+      - BREJK pro Amandine Monnot (6:5)
+      - posun šance Amandine Monnot: 4% -> 26%
+John Hallquist Lithen vs Benjamin Azar [M15 Ann Arbor, MI] sety 1:0, gemy 5:0, body 40:AD | model: málo historických dat
+      - John Hallquist Lithen získal 1. set (6:4) - stav na sety 1:0
+Salma Drugdova vs Carlota Moreno [W15 Nashville] sety 1:1, gemy 2:1, body 0:0 | model: 61% / 39%
+      - Carlota Moreno získal 2. set (2:6) - stav na sety 1:1
+Chiara Di Genova vs Valeria Ray [W15 Nashville] sety 1:0, gemy 5:2, body AD:40 | model: 98% / 2%
+      - BREJK pro Valeria Ray (5:2)
+      - MEČBOL pro Chiara Di Genova (AD:40, gemy 5:2)
+      - posun šance Chiara Di Genova: 75% -> 98%
+Max Dahlin vs Alexander Bernard [M15 Ann Arbor, MI] sety 1:0, gemy 3:3, body 30:40 | model: málo historických dat
+      - Max Dahlin získal 1. set (7:5) - stav na sety 1:0
+Olaf Pieczkowski vs Mitchell Sheldon [M15 Ann Arbor, MI] sety 1:0, gemy 2:5, body 30:30 | model: málo historických dat
+      - Olaf Pieczkowski získal 1. set (6:3) - stav na sety 1:0
+Ashton Bowers vs Stefani Webb [W15 Nashville] sety 1:0, gemy 3:4, body 0:30 | model: málo historických dat
+      - BREJK pro Stefani Webb (3:4)
+Matt Kuhar vs Naoto Tomizawa [M15 Ann Arbor, MI] sety 0:1, gemy 1:4, body 40:AD | model: málo historických dat
+      - Naoto Tomizawa získal 1. set (2:6) - stav na sety 0:1
+Martin Krumich vs Pierluigi Basile [Bari (Italy)] sety 1:0, gemy 5:1, body 40:40 | model: málo historických dat
+      - Martin Krumich získal 1. set (6:3) - stav na sety 1:0
+Vlado Jankanj vs Dominick Mosejczuk [M15 Fayetteville, AR] sety 0:1, gemy 1:2, body 0:0 | model: málo historických dat
+      - Dominick Mosejczuk získal 1. set (2:6) - stav na sety 0:1
+Neo Niedner vs Alvin Nicholas Tudorica [M15 Fayetteville, AR] sety 0:0, gemy 3:5, body 40:AD | model: málo historických dat
+      - BREJK pro Neo Niedner (3:5)
+      - setbol pro Alvin Nicholas Tudorica (40:AD, gemy 5:3)
+Jonah Braswell vs Jordan Lee [M15 Fayetteville, AR] sety 1:0, gemy 0:1, body 0:0 | model: málo historických dat
+      - Jonah Braswell získal 1. set (6:0) - stav na sety 1:0
+Keegan Smith vs Bryce Nakashima [Columbus] sety 1:0, gemy 0:1, body 0:0 | model: málo historických dat
+      - Keegan Smith získal 1. set (6:4) - stav na sety 1:0
+Ugo Blanchet vs Clement Chidekh [Mouilleron-Le-Captif] sety 0:1, gemy 0:0, body 0:0 | model: málo historických dat
+      - poprvé viděn (sety 0:1, gemy 0:0)
+Eszter Meri vs Astra Sharma [W15 Nashville] sety 0:0, gemy 0:0, body 0:0 | model: 50% / 50%
+      - poprvé viděn (sety 0:0, gemy 0:0)
+Marina Bulbarella vs Pilar Da Silva [ITF W15 Trelew Women] sety 0:0, gemy 1:5, body 30:30 | model: 10% / 90%
+      - poprvé viděn (sety 0:0, gemy 1:5)
+Francesca Mattioli vs Rose Marie Nijkamp [W15 Nashville] sety 0:0, gemy 0:0, body AD:40 | model: 57% / 43%
+      - poprvé viděn (sety 0:0, gemy 0:0)
+Ana Sofia Sanchez vs Florencia Belen Moron [W15 Trelew] sety 1:0, gemy 0:0, body 0:0 | model: málo historických dat
+      - poprvé viděn (sety 1:0, gemy 0:0)
+Elias Ymer vs Federico Cinà [Jingshan] sety 0:0, gemy 1:0, body 0:0 | model: 55% / 45%
+
+Sledováno zápasů: 19
+  bez modelu (málo historických dat na hráče): 12
+  bez živých kurzů v nabídce: 4
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
