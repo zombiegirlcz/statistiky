@@ -65,6 +65,53 @@ def load_clean():
 # ---------------------------------------------------------------------------
 # Model: pravdepodobnosti pro trhy, pro ktere mame v datech skutecne kurzy
 # ---------------------------------------------------------------------------
+def wdl_probs(all_rows, match):
+    """Odlehcena verze bt.predict_football_match() - pocita JEN p_home/p_draw/
+    p_away. Puvodni predict_football_match navic pocita i corner_pick a
+    card_pick (vcetne referee_cards_rate, ktera skenuje VSECHNY drivejsi
+    zapasy daneho rozhodciho) - to je pro tenhle skript naprosto zbytecna
+    prace, co ho u velkych backtestu (desitky dni x desitky zapasu) citelne
+    zpomalovala. Logika vypoctu p_home/p_draw/p_away je schvalne identicka
+    s predict_football_match, jen bez toho navic."""
+    cutoff = match["_d"]
+    home, away = match["HomeTeam"], match["AwayTeam"]
+    past = [r for r in all_rows if r["_d"] < cutoff]
+
+    def safe(v, d):
+        return v if v is not None else d
+
+    def team_matches(team):
+        return [r for r in past if r["HomeTeam"] == team or r["AwayTeam"] == team]
+
+    def result_for(team, r):
+        if r["HomeTeam"] == team:
+            gf, ga = float(r["FTHG"]), float(r["FTAG"])
+        else:
+            gf, ga = float(r["FTAG"]), float(r["FTHG"])
+        return "W" if gf > ga else ("D" if gf == ga else "L")
+
+    m_home = sorted(team_matches(home), key=lambda r: r["_d"])
+    m_away = sorted(team_matches(away), key=lambda r: r["_d"])
+    recent_home = m_home[-10:]
+    recent_away = m_away[-10:]
+    form_home = sum(1 for r in recent_home if result_for(home, r) == "W") / len(recent_home) if recent_home else 0.4
+    form_away = sum(1 for r in recent_away if result_for(away, r) == "W") / len(recent_away) if recent_away else 0.4
+    hwr = safe((sum(1 for r in m_home if r["HomeTeam"] == home and result_for(home, r) == "W") /
+                max(1, sum(1 for r in m_home if r["HomeTeam"] == home))), 0.4)
+    awr = safe((sum(1 for r in m_away if r["AwayTeam"] == away and result_for(away, r) == "W") /
+                max(1, sum(1 for r in m_away if r["AwayTeam"] == away))), 0.3)
+    h2h = [r for r in past if {r["HomeTeam"], r["AwayTeam"]} == {home, away}]
+    h2h_home_wr = (sum(1 for r in h2h if result_for(home, r) == "W") / len(h2h)) if h2h else form_home
+    h2h_away_wr = (sum(1 for r in h2h if result_for(away, r) == "W") / len(h2h)) if h2h else form_away
+
+    score_home = 0.4 * form_home + 0.3 * hwr + 0.3 * h2h_home_wr
+    score_away = 0.4 * form_away + 0.3 * awr + 0.3 * h2h_away_wr
+    league_past = [r for r in past if r["_league_file"] == match["_league_file"]]
+    draw_rate = (sum(1 for r in league_past if r["FTR"] == "D") / len(league_past)) if league_past else 0.25
+    total = score_home + score_away + draw_rate
+    return score_home / total, draw_rate / total, score_away / total
+
+
 def goal_lambdas(all_rows, match):
     """Stejny vypocet lam_home/lam_away (tymovy prumer + h2h blend 65/35)
     jako uvnitr backtest.predict_football_match - tam se ale vraci jen
@@ -175,8 +222,7 @@ def candidate_legs(all_rows, match):
     if home_n < MIN_TEAM_MATCHES or away_n < MIN_TEAM_MATCHES:
         return []
 
-    pred = bt.predict_football_match(all_rows, match)
-    p_home, p_draw, p_away = pred["p_home"], pred["p_draw"], pred["p_away"]
+    p_home, p_draw, p_away = wdl_probs(all_rows, match)
 
     def addleg(market, selection, label, model_p, odds):
         if odds is None or model_p is None:
