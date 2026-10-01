@@ -29,7 +29,10 @@
   "tdd": {
     "phase": "idle",
     "testFiles": [],
-    "sourceFiles": [],
+    "sourceFiles": [
+      "/tmp/sxcheck.py",
+      "/tmp/sxraw.py"
+    ],
     "redVerificationPending": false
   },
   "debug": {

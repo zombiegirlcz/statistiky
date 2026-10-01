@@ -506,3 +506,205 @@ Banka: 927 mincí (start 1000), nevyřízeno 16 tiketů
 --- live_game_bet agresivni-tick ---
 
 Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
+
+########## 2026-10-01 18:20:00 UTC ##########
+Živých zápasů: 29 (z toho dvouhry: 12)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Marko Mesarovic vs Oliver Bonding [M15 Ann Arbor, MI] sety 0:1, gemy 0:0, body 40:30 | model: málo historických dat
+      - Oliver Bonding získal 1. set (4:6) - stav na sety 0:1
+Francesca Mattioli vs Rose Marie Nijkamp [W15 Nashville] sety 1:1, gemy 2:3, body 0:0 | model: 43% / 57%
+      - BREJK pro Rose Marie Nijkamp (2:3)
+Felix Corwin vs Damir Zhalgasbay [M15 Ann Arbor, MI] sety 0:1, gemy 4:2, body 40:30 | model: málo historických dat
+      - BREJK pro Damir Zhalgasbay (4:2)
+Nikola Djosic vs Thanaphat Boosarawongse [M15 Ann Arbor, MI] sety 1:0, gemy 2:2, body 30:15 | model: málo historických dat
+      - BREJK pro Thanaphat Boosarawongse (2:2)
+Mathilde Lollia vs Juliana Giaccio [W35 Baza] sety 0:1, gemy 4:5, body 0:30 | model: 8% / 92%
+      - BREJK pro Juliana Giaccio (4:5)
+Luciana Moyano vs Sofia Meabe [W15 Trelew] sety 0:0, gemy 2:2, body 0:0 | model: 2% / 98%
+      - poprvé viděn (sety 0:0, gemy 2:2)
+Ana Victoria Gobbi Monllau vs Emily Zornada [W15 Trelew] sety 1:0, gemy 0:1, body 15:30 | model: 66% / 34%
+      - Ana Victoria Gobbi Monllau získal 1. set (6:4) - stav na sety 1:0
+      - posun šance Ana Victoria Gobbi Monllau: 50% -> 66%
+Whitney Osuigwe vs Ella McDonald [W100 Templeton] sety 0:1, gemy 0:0, body 40:AD | model: málo historických dat
+      - Ella McDonald získal 1. set (6:7) - stav na sety 0:1
+Akasha Urhobo vs Malaika Rapolu [W100 Templeton] sety 0:1, gemy 3:4, body 15:15 | model: 12% / 88%
+      - BREJK pro Akasha Urhobo (3:4)
+Colton Smith vs Aidan Mayo [Columbus] sety 0:1, gemy 1:0, body 15:40 | model: málo historických dat
+      - Aidan Mayo získal 1. set (2:6) - stav na sety 0:1
+Tristan Schoolkate vs Harold Mayot [Mouilleron-Le-Captif] sety 0:0, gemy 3:1, body 15:30 | model: 49% / 51%
+      - poprvé viděn (sety 0:0, gemy 3:1)
+Stefan Kozlov vs Mitchell Krueger [Columbus] sety 0:0, gemy 2:2, body 0:15 | model: 65% / 35%
+      - poprvé viděn (sety 0:0, gemy 2:2)
+
+Sledováno zápasů: 12
+  bez modelu (málo historických dat na hráče): 5
+  bez živých kurzů v nabídce: 7
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+--- live_game_bet tick ---
+  [void ] Felix Corwin vs Damir Zhalgasbay - tiket na Felix Corwin (mezitím proběhlo víc gemů naráz ([1, 1] -> [4, 2]))
+  [void ] Nikola Djosic vs Thanaphat Boosarawongse - tiket na Nikola Djosic (mezitím proběhlo víc gemů naráz ([1, 1] -> [2, 2]))
+  [void ] Francesca Mattioli vs Rose Marie Nijkamp - tiket na Francesca Mattioli (mezitím proběhlo víc gemů naráz ([0, 1] -> [2, 3]))
+  [won  ] Ana Victoria Gobbi Monllau vs Emily Zornada - tiket na Ana Victoria Gobbi Monllau (Ana Victoria Gobbi Monllau)
+      => TIKET na gem pro Francesca Mattioli @ 1.42 (p=71%), vklad 19 mincí [Francesca Mattioli vs Rose Marie Nijkamp]
+      => TIKET na gem pro Felix Corwin @ 1.22 (p=82%), vklad 19 mincí [Felix Corwin vs Damir Zhalgasbay]
+      => TIKET na gem pro Nikola Djosic @ 1.08 (p=93%), vklad 19 mincí [Nikola Djosic vs Thanaphat Boosarawongse]
+      => TIKET na gem pro Emily Zornada @ 1.07 (p=93%), vklad 19 mincí [Ana Victoria Gobbi Monllau vs Emily Zornada]
+      => TIKET na gem pro Malaika Rapolu @ 1.24 (p=81%), vklad 19 mincí [Akasha Urhobo vs Malaika Rapolu]
+      => TIKET na gem pro Aidan Mayo @ 1.05 (p=96%), vklad 19 mincí [Colton Smith vs Aidan Mayo]
+      => TIKET na gem pro Mitchell Krueger @ 1.14 (p=88%), vklad 19 mincí [Stefan Kozlov vs Mitchell Krueger]
+
+Zkontrolováno na podání: 12 (bez dost dat: 1, přeskočeno tiebreak/mezi sety: 0)
+Vyhodnoceno dřívějších tiketů: 4, nových tiketů: 7
+Banka: 930 mincí (start 1000), nevyřízeno 19 tiketů
+--- live_game_bet agresivni-tick ---
+
+Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
+
+########## 2026-10-01 18:40:00 UTC ##########
+Živých zápasů: 32 (z toho dvouhry: 13)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Nikola Djosic vs Thanaphat Boosarawongse [M15 Ann Arbor, MI] sety 1:0, gemy 5:2, body 15:15 | model: málo historických dat
+Marko Mesarovic vs Oliver Bonding [M15 Ann Arbor, MI] sety 0:1, gemy 2:2, body 15:30 | model: málo historických dat
+      - BREJK pro Oliver Bonding (2:2)
+Felix Corwin vs Damir Zhalgasbay [M15 Ann Arbor, MI] sety 1:1, gemy 0:1, body 30:30 | model: málo historických dat
+      - Felix Corwin získal 2. set (6:3) - stav na sety 1:1
+Francesca Mattioli vs Rose Marie Nijkamp [W15 Nashville] sety 1:1, gemy 2:4, body 30:15 | model: 19% / 81%
+      - BREJK pro Rose Marie Nijkamp (2:4)
+      - posun šance Francesca Mattioli: 43% -> 19%
+Luciana Moyano vs Sofia Meabe [W15 Trelew] sety 0:0, gemy 4:3, body 15:15 | model: 3% / 97%
+      - BREJK pro Sofia Meabe (4:3)
+Ana Victoria Gobbi Monllau vs Emily Zornada [W15 Trelew] sety 1:0, gemy 0:2, body 40:40 | model: 62% / 38%
+Whitney Osuigwe vs Ella McDonald [W100 Templeton] sety 0:1, gemy 0:3, body 30:15 | model: málo historických dat
+Colton Smith vs Aidan Mayo [Columbus] sety 0:1, gemy 3:4, body 15:30 | model: málo historických dat
+      - BREJK pro Colton Smith (3:4)
+Stefan Kozlov vs Mitchell Krueger [Columbus] sety 0:1, gemy 0:0, body 0:0 | model: 37% / 63%
+      - Mitchell Krueger získal 1. set (2:6) - stav na sety 0:1
+      - posun šance Stefan Kozlov: 65% -> 37%
+      - změna favorita na Mitchell Krueger
+Tristan Schoolkate vs Harold Mayot [Mouilleron-Le-Captif] sety 0:1, gemy 0:0, body 40:0 | model: 14% / 86%
+      - Harold Mayot získal 1. set (4:6) - stav na sety 0:1
+      - posun šance Tristan Schoolkate: 49% -> 14%
+Joao Eduardo Schiessl vs Luis Augusto Miguel [Curitiba] sety 0:0, gemy 2:1, body 0:0 | model: málo historických dat
+      - poprvé viděn (sety 0:0, gemy 2:1)
+Carolina Kuhl vs Kristina Penickova [W100 Templeton] sety 0:0, gemy 0:1, body 15:0 | model: 64% / 36%
+      - poprvé viděn (sety 0:0, gemy 0:1)
+Mary Stoiana vs Julieta Pareja [W100 Templeton] sety 0:0, gemy 0:0, body 15:30 | model: 40% / 60%
+      - poprvé viděn (sety 0:0, gemy 0:0)
+
+Sledováno zápasů: 13
+  bez modelu (málo historických dat na hráče): 6
+  bez živých kurzů v nabídce: 6
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+--- live_game_bet tick ---
+  [lost ] Francesca Mattioli vs Rose Marie Nijkamp - tiket na Francesca Mattioli (Rose Marie Nijkamp)
+  [won  ] Felix Corwin vs Damir Zhalgasbay - tiket na Felix Corwin (Felix Corwin)
+  [void ] Nikola Djosic vs Thanaphat Boosarawongse - tiket na Nikola Djosic (mezitím proběhlo víc gemů naráz ([2, 2] -> [5, 2]))
+  [won  ] Ana Victoria Gobbi Monllau vs Emily Zornada - tiket na Emily Zornada (Emily Zornada)
+  [void ] Colton Smith vs Aidan Mayo - tiket na Aidan Mayo (mezitím proběhlo víc gemů naráz ([1, 0] -> [3, 4]))
+  [won  ] Stefan Kozlov vs Mitchell Krueger - tiket na Mitchell Krueger (Mitchell Krueger)
+      => TIKET na gem pro Emily Zornada @ 1.18 (p=85%), vklad 18 mincí [Ana Victoria Gobbi Monllau vs Emily Zornada]
+      => TIKET na gem pro Aidan Mayo @ 1.16 (p=86%), vklad 18 mincí [Colton Smith vs Aidan Mayo]
+      => TIKET na gem pro Tristan Schoolkate @ 1.02 (p=98%), vklad 18 mincí [Tristan Schoolkate vs Harold Mayot]
+      => TIKET na gem pro Carolina Kuhl @ 1.21 (p=83%), vklad 18 mincí [Carolina Kuhl vs Kristina Penickova]
+
+Zkontrolováno na podání: 12 (bez dost dat: 3, přeskočeno tiebreak/mezi sety: 0)
+Vyhodnoceno dřívějších tiketů: 6, nových tiketů: 4
+Banka: 920 mincí (start 1000), nevyřízeno 17 tiketů
+--- live_game_bet agresivni-tick ---
+
+Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
+
+########## 2026-10-01 19:00:00 UTC ##########
+Žádné nevyřízené tikety.
+
+==================================================================
+PŘEHLED FIKTIVNÍCH TENISOVÝCH SÁZEK (strategie: silný favorit)
+==================================================================
+Podíl rostoucích tiketů (výher): 100.0%  -> PŘEVAŽUJE RŮST
+  (1 roste / 0 klesá z 1 vyhodnocených)
+
+Rozpočet na start:          1000 mincí
+Banka teď:                  1005 mincí  (+5)
+Vázáno v nevyřízených:         0 mincí (0 tiketů)
+
+Tiketů celkem:                 1
+  vyhodnocených:               1  (výhra 1, prohra 0)
+  vsazeno / vráceno:          20 / 25 mincí
+  ROI:                   +27.0%  (poctivé měřítko peněz - i vysoký podíl výher může dát záporné ROI)
+  průměrný kurz:            1.27
+
+------------------------------------------------------------------
+POZOR: vyhodnocených tiketů je 1, to je málo na spolehlivý podíl výher. I u skutečných favoritů se pár desítek
+tiketů může sejít příznivěji nebo hůř, než je jejich dlouhodobá
+úspěšnost. Spolehlivější obrázek dá řádově 100+ tiketů.
+Mince jsou FIKTIVNÍ. I strategie se spoustou výherních tiketů může mít
+záporné ROI (jedna velká prohra smaže víc malých výher) a žádná
+strategie nemůže zaručit, že banka neklesne pod startovní hodnotu.
+------------------------------------------------------------------
+Živých zápasů: 27 (z toho dvouhry: 13)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Marko Mesarovic vs Oliver Bonding [M15 Ann Arbor, MI] sety 0:1, gemy 4:5, body 0:0 | model: málo historických dat
+      - BREJK pro Oliver Bonding (4:5)
+Felix Corwin vs Damir Zhalgasbay [M15 Ann Arbor, MI] sety 1:1, gemy 3:2, body 0:15 | model: málo historických dat
+      - BREJK pro Damir Zhalgasbay (3:2)
+Johan Alexander Rodriguez vs Alejandro Melero Kretzer [M15 Fayetteville, AR] sety 0:0, gemy 1:0, body 0:15 | model: málo historických dat
+      - poprvé viděn (sety 0:0, gemy 1:0)
+Ana Victoria Gobbi Monllau vs Emily Zornada [W15 Trelew] sety 1:0, gemy 1:3, body 40:40 | model: 61% / 39%
+      - BREJK pro Ana Victoria Gobbi Monllau (1:3)
+Luciana Moyano vs Sofia Meabe [W15 Trelew] sety 0:0, gemy 5:5, body 30:40 | model: 2% / 98%
+      - BREJK pro Luciana Moyano (5:5)
+Whitney Osuigwe vs Ella McDonald [W100 Templeton] sety 0:1, gemy 2:5, body 15:15 | model: málo historických dat
+      - BREJK pro Ella McDonald (2:5)
+Colton Smith vs Aidan Mayo [Columbus] sety 0:1, gemy 6:5, body 0:0 | model: málo historických dat
+      - BREJK pro Colton Smith (6:5)
+Tristan Schoolkate vs Harold Mayot [Mouilleron-Le-Captif] sety 0:1, gemy 4:2, body 30:0 | model: 30% / 70%
+      - BREJK pro Harold Mayot (4:2)
+      - posun šance Tristan Schoolkate: 14% -> 30%
+Stefan Kozlov vs Mitchell Krueger [Columbus] sety 0:1, gemy 2:1, body 40:40 | model: 51% / 49%
+      - BREJK pro Stefan Kozlov (2:1)
+      - posun šance Stefan Kozlov: 37% -> 51%
+      - změna favorita na Stefan Kozlov
+Joao Eduardo Schiessl vs Luis Augusto Miguel [Curitiba] sety 0:0, gemy 4:3, body 0:0 | model: málo historických dat
+      - BREJK pro Joao Eduardo Schiessl (4:3)
+Carolina Kuhl vs Kristina Penickova [W100 Templeton] sety 0:0, gemy 1:5, body 30:15 | model: 40% / 60%
+      - BREJK pro Kristina Penickova (1:5)
+      - posun šance Carolina Kuhl: 64% -> 40%
+      - změna favorita na Kristina Penickova
+Mary Stoiana vs Julieta Pareja [W100 Templeton] sety 0:0, gemy 1:2, body 30:30 | model: 32% / 68%
+      - BREJK pro Julieta Pareja (1:2)
+Gonzalo Villanueva vs Mateus Alves [Curitiba] sety 0:0, gemy 3:1, body 0:0 | model: málo historických dat
+      - poprvé viděn (sety 0:0, gemy 3:1)
+
+Sledováno zápasů: 13
+  bez modelu (málo historických dat na hráče): 7
+  bez živých kurzů v nabídce: 6
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+--- live_game_bet tick ---
+  [void ] Ana Victoria Gobbi Monllau vs Emily Zornada - tiket na Emily Zornada (mezitím proběhlo víc gemů naráz ([0, 2] -> [1, 3]))
+  [void ] Colton Smith vs Aidan Mayo - tiket na Aidan Mayo (mezitím proběhlo víc gemů naráz ([3, 4] -> [6, 5]))
+  [void ] Tristan Schoolkate vs Harold Mayot - tiket na Tristan Schoolkate (mezitím proběhlo víc gemů naráz ([0, 0] -> [5, 2]))
+  [void ] Carolina Kuhl vs Kristina Penickova - tiket na Carolina Kuhl (mezitím proběhlo víc gemů naráz ([0, 1] -> [1, 5]))
+      => TIKET na gem pro Alejandro Melero Kretzer @ 1.02 (p=98%), vklad 18 mincí [Johan Alexander Rodriguez vs Alejandro Melero Kretzer]
+      => TIKET na gem pro Aidan Mayo @ 1.32 (p=76%), vklad 18 mincí [Colton Smith vs Aidan Mayo]
+      => TIKET na gem pro Harold Mayot @ 1.19 (p=84%), vklad 18 mincí [Tristan Schoolkate vs Harold Mayot]
+      => TIKET na gem pro Mitchell Krueger @ 1.27 (p=78%), vklad 18 mincí [Stefan Kozlov vs Mitchell Krueger]
+      => TIKET na gem pro Mateus Alves @ 1.18 (p=85%), vklad 18 mincí [Gonzalo Villanueva vs Mateus Alves]
+
+Zkontrolováno na podání: 13 (bez dost dat: 3, přeskočeno tiebreak/mezi sety: 0)
+Vyhodnoceno dřívějších tiketů: 4, nových tiketů: 5
+Banka: 920 mincí (start 1000), nevyřízeno 18 tiketů
+--- live_game_bet agresivni-tick ---
+
+Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
