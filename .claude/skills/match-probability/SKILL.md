@@ -61,6 +61,19 @@ Vrátí pravděpodobnost udržení podání pro oba hráče z jejich historie - 
 
 **Důležitý poctivý nález z backtestu** (`game_flow.py --backtest`): predikce "kdo vyhraje game N" se u testovaných 40 zápasů (963 gamů) **shodovala 1:1 s triviálním pravidlem "podávající vždy vyhraje svůj game"** (79,3 % přesnost obou). V profi tenise je držení podání natolik dominantní (typicky 65-85 %), že jemnější zohlednění brejkové úspěšnosti soupeře prakticky nikdy nezmění tip. Řekni tohle uživateli na rovinu, pokud se zeptá "jak přesné to je" - je to poctivé zjištění o tenise samotném, ne o nedostatečném modelu. Kdo podává v gamu 1 (a tedy i ve všech lichých gamech) se losuje těsně před zápasem - to predikovat nejde, je to 50:50.
 
+## Volitelně: profil konkrétního hráče
+
+Pokud se uživatel zeptá na KONKRÉTNÍHO hráče (ne na zápas) - jeho věk, aktuální klub, přestupovou historii, sezónní statistiky (starty/góly/asistence/karty u fotbalu, góly/asistence/+-/trestné minuty u hokeje, nebo výhry/% zákroků u brankáře) - použij:
+
+```bash
+python3 .claude/skills/match-probability/scripts/player_profile.py fotbal "Erling Haaland"
+python3 .claude/skills/match-probability/scripts/player_profile.py hokej "Connor McDavid"
+```
+
+**Pokrytí**: fotbal jen 11 z 22 lig (jen NEJVYŠŠÍ soutěž každé země - Premier League, Bundesliga, Serie A, La Liga, Ligue 1 atd., žádné druhé ligy ani nižší skotské soutěže) a data aktuální k 6. 7. 2026 (zdroj - Transfermarkt - má od poloviny července 2026 pozastavenou aktualizaci, takže úplně čerstvé přestupy/zápasy chybět mohou). Hokej pokrývá celou NHL průběžně. Pokud skript hráče nenajde, řekni to rovnou - je to buď mimo pokrytí, nebo nesedí jméno (zkus jinou variantu).
+
+Tohle je DOPLNĚK k `aggregate_stats.py` (ten počítá pravděpodobnost výsledku ZÁPASU dvou týmů/hráčů) - použij `player_profile.py`, když jde o jednotlivce samotného, ne o souboj dvou stran.
+
 ## Volitelně: porovnání s živými sázkovými kurzy
 
 Pokud je nastavená proměnná prostředí `ODDS_API_KEY` (klíč z the-odds-api.com, zdarma 500 kreditů/měsíc - viz hlavička `scripts/odds_compare.py`), můžeš navíc spustit:
