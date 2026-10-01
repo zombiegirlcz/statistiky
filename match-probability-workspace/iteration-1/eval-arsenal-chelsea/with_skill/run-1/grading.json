@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Odpoved obsahuje tri procenta: vyhra domacich / remiza / vyhra hostu",
+      "passed": true,
+      "evidence": "Arsenal 55 % / Remiza 19 % / Chelsea 26 %"
+    },
+    {
+      "text": "Procenta davaji dohromady cca 100 (+/- 1 kvuli zaokrouhleni)",
+      "passed": true,
+      "evidence": "55+19+26 = 100"
+    },
+    {
+      "text": "Proces prokazatelne pouzil skutecna historicka data",
+      "passed": true,
+      "evidence": "Transcript potvrzuje spusteni aggregate_stats.py fotbal 'Arsenal' 'Chelsea', pouzita skutecna cisla ze skriptu (190 zapasu, H2H 6-3-1)"
+    },
+    {
+      "text": "Odpoved je strucna (do ~80 slov)",
+      "passed": true,
+      "evidence": "Odpoved ma cca 26 slov, jedna veta kontextu navic"
+    },
+    {
+      "text": "Spravne jmenovany oba tymy",
+      "passed": true,
+      "evidence": "Arsenal i Chelsea jmenovani"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

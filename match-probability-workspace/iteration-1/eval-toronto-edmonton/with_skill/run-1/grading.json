@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Odpoved obsahuje dve procenta, jedno pro kazdy tym, davaji dohromady cca 100",
+      "passed": true,
+      "evidence": "Toronto 52 % / Edmonton 48 % = 100"
+    },
+    {
+      "text": "Proces prokazatelne pouzil skutecna historicka data",
+      "passed": true,
+      "evidence": "Transcript potvrzuje spusteni aggregate_stats.py hokej, pouzita realna cisla (448 a 491 zapasu, H2H 7:3)"
+    },
+    {
+      "text": "Odpoved je strucna (do ~80 slov)",
+      "passed": true,
+      "evidence": "Cca 55 slov vcetne kontextu o rozporu formy vs. H2H"
+    },
+    {
+      "text": "Spravne jmenovany oba tymy",
+      "passed": true,
+      "evidence": "Toronto Maple Leafs i Edmonton Oilers jmenovani"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

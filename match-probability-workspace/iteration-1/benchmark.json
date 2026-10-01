@@ -1,0 +1,308 @@
+{
+  "metadata": {
+    "skill_name": "match-probability",
+    "skill_path": "/root/statistiky/.claude/skills/match-probability",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-10-01T02:11:07Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 48.812,
+        "tokens": 54145,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Odpoved obsahuje tri procenta: vyhra domacich / remiza / vyhra hostu",
+          "passed": true,
+          "evidence": "Arsenal 55 % / Remiza 19 % / Chelsea 26 %"
+        },
+        {
+          "text": "Procenta davaji dohromady cca 100 (+/- 1 kvuli zaokrouhleni)",
+          "passed": true,
+          "evidence": "55+19+26 = 100"
+        },
+        {
+          "text": "Proces prokazatelne pouzil skutecna historicka data",
+          "passed": true,
+          "evidence": "Transcript potvrzuje spusteni aggregate_stats.py fotbal 'Arsenal' 'Chelsea', pouzita skutecna cisla ze skriptu (190 zapasu, H2H 6-3-1)"
+        },
+        {
+          "text": "Odpoved je strucna (do ~80 slov)",
+          "passed": true,
+          "evidence": "Odpoved ma cca 26 slov, jedna veta kontextu navic"
+        },
+        {
+          "text": "Spravne jmenovany oba tymy",
+          "passed": true,
+          "evidence": "Arsenal i Chelsea jmenovani"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 44.351,
+        "tokens": 53674,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Odpoved obsahuje dve procenta, jedno pro kazdeho hrace, davaji dohromady cca 100",
+          "passed": true,
+          "evidence": "Sinner 52 % / Alcaraz 48 % = 100"
+        },
+        {
+          "text": "Proces prokazatelne pouzil skutecna historicka data",
+          "passed": true,
+          "evidence": "Transcript potvrzuje spusteni aggregate_stats.py tenis, pouzita realna cisla (405 a 369 zapasu, H2H 7:10)"
+        },
+        {
+          "text": "Odpoved je strucna (do ~80 slov)",
+          "passed": true,
+          "evidence": "Cca 45 slov vcetne kratkeho kontextu"
+        },
+        {
+          "text": "Spravne jmenovani oba hraci",
+          "passed": true,
+          "evidence": "Sinner i Alcaraz jmenovani"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 60.716,
+        "tokens": 55519,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Odpoved obsahuje dve procenta, jedno pro kazdy tym, davaji dohromady cca 100",
+          "passed": true,
+          "evidence": "Toronto 52 % / Edmonton 48 % = 100"
+        },
+        {
+          "text": "Proces prokazatelne pouzil skutecna historicka data",
+          "passed": true,
+          "evidence": "Transcript potvrzuje spusteni aggregate_stats.py hokej, pouzita realna cisla (448 a 491 zapasu, H2H 7:3)"
+        },
+        {
+          "text": "Odpoved je strucna (do ~80 slov)",
+          "passed": true,
+          "evidence": "Cca 55 slov vcetne kontextu o rozporu formy vs. H2H"
+        },
+        {
+          "text": "Spravne jmenovany oba tymy",
+          "passed": true,
+          "evidence": "Toronto Maple Leafs i Edmonton Oilers jmenovani"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 120.865,
+        "tokens": 73519,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Odpoved obsahuje tri procenta: vyhra domacich / remiza / vyhra hostu",
+          "passed": true,
+          "evidence": "Uvadi rozmezi '55-60% / 20-25% / 15-20%' - vsechny tri slozky pritomne, ale jako rozsahy, ne presna cisla"
+        },
+        {
+          "text": "Procenta davaji dohromady cca 100 (+/- 1 kvuli zaokrouhleni)",
+          "passed": true,
+          "evidence": "Stredy rozsahu cca 57.5+22.5+17.5 = 97.5, priblizne 100"
+        },
+        {
+          "text": "Proces prokazatelne pouzil skutecna historicka data",
+          "passed": true,
+          "evidence": "Agent sam prohledal CSV, vytahl H2H na Emirates, tabulku 2025-26, domaci/venkovni formu - bez skillu, ale take data-driven"
+        },
+        {
+          "text": "Odpoved je strucna (do ~80 slov)",
+          "passed": false,
+          "evidence": "Viceodstavcova odpoved s nadpisy, odhadem 270+ slov - presny opak pozadovaneho strucneho formatu"
+        },
+        {
+          "text": "Spravne jmenovany oba tymy",
+          "passed": true,
+          "evidence": "Arsenal i Chelsea jmenovani"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 132.029,
+        "tokens": 69473,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Odpoved obsahuje dve procenta, jedno pro kazdeho hrace, davaji dohromady cca 100",
+          "passed": false,
+          "evidence": "Odpoved se vyhyba konkretnimu cislu, pouze 'spise takove 50:50' bez pevneho vypoctu, misto toho rozebira rozdily podle povrchu"
+        },
+        {
+          "text": "Proces prokazatelne pouzil skutecna historicka data",
+          "passed": true,
+          "evidence": "Agent prosel ATP CSV 2021-2026, vytahl H2H 10:7, rozpad podle povrchu, posledni zapasy"
+        },
+        {
+          "text": "Odpoved je strucna (do ~80 slov)",
+          "passed": false,
+          "evidence": "Vicebodova odpoved s odrazkami, odhadem 180+ slov"
+        },
+        {
+          "text": "Spravne jmenovani oba hraci",
+          "passed": true,
+          "evidence": "Sinner i Alcaraz jmenovani"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 138.105,
+        "tokens": 83743,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Odpoved obsahuje dve procenta, jedno pro kazdy tym, davaji dohromady cca 100",
+          "passed": false,
+          "evidence": "Misto jednoho cisla nabizi tri ruzne scenare podle toho, kdo hraje doma (60-62 % / 65-67 % / 44-46 %), zadna jedna jasna odpoved"
+        },
+        {
+          "text": "Proces prokazatelne pouzil skutecna historicka data",
+          "passed": true,
+          "evidence": "Agent pouzil sezonni statistiky 2025-26, specialni tymy, H2H ze skutecnych CSV"
+        },
+        {
+          "text": "Odpoved je strucna (do ~80 slov)",
+          "passed": false,
+          "evidence": "Nejdelsi ze vsech odpovedi, viceodstavcova s nadpisy, odhadem 300+ slov"
+        },
+        {
+          "text": "Spravne jmenovany oba tymy",
+          "passed": true,
+          "evidence": "Toronto i Edmonton jmenovani"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 51.293,
+        "stddev": 8.4599,
+        "min": 44.351,
+        "max": 60.716
+      },
+      "tokens": {
+        "mean": 54446.0,
+        "stddev": 958.6224,
+        "min": 53674,
+        "max": 55519
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.6,
+        "stddev": 0.1732,
+        "min": 0.5,
+        "max": 0.8
+      },
+      "time_seconds": {
+        "mean": 130.333,
+        "stddev": 8.7442,
+        "min": 120.865,
+        "max": 138.105
+      },
+      "tokens": {
+        "mean": 75578.3333,
+        "stddev": 7354.5133,
+        "min": 69473,
+        "max": 83743
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.40",
+      "time_seconds": "-79.0",
+      "tokens": "-21132"
+    }
+  },
+  "notes": [
+    "Assertion 'proces prokazatelne pouzil skutecna historicka data' nerozlisuje - prosla 3/3 i bez skillu (baseline agent sam od sebe prochazel CSV soubory v /statistiky). Skutecny prinos skillu je jinde: format odpovedi (hola procenta vs. viceodstavcova esej) a konzistence metodiky.",
+    "Nejvyraznejsi zjisteni neni v assertions videt primo: u zapasu Toronto-Edmonton dospel beh BEZ skillu k OPACNEMU favoritovi (Edmonton 60-67 %) nez beh SE skillem (Toronto 52 %). Baseline agent zalozil odhad temer vyhradne na vysledcich posledni sezony (log5 metoda) a vzajemnou 5letou bilanci (7:3 pro Toronto), kterou sam nasel, do financniho cisla temer nepromitl. To je presne ten problem, ktery skill resi: bez pevne dane a zdokumentovane metodiky je vysledek nahodny podle toho, co si agent zrovna vybere zduraznit - ne proto, ze by nemel data, ale proto, ze neni dany jednotny zpusob, jak je zkombinovat.",
+    "Skill je zaroven rychlejsi (51s vs 130s, ~2.5x) a levnejsi na tokeny (54k vs 76k) - deterministicky skript nahrazuje opakovane rucni prohledavani a vymyslovani vlastni analyzy CSV pri kazdem behu.",
+    "Hlavni slabina baseline byla delka odpovedi (0/3 behu splnilo pozadavek na strucnost) - bez skillu Claude defaultne tihne k dlouhemu rozboru s nadpisy a odrazkami, i kdyz uzivatel vyslovne chtel jen hola procenta."
+  ]
+}

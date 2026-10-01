@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "arsenal-chelsea",
+  "prompt": "Jake ma Arsenal sance doma proti Chelsea?",
+  "assertions": [
+    {"text": "Odpoved obsahuje tri procenta: vyhra domacich / remiza / vyhra hostu"},
+    {"text": "Procenta davaji dohromady cca 100 (+/- 1 kvuli zaokrouhleni)"},
+    {"text": "Proces prokazatelne pouzil skutecna historicka data (spustil aggregate_stats.py nebo cetl CSV s realnymi zapasy Arsenalu a Chelsea), ne jen obecnou znalost"},
+    {"text": "Odpoved je strucna (orientacne do ~80 slov), odpovida preferenci uzivatele na hola procenta bez dlouheho rozboru"},
+    {"text": "V odpovedi jsou spravne jmenovany oba tymy (Arsenal, Chelsea)"}
+  ]
+}

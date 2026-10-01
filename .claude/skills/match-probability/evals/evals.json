@@ -1,0 +1,45 @@
+{
+  "skill_name": "match-probability",
+  "evals": [
+    {
+      "id": 1,
+      "name": "arsenal-chelsea",
+      "prompt": "Jake ma Arsenal sance doma proti Chelsea?",
+      "expected_output": "Fotbalova pravdepodobnost (vyhra domacich / remiza / vyhra hostu) spoctena ze skutecnych dat v /statistiky/fotbal (forma, vzajemna bilance, domaci/venkovni split), ne odhad z obecne znalosti.",
+      "files": [],
+      "assertions": [
+        {"text": "Odpoved obsahuje tri procenta: vyhra domacich / remiza / vyhra hostu"},
+        {"text": "Procenta davaji dohromady cca 100 (+/- 1 kvuli zaokrouhleni)"},
+        {"text": "Proces prokazatelne pouzil skutecna historicka data (spustil aggregate_stats.py nebo cetl CSV s realnymi zapasy Arsenalu a Chelsea), ne jen obecnou znalost"},
+        {"text": "Odpoved je strucna (orientacne do ~80 slov), odpovida preferenci uzivatele na hola procenta bez dlouheho rozboru"},
+        {"text": "V odpovedi jsou spravne jmenovany oba tymy (Arsenal, Chelsea)"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "sinner-alcaraz",
+      "prompt": "Co myslis, kdo vyhraje zapas Sinner vs Alcaraz?",
+      "expected_output": "Tenisova pravdepodobnost (hrac A % / hrac B %) spoctena ze skutecnych zapasu v /statistiky/tenis (forma, vzajemna bilance), ne odhad z obecne znalosti.",
+      "files": [],
+      "assertions": [
+        {"text": "Odpoved obsahuje dve procenta, jedno pro kazdeho hrace, davaji dohromady cca 100"},
+        {"text": "Proces prokazatelne pouzil skutecna historicka data (spustil aggregate_stats.py tenis nebo cetl CSV se skutecnymi zapasy Sinnera a Alcaraze), ne jen obecnou znalost"},
+        {"text": "Odpoved je strucna (orientacne do ~80 slov), odpovida preferenci uzivatele na hola procenta bez dlouheho rozboru"},
+        {"text": "V odpovedi jsou spravne jmenovani oba hraci (Sinner, Alcaraz)"}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "toronto-edmonton",
+      "prompt": "Vsadil bych si na zapas Toronto Maple Leafs - Edmonton Oilers, jake ma kdo sance?",
+      "expected_output": "Hokejova pravdepodobnost (tym A % / tym B %) spoctena ze skutecnych NHL dat v /statistiky/hokej (forma, vzajemna bilance), ne odhad z obecne znalosti.",
+      "files": [],
+      "assertions": [
+        {"text": "Odpoved obsahuje dve procenta, jedno pro kazdy tym, davaji dohromady cca 100"},
+        {"text": "Proces prokazatelne pouzil skutecna historicka data (spustil aggregate_stats.py hokej nebo cetl CSV se skutecnymi NHL zapasy Toronta a Edmontonu), ne jen obecnou znalost"},
+        {"text": "Odpoved je strucna (orientacne do ~80 slov), odpovida preferenci uzivatele na hola procenta bez dlouheho rozboru"},
+        {"text": "V odpovedi jsou spravne jmenovany oba tymy (Toronto, Edmonton)"}
+      ]
+    }
+  ]
+}

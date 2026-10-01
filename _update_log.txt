@@ -1,0 +1,67 @@
+
+--- 2026-10-01T02:27:53.687420 ---
+[02:26:05] === DENNI AKTUALIZACE (2026-10-01) ===
+[02:26:05]   [fotbal] Anglie - Premier League (2026-27): 0 -> 51 radku (+51)
+[02:26:06]   [fotbal] Anglie - Championship (2026-27): 0 -> 96 radku (+96)
+[02:26:06]   [fotbal] Anglie - League One (2026-27): 0 -> 88 radku (+88)
+[02:26:06]   [fotbal] Anglie - League Two (2026-27): 0 -> 95 radku (+95)
+[02:26:06]   [fotbal] Anglie - National League (2026-27): 0 -> 133 radku (+133)
+[02:26:06]   [fotbal] Skotsko - Premiership (2026-27): 0 -> 43 radku (+43)
+[02:26:06]   [fotbal] Skotsko - Championship (2026-27): 0 -> 40 radku (+40)
+[02:26:07]   [fotbal] Skotsko - League One (2026-27): 0 -> 40 radku (+40)
+[02:26:07]   [fotbal] Skotsko - League Two (2026-27): 0 -> 41 radku (+41)
+[02:26:07]   [fotbal] Nemecko - Bundesliga (2026-27): 0 -> 37 radku (+37)
+[02:26:07]   [fotbal] Nemecko - 2. Bundesliga (2026-27): 0 -> 55 radku (+55)
+[02:26:07]   [fotbal] Italie - Serie A (2026-27): 0 -> 51 radku (+51)
+[02:26:07]   [fotbal] Italie - Serie B (2026-27): 0 -> 51 radku (+51)
+[02:26:08]   [fotbal] Spanelsko - La Liga (2026-27): 0 -> 70 radku (+70)
+[02:26:08]   [fotbal] Spanelsko - Segunda Division (2026-27): 0 -> 78 radku (+78)
+[02:26:08]   [fotbal] Francie - Ligue 1 (2026-27): 0 -> 46 radku (+46)
+[02:26:08]   [fotbal] Francie - Ligue 2 (2026-27): 0 -> 64 radku (+64)
+[02:26:08]   [fotbal] Nizozemsko - Eredivisie (2026-27): 0 -> 64 radku (+64)
+[02:26:08]   [fotbal] Belgie - Jupiler Pro League (2026-27): 0 -> 64 radku (+64)
+[02:26:08]   [fotbal] Portugalsko - Primeira Liga (2026-27): 0 -> 63 radku (+63)
+[02:26:09]   [fotbal] Turecko - Super Lig (2026-27): 0 -> 55 radku (+55)
+[02:26:09]   [fotbal] Recko - Super League (2026-27): 0 -> 36 radku (+36)
+[02:26:11] [tenis] zadne nove zapasy, vse aktualni
+[02:26:11] [hokej] 2026-2027: 7 novych zapasu k dostazeni (z 7 celkem)
+[02:26:12] [hokej] 2026-2027: pridano 7 zapasu
+[02:26:12] Prevadim 23 zmenenych souboru do Markdownu...
+[02:26:21]   [markitdown] prevedeno: 2026-27_E0_Anglie_-_Premier_League.md
+[02:26:25]   [markitdown] prevedeno: 2026-27_E1_Anglie_-_Championship.md
+[02:26:30]   [markitdown] prevedeno: 2026-27_E2_Anglie_-_League_One.md
+[02:26:34]   [markitdown] prevedeno: 2026-27_E3_Anglie_-_League_Two.md
+[02:26:38]   [markitdown] prevedeno: 2026-27_EC_Anglie_-_National_League.md
+[02:26:42]   [markitdown] prevedeno: 2026-27_SC0_Skotsko_-_Premiership.md
+[02:26:46]   [markitdown] prevedeno: 2026-27_SC1_Skotsko_-_Championship.md
+[02:26:50]   [markitdown] prevedeno: 2026-27_SC2_Skotsko_-_League_One.md
+[02:26:55]   [markitdown] prevedeno: 2026-27_SC3_Skotsko_-_League_Two.md
+[02:26:59]   [markitdown] prevedeno: 2026-27_D1_Nemecko_-_Bundesliga.md
+[02:27:03]   [markitdown] prevedeno: 2026-27_D2_Nemecko_-_2._Bundesliga.md
+[02:27:07]   [markitdown] prevedeno: 2026-27_I1_Italie_-_Serie_A.md
+[02:27:11]   [markitdown] prevedeno: 2026-27_I2_Italie_-_Serie_B.md
+[02:27:15]   [markitdown] prevedeno: 2026-27_SP1_Spanelsko_-_La_Liga.md
+[02:27:20]   [markitdown] prevedeno: 2026-27_SP2_Spanelsko_-_Segunda_Division.md
+[02:27:24]   [markitdown] prevedeno: 2026-27_F1_Francie_-_Ligue_1.md
+[02:27:28]   [markitdown] prevedeno: 2026-27_F2_Francie_-_Ligue_2.md
+[02:27:32]   [markitdown] prevedeno: 2026-27_N1_Nizozemsko_-_Eredivisie.md
+[02:27:37]   [markitdown] prevedeno: 2026-27_B1_Belgie_-_Jupiler_Pro_League.md
+[02:27:41]   [markitdown] prevedeno: 2026-27_P1_Portugalsko_-_Primeira_Liga.md
+[02:27:45]   [markitdown] prevedeno: 2026-27_T1_Turecko_-_Super_Lig.md
+[02:27:49]   [markitdown] prevedeno: 2026-27_G1_Recko_-_Super_League.md
+[02:27:53]   [markitdown] prevedeno: NHL_2026-2027.md
+[02:27:53] === HOTOVO: 23 souboru zmeneno ===
+
+--- 2026-10-01T02:28:07.642988 ---
+[02:28:02] === DENNI AKTUALIZACE (2026-10-01) ===
+[02:28:06] [fotbal] zadne nove zapasy, vse aktualni
+[02:28:07] [tenis] zadne nove zapasy, vse aktualni
+[02:28:07] [hokej] 2026-2027: zadne nove zapasy (celkem 7, uz mame 7)
+[02:28:07] === HOTOVO: 0 souboru zmeneno ===
+
+--- 2026-10-01T02:29:58.912516 ---
+[02:29:53] === DENNI AKTUALIZACE (2026-10-01) ===
+[02:29:57] [fotbal] zadne nove zapasy, vse aktualni
+[02:29:58] [tenis] zadne nove zapasy, vse aktualni
+[02:29:58] [hokej] 2026-2027: zadne nove zapasy (celkem 7, uz mame 7)
+[02:29:58] === HOTOVO: 0 souboru zmeneno ===

@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Odpoved obsahuje dve procenta, jedno pro kazdy tym, davaji dohromady cca 100",
+      "passed": false,
+      "evidence": "Misto jednoho cisla nabizi tri ruzne scenare podle toho, kdo hraje doma (60-62 % / 65-67 % / 44-46 %), zadna jedna jasna odpoved"
+    },
+    {
+      "text": "Proces prokazatelne pouzil skutecna historicka data",
+      "passed": true,
+      "evidence": "Agent pouzil sezonni statistiky 2025-26, specialni tymy, H2H ze skutecnych CSV"
+    },
+    {
+      "text": "Odpoved je strucna (do ~80 slov)",
+      "passed": false,
+      "evidence": "Nejdelsi ze vsech odpovedi, viceodstavcova s nadpisy, odhadem 300+ slov"
+    },
+    {
+      "text": "Spravne jmenovany oba tymy",
+      "passed": true,
+      "evidence": "Toronto i Edmonton jmenovani"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  }
+}

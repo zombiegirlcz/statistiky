@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Odpoved obsahuje dve procenta, jedno pro kazdeho hrace, davaji dohromady cca 100",
+      "passed": false,
+      "evidence": "Odpoved se vyhyba konkretnimu cislu, pouze 'spise takove 50:50' bez pevneho vypoctu, misto toho rozebira rozdily podle povrchu"
+    },
+    {
+      "text": "Proces prokazatelne pouzil skutecna historicka data",
+      "passed": true,
+      "evidence": "Agent prosel ATP CSV 2021-2026, vytahl H2H 10:7, rozpad podle povrchu, posledni zapasy"
+    },
+    {
+      "text": "Odpoved je strucna (do ~80 slov)",
+      "passed": false,
+      "evidence": "Vicebodova odpoved s odrazkami, odhadem 180+ slov"
+    },
+    {
+      "text": "Spravne jmenovani oba hraci",
+      "passed": true,
+      "evidence": "Sinner i Alcaraz jmenovani"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  }
+}

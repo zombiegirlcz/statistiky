@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Odpoved obsahuje tri procenta: vyhra domacich / remiza / vyhra hostu",
+      "passed": true,
+      "evidence": "Uvadi rozmezi '55-60% / 20-25% / 15-20%' - vsechny tri slozky pritomne, ale jako rozsahy, ne presna cisla"
+    },
+    {
+      "text": "Procenta davaji dohromady cca 100 (+/- 1 kvuli zaokrouhleni)",
+      "passed": true,
+      "evidence": "Stredy rozsahu cca 57.5+22.5+17.5 = 97.5, priblizne 100"
+    },
+    {
+      "text": "Proces prokazatelne pouzil skutecna historicka data",
+      "passed": true,
+      "evidence": "Agent sam prohledal CSV, vytahl H2H na Emirates, tabulku 2025-26, domaci/venkovni formu - bez skillu, ale take data-driven"
+    },
+    {
+      "text": "Odpoved je strucna (do ~80 slov)",
+      "passed": false,
+      "evidence": "Viceodstavcova odpoved s nadpisy, odhadem 270+ slov - presny opak pozadovaneho strucneho formatu"
+    },
+    {
+      "text": "Spravne jmenovany oba tymy",
+      "passed": true,
+      "evidence": "Arsenal i Chelsea jmenovani"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 1,
+    "total": 5,
+    "pass_rate": 0.8
+  }
+}

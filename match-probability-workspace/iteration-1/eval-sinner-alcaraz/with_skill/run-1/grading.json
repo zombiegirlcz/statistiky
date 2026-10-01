@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Odpoved obsahuje dve procenta, jedno pro kazdeho hrace, davaji dohromady cca 100",
+      "passed": true,
+      "evidence": "Sinner 52 % / Alcaraz 48 % = 100"
+    },
+    {
+      "text": "Proces prokazatelne pouzil skutecna historicka data",
+      "passed": true,
+      "evidence": "Transcript potvrzuje spusteni aggregate_stats.py tenis, pouzita realna cisla (405 a 369 zapasu, H2H 7:10)"
+    },
+    {
+      "text": "Odpoved je strucna (do ~80 slov)",
+      "passed": true,
+      "evidence": "Cca 45 slov vcetne kratkeho kontextu"
+    },
+    {
+      "text": "Spravne jmenovani oba hraci",
+      "passed": true,
+      "evidence": "Sinner i Alcaraz jmenovani"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

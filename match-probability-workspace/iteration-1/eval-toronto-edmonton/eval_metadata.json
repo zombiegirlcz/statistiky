@@ -1,0 +1,11 @@
+{
+  "eval_id": 3,
+  "eval_name": "toronto-edmonton",
+  "prompt": "Vsadil bych si na zapas Toronto Maple Leafs - Edmonton Oilers, jake ma kdo sance?",
+  "assertions": [
+    {"text": "Odpoved obsahuje dve procenta, jedno pro kazdy tym, davaji dohromady cca 100"},
+    {"text": "Proces prokazatelne pouzil skutecna historicka data (spustil aggregate_stats.py hokej nebo cetl CSV se skutecnymi NHL zapasy Toronta a Edmontonu), ne jen obecnou znalost"},
+    {"text": "Odpoved je strucna (orientacne do ~80 slov), odpovida preferenci uzivatele na hola procenta bez dlouheho rozboru"},
+    {"text": "V odpovedi jsou spravne jmenovany oba tymy (Toronto, Edmonton)"}
+  ]
+}

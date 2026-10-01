@@ -1,0 +1,11 @@
+{
+  "eval_id": 2,
+  "eval_name": "sinner-alcaraz",
+  "prompt": "Co myslis, kdo vyhraje zapas Sinner vs Alcaraz?",
+  "assertions": [
+    {"text": "Odpoved obsahuje dve procenta, jedno pro kazdeho hrace, davaji dohromady cca 100"},
+    {"text": "Proces prokazatelne pouzil skutecna historicka data (spustil aggregate_stats.py tenis nebo cetl CSV se skutecnymi zapasy Sinnera a Alcaraze), ne jen obecnou znalost"},
+    {"text": "Odpoved je strucna (orientacne do ~80 slov), odpovida preferenci uzivatele na hola procenta bez dlouheho rozboru"},
+    {"text": "V odpovedi jsou spravne jmenovani oba hraci (Sinner, Alcaraz)"}
+  ]
+}
