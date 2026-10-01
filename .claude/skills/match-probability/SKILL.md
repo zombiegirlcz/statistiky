@@ -101,27 +101,18 @@ Funguje jen pro **fotbal** (jediný sport, kde máme v `fotbal/*.csv` i skutečn
 
 **Důležitý poctivý nález z backtestu** (viz `references/metodika.md` pro čísla): AKO kombinace v testu **prohrály úplně všechny** (0/40, ROI -100 %) - kombinování i hodnotných jednotlivých sázek nefunguje, protože nejistoty se násobí mnohem rychleji, než roste kurz. SÓLO vyšlo mírně ztrátově (-14,8 %), ne ziskově - náš jednoduchý historický model nemá prokázanou výhodu nad tržní cenou (ta v sobě má zaceněné informace, co náš model nevidí). Řekni tohle uživateli na rovinu, pokud se zeptá na reálnou výkonnost - skript je užitečný jako DEMONSTRACE stavby tiketu a jeho poctivého vyhodnocení, ne jako garance výhry. Žádná sázková strategie nemůže zaručit, že banka neklesne pod počáteční vklad - to je matematická vlastnost sázení (nenulová šance prohry u každé sázky), ne nedostatek skriptu.
 
-## Volitelně: sledování živých TENISOVÝCH zápasů a fiktivní sázky
+## Volitelně: sázková výhoda u tenisu (automatizované sázení pomocí AI)
 
-Pokud uživatel chce sledovat **právě probíhající** tenisové zápasy a nechat model sázet "za běhu" (mezi gemy/sety), jsou na to dva skripty. Potřebují dva klíče v `~/.env`: `LIVE_TENNIS_API_KEY` (livetennisapi.com - živé skóre po gemech a bodech) a `ODDS_API_KEY` (skutečné živé kurzy). Funguje to **jen pro tenis**.
+Pokud se uživatel zeptá, jestli lze postavit automatického sázecího bota na tenis (nebo obecně "má tenhle model sázkovou výhodu"), nejdřív stáhni historické kurzy (jen WTA, viz hlavička skriptu proč jen ta tura) a pak spusť test:
 
 ```bash
-cd /root/statistiky/.claude/skills/match-probability/scripts && source ~/.env
-python3 live_tennis_simulator.py watch   # sleduje průběh VŠECH živých zápasů, hlásí události, zakládá tikety
-python3 live_tennis_simulator.py status  # rychlý přehled, nestojí API kvótu
-python3 bet_evaluator.py vyhodnot        # zjistí výsledky dohraných zápasů a připíše je do banky
-python3 bet_evaluator.py report          # jen přehled s ROI a vývojem banky, nestojí API kvótu
+python3 .claude/skills/match-probability/scripts/fetch_tennis_odds.py           # jednorázově stáhne kurzy
+python3 .claude/skills/match-probability/scripts/tennis_value_backtest.py --diagnostika
+python3 .claude/skills/match-probability/scripts/tennis_value_backtest.py --pridana-hodnota   # nejpřísnější test
+python3 .claude/skills/match-probability/scripts/tennis_value_backtest.py --segmenty          # rozpad podle kurzu/povrchu/kola
 ```
 
-`watch` u každého živého zápasu vypíše aktuální stav (sety, gemy, body, kdo podává), naši pravděpodobnost a **co se stalo od minulého spuštění** - brejk, uzavřený set, tiebreak, setbol/mečbol, výrazný posun šance, změna favorita. Průběh sleduje u všech zápasů; sází jen tam, kde má dost historických dat na oba hráče **a** zápas je v nabídce skutečných kurzů (typicky menšina - u ITF/Challengerů kurzy nejsou).
-
-Rozpočet je **1000 fiktivních mincí**, vklad 2 % aktuální banky (min. 10), strop souběžné expozice 25 % banky, max. jeden tiket na zápas. Žádné skutečné peníze a žádný sázkový účet. Stav žije v `live_bets_log.jsonl` (tikety a banka) a `live_progress_log.jsonl` (historie průběhu) - skripty jsou mezi spuštěními bezstavové, dají se spouštět opakovaně v čase (doporučeně `watch` každých 15-30 minut, `vyhodnot` jednou za pár hodin; limit free tieru je 100 volání/den). **Ty soubory nikdy nemaž ani needituj ručně** - je to jediný záznam měřené historie.
-
-Model nikdy netvrdí 100 % ani 0 %: pravděpodobnost je ořezaná do ⟨2 %; 98 %⟩, protože 3,59 % skutečných zápasů v našich datech končí skrečí/walkoverem/diskvalifikací, a to může potkat i vedoucího hráče (podrobně v `references/metodika.md`).
-
-**Kompletní samostatný návod pro agenta, který tohle má obsluhovat (limity API, čtení výstupu, metodické pasti), je v `AGENT_NAVOD.md`** - je psaný tak, aby mu stačil bez jakéhokoli dalšího kontextu.
-
-Pokud se uživatel ptá na výsledky, mluv opatrně: při řádově desítkách tiketů je jakýkoli výsledek šum, a jediné vypovídající číslo je ROI, ne banka ani úspěšnost. Očekávání na základě fotbalové části projektu je, že model nad trhem výhodu **nemá** - a to je legitimní zjištění, ne chyba k opravení.
+**Poctivý nález** (viz `references/metodika.md` pro plná čísla): model (ani jednoduchý `forma+h2h`, ani Elo) **nemá žádnou prokázanou sázkovou výhodu** - trh tipuje vítěze přesněji (66,0 % vs. 60,6-63,8 %), hodnotové sázky jsou ztrátové (ROI -7,7 % až -10,1 %) a nejpřísnější test (namíchání modelu do tržní ceny) ukázal, že **žádná váha modelu nezlepší predikci nad čistý trh** - model nedrží vůbec žádnou informaci navíc. Řekni tohle uživateli přímo, pokud se zeptá na stavbu automatizovaného sázecího bota - není to nedostatek implementace (zkusily se dvě různé metodiky), je to důsledek toho, že ATP/WTA kurzy jsou jeden z nejlikvidnějších a nejefektivnějších sportovních trhů - veřejná data, ze kterých model počítá, už má trh dávno zaceněná.
 
 ## Když data chybí
 
