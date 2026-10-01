@@ -1025,3 +1025,132 @@ Banka: 873 mincí (start 1000), nevyřízeno 18 tiketů
 --- live_game_bet agresivni-tick ---
 
 Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
+
+########## 2026-10-01 21:20:00 UTC ##########
+Živých zápasů: 18 (z toho dvouhry: 5)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Luciana Moyano vs Sofia Meabe [ITF W15 Trelew Women] sety 1:1, gemy 6:5, body 0:0 | model: 50% / 50%
+      - posun šance Luciana Moyano: 2% -> 50%
+      - změna favorita na Luciana Moyano
+Evan Bynoe vs Aryan Shah [ITF M15 Fayetteville, AR Men] sety 0:0, gemy 2:5, body 0:15 | model: málo historických dat
+      - BREJK pro Aryan Shah (2:5)
+Hoyoung Roh vs Charlie Robertson [ITF M15 Fayetteville, AR Men] sety 0:0, gemy 2:1, body 30:30 | model: málo historických dat
+      - BREJK pro Charlie Robertson (2:1)
+Guido Ivan Justo vs Pedro Sakamoto [Curitiba, Brazil] sety 1:0, gemy 0:3, body 0:0 | model: málo historických dat
+Pedro Boscardin Dias vs Genaro Alberto Olivieri [Curitiba, Brazil] sety 0:0, gemy 4:3, body 0:0 | model: málo historických dat
+      - BREJK pro Genaro Alberto Olivieri (4:3)
+
+Sledováno zápasů: 5
+  bez modelu (málo historických dat na hráče): 4
+  bez živých kurzů v nabídce: 0
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+--- live_game_bet tick ---
+  [void ] Guido Ivan Justo vs Pedro Sakamoto - tiket na Pedro Sakamoto (mezitím proběhlo víc gemů naráz ([0, 0] -> [0, 3]))
+
+Zkontrolováno na podání: 3 (bez dost dat: 3, přeskočeno tiebreak/mezi sety: 0)
+Vyhodnoceno dřívějších tiketů: 1, nových tiketů: 0
+Banka: 873 mincí (start 1000), nevyřízeno 17 tiketů
+--- live_game_bet agresivni-tick ---
+
+Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
+
+########## 2026-10-01 21:40:00 UTC ##########
+Živých zápasů: 17 (z toho dvouhry: 6)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Hoyoung Roh vs Charlie Robertson [ITF M15 Fayetteville, AR Men] sety 1:0, gemy 0:0, body 15:15 | model: málo historických dat
+      - Hoyoung Roh získal 1. set (6:2) - stav na sety 1:0
+Evan Bynoe vs Aryan Shah [ITF M15 Fayetteville, AR Men] sety 0:1, gemy 1:2, body 0:0 | model: málo historických dat
+      - Aryan Shah získal 1. set (2:6) - stav na sety 0:1
+Guido Ivan Justo vs Pedro Sakamoto [Curitiba, Brazil] sety 1:0, gemy 3:3, body 0:15 | model: málo historických dat
+Pedro Boscardin Dias vs Genaro Alberto Olivieri [Curitiba, Brazil] sety 1:0, gemy 0:0, body 0:40 | model: málo historických dat
+      - Pedro Boscardin Dias získal 1. set (6:4) - stav na sety 1:0
+Madison Brengle vs Arianna Zucchini [W100 Templeton] sety 0:0, gemy 1:1, body 40:40 | model: 56% / 44%
+      - poprvé viděn (sety 0:0, gemy 1:1)
+Elias Ymer vs Federico Cinà [Jingshan] sety 0:0, gemy 1:0, body 0:0 | model: 55% / 45%
+
+Sledováno zápasů: 6
+  bez modelu (málo historických dat na hráče): 4
+  bez živých kurzů v nabídce: 1
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+--- live_game_bet tick ---
+      => TIKET na gem pro Pedro Sakamoto @ 1.12 (p=90%), vklad 17 mincí [Guido Ivan Justo vs Pedro Sakamoto]
+      => TIKET na gem pro Genaro Alberto Olivieri @ 1.02 (p=98%), vklad 17 mincí [Pedro Boscardin Dias vs Genaro Alberto Olivieri]
+      => TIKET na gem pro Madison Brengle @ 1.19 (p=84%), vklad 17 mincí [Madison Brengle vs Arianna Zucchini]
+
+Zkontrolováno na podání: 5 (bez dost dat: 2, přeskočeno tiebreak/mezi sety: 0)
+Vyhodnoceno dřívějších tiketů: 0, nových tiketů: 3
+Banka: 873 mincí (start 1000), nevyřízeno 20 tiketů
+--- live_game_bet agresivni-tick ---
+
+Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
+
+########## 2026-10-01 22:00:00 UTC ##########
+Žádné nevyřízené tikety.
+
+==================================================================
+PŘEHLED FIKTIVNÍCH TENISOVÝCH SÁZEK (strategie: silný favorit)
+==================================================================
+Podíl rostoucích tiketů (výher): 100.0%  -> PŘEVAŽUJE RŮST
+  (1 roste / 0 klesá z 1 vyhodnocených)
+
+Rozpočet na start:          1000 mincí
+Banka teď:                  1005 mincí  (+5)
+Vázáno v nevyřízených:         0 mincí (0 tiketů)
+
+Tiketů celkem:                 1
+  vyhodnocených:               1  (výhra 1, prohra 0)
+  vsazeno / vráceno:          20 / 25 mincí
+  ROI:                   +27.0%  (poctivé měřítko peněz - i vysoký podíl výher může dát záporné ROI)
+  průměrný kurz:            1.27
+
+------------------------------------------------------------------
+POZOR: vyhodnocených tiketů je 1, to je málo na spolehlivý podíl výher. I u skutečných favoritů se pár desítek
+tiketů může sejít příznivěji nebo hůř, než je jejich dlouhodobá
+úspěšnost. Spolehlivější obrázek dá řádově 100+ tiketů.
+Mince jsou FIKTIVNÍ. I strategie se spoustou výherních tiketů může mít
+záporné ROI (jedna velká prohra smaže víc malých výher) a žádná
+strategie nemůže zaručit, že banka neklesne pod startovní hodnotu.
+------------------------------------------------------------------
+Živých zápasů: 19 (z toho dvouhry: 7)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Theo Papamalamis vs Tito Chavez [ITF M15 Fayetteville, AR Men] sety 0:0, gemy 2:1, body 0:0 | model: málo historických dat
+      - poprvé viděn (sety 0:0, gemy 2:1)
+Evan Bynoe vs Aryan Shah [ITF M15 Fayetteville, AR Men] sety 0:1, gemy 4:2, body 15:0 | model: málo historických dat
+Hoyoung Roh vs Charlie Robertson [ITF M15 Fayetteville, AR Men] sety 1:0, gemy 1:3, body 15:40 | model: málo historických dat
+      - BREJK pro Charlie Robertson (1:3)
+Guido Ivan Justo vs Pedro Sakamoto [Curitiba, Brazil] sety 1:0, gemy 5:4, body 40:40 | model: málo historických dat
+      - BREJK pro Guido Ivan Justo (5:4)
+Pedro Boscardin Dias vs Genaro Alberto Olivieri [Curitiba, Brazil] sety 1:0, gemy 3:1, body 15:15 | model: málo historických dat
+      - BREJK pro Pedro Boscardin Dias (3:1)
+Madison Brengle vs Arianna Zucchini [W100 Templeton] sety 0:0, gemy 5:1, body 40:40 | model: 78% / 22%
+      - posun šance Madison Brengle: 56% -> 78%
+Elias Ymer vs Federico Cinà [Jingshan] sety 0:0, gemy 1:0, body 0:0 | model: 55% / 45%
+
+Sledováno zápasů: 7
+  bez modelu (málo historických dat na hráče): 5
+  bez živých kurzů v nabídce: 1
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+--- live_game_bet tick ---
+  [void ] Guido Ivan Justo vs Pedro Sakamoto - tiket na Pedro Sakamoto (mezitím proběhlo víc gemů naráz ([3, 3] -> [5, 4]))
+  [void ] Pedro Boscardin Dias vs Genaro Alberto Olivieri - tiket na Genaro Alberto Olivieri (mezitím proběhlo víc gemů naráz ([0, 0] -> [3, 1]))
+  [void ] Madison Brengle vs Arianna Zucchini - tiket na Madison Brengle (mezitím proběhlo víc gemů naráz ([1, 1] -> [5, 1]))
+      => TIKET na gem pro Madison Brengle @ 1.19 (p=84%), vklad 17 mincí [Madison Brengle vs Arianna Zucchini]
+
+Zkontrolováno na podání: 6 (bez dost dat: 4, přeskočeno tiebreak/mezi sety: 0)
+Vyhodnoceno dřívějších tiketů: 3, nových tiketů: 1
+Banka: 873 mincí (start 1000), nevyřízeno 18 tiketů
+--- live_game_bet agresivni-tick ---
+
+Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
