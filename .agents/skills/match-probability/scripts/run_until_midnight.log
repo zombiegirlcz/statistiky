@@ -236,3 +236,192 @@ Nových fiktivních tiketů: 0
 Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
 
 Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+
+########## 2026-10-01 16:20:00 UTC ##########
+Živých zápasů: 32 (z toho dvouhry: 18)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Matt Kuhar vs Naoto Tomizawa [M15 Ann Arbor, MI] sety 0:1, gemy 2:5, body 0:15 | model: málo historických dat
+      - BREJK pro Matt Kuhar (2:5)
+Max Dahlin vs Alexander Bernard [M15 Ann Arbor, MI] sety 1:0, gemy 6:6, body 0:0 | model: málo historických dat
+      - BREJK pro Alexander Bernard (6:6)
+      - tiebreak
+Salma Drugdova vs Carlota Moreno [W15 Nashville] sety 1:1, gemy 2:5, body 0:0 | model: 4% / 96%
+      - posun šance Salma Drugdova: 61% -> 4%
+      - změna favorita na Carlota Moreno
+Olaf Pieczkowski vs Mitchell Sheldon [M15 Ann Arbor, MI] sety 1:0, gemy 5:6, body 0:0 | model: málo historických dat
+      - BREJK pro Mitchell Sheldon (5:6)
+Jonah Braswell vs Jordan Lee [M15 Fayetteville, AR] sety 1:0, gemy 1:3, body 0:0 | model: málo historických dat
+      - BREJK pro Jordan Lee (1:3)
+Neo Niedner vs Alvin Nicholas Tudorica [M15 Fayetteville, AR] sety 0:1, gemy 2:1, body 0:30 | model: málo historických dat
+      - Alvin Nicholas Tudorica získal 1. set (3:6) - stav na sety 0:1
+Vlado Jankanj vs Dominick Mosejczuk [M15 Fayetteville, AR] sety 0:1, gemy 2:4, body 15:0 | model: málo historických dat
+      - BREJK pro Vlado Jankanj (2:4)
+Keegan Smith vs Bryce Nakashima [Columbus] sety 1:0, gemy 2:2, body 30:30 | model: málo historických dat
+      - BREJK pro Bryce Nakashima (2:2)
+Ugo Blanchet vs Clement Chidekh [Mouilleron-Le-Captif] sety 0:1, gemy 2:3, body 15:15 | model: málo historických dat
+      - BREJK pro Clement Chidekh (2:3)
+Francesca Mattioli vs Rose Marie Nijkamp [W15 Nashville] sety 0:0, gemy 2:1, body 40:40 | model: 61% / 39%
+      - BREJK pro Rose Marie Nijkamp (2:1)
+Marina Bulbarella vs Pilar Da Silva [ITF W15 Trelew Women] sety 0:1, gemy 1:0, body 0:0 | model: 12% / 88%
+      - Pilar Da Silva získal 1. set (2:6) - stav na sety 0:1
+Eszter Meri vs Astra Sharma [W15 Nashville] sety 0:0, gemy 1:1, body 0:40 | model: 50% / 50%
+      - BREJK pro Eszter Meri (1:1)
+Hugo Coquelin vs Micah Braswell [M15 Ann Arbor, MI] sety 0:0, gemy 0:0, body 0:0 | model: málo historických dat
+      - poprvé viděn (sety 0:0, gemy 0:0)
+Ana Sofia Sanchez vs Florencia Belen Moron [W15 Trelew] sety 1:0, gemy 3:1, body 15:0 | model: málo historických dat
+      - BREJK pro Ana Sofia Sanchez (3:1)
+Maria Florencia Urrutia vs Caira Delfina Vega Gudino [W15 Trelew] sety 0:0, gemy 0:1, body 0:0 | model: 41% / 59%
+      - poprvé viděn (sety 0:0, gemy 0:1)
+Raquel Caballero Chica vs Ashley Lahey [W15 Nashville] sety 0:0, gemy 0:0, body 0:0 | model: málo historických dat
+      - poprvé viděn (sety 0:0, gemy 0:0)
+Alexander Ritschard vs Samuel Arauzo [M25 Zaragoza] sety 0:0, gemy 0:1, body 40:15 | model: málo historických dat
+      - poprvé viděn (sety 0:0, gemy 0:1)
+Mathilde Lollia vs Juliana Giaccio [W35 Baza] sety 0:0, gemy 2:2, body 0:0 | model: 29% / 71%
+      - poprvé viděn (sety 0:0, gemy 2:2)
+
+Sledováno zápasů: 18
+  bez modelu (málo historických dat na hráče): 12
+  bez živých kurzů v nabídce: 5
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+
+########## 2026-10-01 16:40:00 UTC ##########
+Živých zápasů: 27 (z toho dvouhry: 16)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Olaf Pieczkowski vs Mitchell Sheldon [M15 Ann Arbor, MI] sety 1:1, gemy 2:0, body 0:15 | model: málo historických dat
+Jonah Braswell vs Jordan Lee [M15 Fayetteville, AR] sety 1:0, gemy 3:5, body 15:30 | model: málo historických dat
+Neo Niedner vs Alvin Nicholas Tudorica [M15 Fayetteville, AR] sety 0:1, gemy 3:4, body 30:15 | model: málo historických dat
+Keegan Smith vs Bryce Nakashima [Columbus] sety 1:1, gemy 0:0, body 30:30 | model: málo historických dat
+Ugo Blanchet vs Clement Chidekh [Mouilleron-Le-Captif] sety 1:1, gemy 0:0, body 0:0 | model: málo historických dat
+      - Ugo Blanchet získal 2. set (6:3) - stav na sety 1:1
+Nikola Djosic vs Thanaphat Boosarawongse [M15 Ann Arbor, MI] sety 0:0, gemy 0:0, body 30:40 | model: málo historických dat
+      - poprvé viděn (sety 0:0, gemy 0:0)
+Eszter Meri vs Astra Sharma [W15 Nashville] sety 0:0, gemy 2:5, body 0:0 | model: 29% / 71%
+Raquel Caballero Chica vs Ashley Lahey [W15 Nashville] sety 0:0, gemy 2:2, body 30:40 | model: málo historických dat
+Marina Bulbarella vs Pilar Da Silva [ITF W15 Trelew Women] sety 0:1, gemy 5:1, body 0:0 | model: 28% / 72%
+      - BREJK pro Pilar Da Silva (5:1)
+Hugo Coquelin vs Micah Braswell [M15 Ann Arbor, MI] sety 0:0, gemy 1:2, body 30:30 | model: málo historických dat
+Felix Corwin vs Damir Zhalgasbay [M15 Ann Arbor, MI] sety 0:0, gemy 0:0, body 0:0 | model: málo historických dat
+      - poprvé viděn (sety 0:0, gemy 0:0)
+Maria Florencia Urrutia vs Caira Delfina Vega Gudino [W15 Trelew] sety 0:0, gemy 2:2, body 30:0 | model: 50% / 50%
+Francesca Mattioli vs Rose Marie Nijkamp [W15 Nashville] sety 0:0, gemy 4:2, body 30:30 | model: 72% / 28%
+Mathilde Lollia vs Juliana Giaccio [W35 Baza] sety 0:0, gemy 4:4, body 0:0 | model: 30% / 70%
+Alexander Ritschard vs Samuel Arauzo [M25 Zaragoza] sety 0:0, gemy 5:2, body 0:0 | model: málo historických dat
+      - BREJK pro Alexander Ritschard (5:2)
+Abedallah Shelbayh vs Daniil Ostapenkov [Columbus] sety 0:0, gemy 0:0, body 40:40 | model: málo historických dat
+
+Sledováno zápasů: 16
+  bez modelu (málo historických dat na hráče): 11
+  bez živých kurzů v nabídce: 4
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+--- live_game_bet tick ---
+  [won  ] Maria Florencia Urrutia vs Caira Delfina Vega Gudino - tiket na Caira Delfina Vega Gudino (Caira Delfina Vega Gudino)
+      => TIKET na gem pro Mitchell Sheldon @ 1.04 (p=97%), vklad 19 mincí [Olaf Pieczkowski vs Mitchell Sheldon]
+      => TIKET na gem pro Maria Florencia Urrutia @ 1.11 (p=90%), vklad 19 mincí [Maria Florencia Urrutia vs Caira Delfina Vega Gudino]
+      => TIKET na gem pro Alexander Ritschard @ 1.24 (p=81%), vklad 19 mincí [Alexander Ritschard vs Samuel Arauzo]
+
+Zkontrolováno na podání: 11 (bez dost dat: 5, přeskočeno tiebreak/mezi sety: 1)
+Vyhodnoceno dřívějších tiketů: 1, nových tiketů: 3
+Banka: 932 mincí (start 1000), nevyřízeno 12 tiketů
+--- live_game_bet agresivni-tick ---
+
+Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
+
+########## 2026-10-01 17:00:00 UTC ##########
+Žádné nevyřízené tikety.
+
+==================================================================
+PŘEHLED FIKTIVNÍCH TENISOVÝCH SÁZEK (strategie: silný favorit)
+==================================================================
+Podíl rostoucích tiketů (výher): 100.0%  -> PŘEVAŽUJE RŮST
+  (1 roste / 0 klesá z 1 vyhodnocených)
+
+Rozpočet na start:          1000 mincí
+Banka teď:                  1005 mincí  (+5)
+Vázáno v nevyřízených:         0 mincí (0 tiketů)
+
+Tiketů celkem:                 1
+  vyhodnocených:               1  (výhra 1, prohra 0)
+  vsazeno / vráceno:          20 / 25 mincí
+  ROI:                   +27.0%  (poctivé měřítko peněz - i vysoký podíl výher může dát záporné ROI)
+  průměrný kurz:            1.27
+
+------------------------------------------------------------------
+POZOR: vyhodnocených tiketů je 1, to je málo na spolehlivý podíl výher. I u skutečných favoritů se pár desítek
+tiketů může sejít příznivěji nebo hůř, než je jejich dlouhodobá
+úspěšnost. Spolehlivější obrázek dá řádově 100+ tiketů.
+Mince jsou FIKTIVNÍ. I strategie se spoustou výherních tiketů může mít
+záporné ROI (jedna velká prohra smaže víc malých výher) a žádná
+strategie nemůže zaručit, že banka neklesne pod startovní hodnotu.
+------------------------------------------------------------------
+Živých zápasů: 28 (z toho dvouhry: 18)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Olaf Pieczkowski vs Mitchell Sheldon [M15 Ann Arbor, MI] sety 1:1, gemy 4:2, body 40:15 | model: málo historických dat
+      - BREJK pro Olaf Pieczkowski (4:2)
+Jonah Braswell vs Jordan Lee [M15 Fayetteville, AR] sety 1:0, gemy 5:6, body 30:15 | model: málo historických dat
+      - BREJK pro Jonah Braswell (5:6)
+Neo Niedner vs Alvin Nicholas Tudorica [M15 Fayetteville, AR] sety 0:1, gemy 6:5, body 0:15 | model: málo historických dat
+      - BREJK pro Neo Niedner (6:5)
+Keegan Smith vs Bryce Nakashima [Columbus] sety 1:1, gemy 2:4, body 40:0 | model: málo historických dat
+      - BREJK pro Bryce Nakashima (2:4)
+Ugo Blanchet vs Clement Chidekh [Mouilleron-Le-Captif] sety 1:1, gemy 1:3, body 0:0 | model: málo historických dat
+      - BREJK pro Ugo Blanchet (1:3)
+Francesca Mattioli vs Rose Marie Nijkamp [W15 Nashville] sety 1:0, gemy 0:0, body 0:0 | model: 80% / 20%
+      - Francesca Mattioli získal 1. set (6:3) - stav na sety 1:0
+Nikola Djosic vs Thanaphat Boosarawongse [M15 Ann Arbor, MI] sety 0:0, gemy 2:3, body 0:0 | model: málo historických dat
+      - BREJK pro Nikola Djosic (2:3)
+Eszter Meri vs Astra Sharma [W15 Nashville] sety 0:1, gemy 0:0, body 40:AD | model: 25% / 75%
+      - Astra Sharma získal 1. set (3:6) - stav na sety 0:1
+Marina Bulbarella vs Pilar Da Silva [ITF W15 Trelew Women] sety 1:1, gemy 1:2, body 0:0 | model: 19% / 81%
+      - Marina Bulbarella získal 2. set (6:1) - stav na sety 1:1
+Raquel Caballero Chica vs Ashley Lahey [W15 Nashville] sety 0:1, gemy 0:0, body 15:30 | model: málo historických dat
+      - Ashley Lahey získal 1. set (2:6) - stav na sety 0:1
+Felix Corwin vs Damir Zhalgasbay [M15 Ann Arbor, MI] sety 0:0, gemy 2:2, body 0:0 | model: málo historických dat
+      - BREJK pro Felix Corwin (2:2)
+Maria Florencia Urrutia vs Caira Delfina Vega Gudino [W15 Trelew] sety 1:0, gemy 0:0, body 15:0 | model: 75% / 25%
+      - Maria Florencia Urrutia získal 1. set (6:2) - stav na sety 1:0
+      - posun šance Maria Florencia Urrutia: 50% -> 75%
+Dragos Nicolae Cazacu vs Alexander Rozin [ITF M15 Fayetteville, AR Men] sety 0:0, gemy 1:1, body 40:0 | model: málo historických dat
+      - poprvé viděn (sety 0:0, gemy 1:1)
+Hugo Coquelin vs Micah Braswell [M15 Ann Arbor, MI] sety 0:0, gemy 4:3, body 15:15 | model: málo historických dat
+      - BREJK pro Micah Braswell (4:3)
+Mathilde Lollia vs Juliana Giaccio [W35 Baza] sety 0:0, gemy 4:4, body 0:0 | model: 30% / 70%
+Alexander Ritschard vs Samuel Arauzo [M25 Zaragoza] sety 1:0, gemy 3:0, body 30:0 | model: málo historických dat
+      - Alexander Ritschard získal 1. set (6:2) - stav na sety 1:0
+Ana Victoria Gobbi Monllau vs Emily Zornada [W15 Trelew] sety 0:0, gemy 1:0, body 30:15 | model: 54% / 46%
+      - poprvé viděn (sety 0:0, gemy 1:0)
+Abedallah Shelbayh vs Daniil Ostapenkov [Columbus] sety 0:0, gemy 5:1, body 40:15 | model: málo historických dat
+      - BREJK pro Abedallah Shelbayh (5:1)
+      - setbol pro Abedallah Shelbayh (40:15, gemy 5:1)
+
+Sledováno zápasů: 18
+  bez modelu (málo historických dat na hráče): 12
+  bez živých kurzů v nabídce: 3
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+--- live_game_bet tick ---
+  [won  ] Francesca Mattioli vs Rose Marie Nijkamp - tiket na Francesca Mattioli (Francesca Mattioli)
+  [void ] Olaf Pieczkowski vs Mitchell Sheldon - tiket na Mitchell Sheldon (mezitím proběhlo víc gemů naráz ([2, 0] -> [5, 2]))
+  [won  ] Maria Florencia Urrutia vs Caira Delfina Vega Gudino - tiket na Maria Florencia Urrutia (Maria Florencia Urrutia)
+  [won  ] Alexander Ritschard vs Samuel Arauzo - tiket na Alexander Ritschard (Alexander Ritschard)
+      => TIKET na gem pro Bryce Nakashima @ 1.24 (p=81%), vklad 19 mincí [Keegan Smith vs Bryce Nakashima]
+      => TIKET na gem pro Nikola Djosic @ 1.15 (p=87%), vklad 19 mincí [Nikola Djosic vs Thanaphat Boosarawongse]
+      => TIKET na gem pro Maria Florencia Urrutia @ 1.11 (p=90%), vklad 19 mincí [Maria Florencia Urrutia vs Caira Delfina Vega Gudino]
+      => TIKET na gem pro Alexander Rozin @ 1.24 (p=80%), vklad 19 mincí [Dragos Nicolae Cazacu vs Alexander Rozin]
+      => TIKET na gem pro Alexander Ritschard @ 1.12 (p=89%), vklad 19 mincí [Alexander Ritschard vs Samuel Arauzo]
+      => TIKET na gem pro Abedallah Shelbayh @ 1.38 (p=73%), vklad 19 mincí [Abedallah Shelbayh vs Daniil Ostapenkov]
+
+Zkontrolováno na podání: 16 (bez dost dat: 6, přeskočeno tiebreak/mezi sety: 0)
+Vyhodnoceno dřívějších tiketů: 4, nových tiketů: 6
+Banka: 943 mincí (start 1000), nevyřízeno 14 tiketů
+--- live_game_bet agresivni-tick ---
