@@ -88,6 +88,19 @@ Tohle vrátí implikovanou pravděpodobnost z průměru živých bookmakerských
 
 **Nepoužívej to automaticky u každého dotazu** - stojí to API kredity (u fotbalu/hokeje 1 kredit, u tenisu pár kreditů podle počtu právě běžících turnajů) a funguje to jen pro NADCHÁZEJÍCÍ zápasy, ne historické. Použij to, když o to uživatel výslovně požádá ("porovnej to s kurzy", "co na to sázkové kanceláře") nebo když chceš u důležité predikce druhou kontrolu. Pokud proměnná `ODDS_API_KEY` není nastavená, skript to rovnou řekne i s návodem na založení účtu - neřeš to jako chybu, je to čistě volitelný doplněk.
 
+## Volitelně: stavba sázkových tiketů (SÓLO i AKO kombinace)
+
+Pokud uživatel chce rovnou TIKET (konkrétní sázku s vkladem, ne jen procenta) - "slož mi sázku", "jaký tiket na dnešek", "udělej kombinaci" - použij:
+
+```bash
+python3 .claude/skills/match-probability/scripts/ticket_builder.py den 2024-03-16   # historický den (má smysl jen na už odehraný den, kde známe i kurzy)
+python3 .claude/skills/match-probability/scripts/ticket_builder.py backtest 40       # 40 náhodných dní, změří úspěšnost
+```
+
+Funguje jen pro **fotbal** (jediný sport, kde máme v `fotbal/*.csv` i skutečné historické kurzy - sloupce `Avg*`, průměr víc sázkových kanceláří, NE přímo Fortuna). Hledá "hodnotové sázky" (edge mezi modelem a odvigovaným trhem) na obou stranách každého trhu (1X2, přes/pod 2.5 gólu, hendikep) - takže klidně navrhne i sázku na outsidera nebo hendikep na poraženého, ne jen na favorita. Staví SÓLO i AKO (kombinované) tikety podle pravidel Fortuny (AKO = kurzy se násobí, kombinuje se vždy jen přes různé zápasy).
+
+**Důležitý poctivý nález z backtestu** (viz `references/metodika.md` pro čísla): AKO kombinace v testu **prohrály úplně všechny** (0/40, ROI -100 %) - kombinování i hodnotných jednotlivých sázek nefunguje, protože nejistoty se násobí mnohem rychleji, než roste kurz. SÓLO vyšlo mírně ztrátově (-14,8 %), ne ziskově - náš jednoduchý historický model nemá prokázanou výhodu nad tržní cenou (ta v sobě má zaceněné informace, co náš model nevidí). Řekni tohle uživateli na rovinu, pokud se zeptá na reálnou výkonnost - skript je užitečný jako DEMONSTRACE stavby tiketu a jeho poctivého vyhodnocení, ne jako garance výhry. Žádná sázková strategie nemůže zaručit, že banka neklesne pod počáteční vklad - to je matematická vlastnost sázení (nenulová šance prohry u každé sázky), ne nedostatek skriptu.
+
 ## Když data chybí
 
 Skript hledá jen v tom, co je v `/statistiky` - u fotbalu je to 22 evropských lig, u hokeje jen NHL, u tenisu prakticky celá ATP/WTA túra (viz `/statistiky/README.md` pro přesný rozsah). Pokud se někdo zeptá na zápas mimo tento rozsah (např. mimoevropský klub, KHL, MS v hokeji), skript žádná data nenajde - v tom případě to uživateli řekni rovnou, místo abys dopočítal procenta z ničeho. Je v pořádku říct "na tenhle zápas nemám v datech dost podkladů."

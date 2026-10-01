@@ -43,5 +43,5 @@ Doslova kompletní celosvětová data (všechny soutěže na všech kontinentech
 
 ## Skilly nad těmito daty
 
-- **`match-probability`** — spočítá pravděpodobnost výsledku zápasu dvou týmů/hráčů z historických dat (viz `.claude/skills/match-probability`). Volitelně umí i `scripts/odds_compare.py` — porovnání s živými sázkovými kurzy přes [The Odds API](https://the-odds-api.com) (klíč v `~/.env` jako `ODDS_API_KEY`, zdarma 500 kreditů/měsíc).
+- **`match-probability`** — spočítá pravděpodobnost výsledku zápasu dvou týmů/hráčů z historických dat (viz `.claude/skills/match-probability`). Volitelně umí i `scripts/odds_compare.py` — porovnání s živými sázkovými kurzy přes [The Odds API](https://the-odds-api.com) (klíč v `~/.env` jako `ODDS_API_KEY`, zdarma 500 kreditů/měsíc) — a `scripts/ticket_builder.py`, který z reálných historických kurzů (fotbal) staví SÓLO/AKO sázkové tikety a poctivě je zpětně vyhodnocuje (backtest ukázal, že AKO kombinace systematicky prohrávají, viz `references/metodika.md`).
 - **`update-sport-stats`** — denně doplňuje aktuální sezónu/rok o nově odehrané zápasy, včetně automatického rozpoznání nové sezóny (viz `.claude/skills/update-sport-stats`). Běží samo každý den v 9:00 UTC přes lokální cron, log v `~/.local/state/update-sport-stats/cron.log`.

@@ -223,3 +223,68 @@ zbytek remíza), protože ten den podávali líp. Reálná předpověď dopředu
 neví, kdo vyhraje - proto `run_tennis_backtest()` teď p1/p2 přiřazuje náhodně
 (seedované podle jmen a data zápasu), aby test měřil to samé, co bude model
 dělat v praxi u budoucího zápasu.
+
+## Stavba sázkových tiketů (`ticket_builder.py`): hodnotové sázky proti reálným kurzům
+
+Fotbalová data (`fotbal/*.csv`) obsahují i skutečné historické kurzy několika
+sázkových kanceláří (sloupce `Avg*` - průměr z více kanceláří, NE přímo
+Fortuna, přesné historické kurzy Fortuny k dispozici nejsou) pro tři trhy:
+výsledek (1X2), přes/pod 2.5 gólu, asijský hendikep. `ticket_builder.py`
+z nich pro každý zápas spočítá odvigovanou tržní pravděpodobnost a porovná
+ji s vlastním modelem (stejná h2h-blended Poissonova logika jako výš) - kde
+model vychází výš o aspoň 4 procentní body (a ne o víc než 25 b., to už je
+spíš šum z mála dat než skutečná hodnota, viz níže), je to "hodnotová sázka"
+(value bet), ať už jde o favorita, outsidera, hendikep na poraženého, nebo
+"pod" góly - edge se hledá na OBOU stranách každého trhu, ne jen u vítěze.
+
+**Kalibrační kontrola** (600 náhodných zápasů 2022-2026, bucket podle
+predikované `p_home`): model NENÍ systematicky přehnaně sebevědomý - v
+pásmu 20-60 % (kde je dost dat, n=84-167 na bucket) je skutečná výhernost
+blízko predikce, spíš mírně podhodnocená (model řekne 35 %, realita 41 %;
+model řekne 45 %, realita 51 %). To ale neznamená, že JEDNOTLIVÉ zápasy s
+extrémním edge (viděli jsme "EV +180 %" u nedávno postoupených týmů typu
+Almere City/St Johnstone s minimem odehraných zápasů v datech) jsou
+důvěryhodné - to je šum z malého vzorku dat pro konkrétní tým, ne skutečná
+tržní neefektivita. Proto skript vyžaduje aspoň 15 dřívějších zápasů KAŽDÉHO
+týmu (`MIN_TEAM_MATCHES`) a odmítá kurzy mimo rozumné pásmo 1.25-6.0
+(`ODDS_RANGE`) i edge nad 25 procentních bodů (`EDGE_MAX`) - vše skoro jistě
+artefakty, ne hodnota.
+
+### Honest nález z backtestu (40 náhodných dní 2022-2023, denní rozpočet 1000 Kč, riskuje se 35 % denně)
+
+| Typ tiketu | Tiketů | Výher | ROI |
+|---|---|---|---|
+| SÓLO (1 noha) | 40 | 15 (38 %) | **-14,8 %** |
+| AKO (3 nohy z různých zápasů) | 40 | **0 (0 %)** | **-100,0 %** |
+| Celkem | 80 | 15 | -40,4 % |
+
+**AKO kombinace v tomhle testu prohrály úplně všech 40 tiketů.** Důvod není
+"smůla" ani chyba výpočtu - i když každá jednotlivá noha kombinace projde
+kontrolou "má edge", při kombinaci 3 nezávislých nejistot se SOUČIN jejich
+pravděpodobností zmenšuje mnohem rychleji, než roste kurz (typický kurz
+kombinace v testu byl 30-170), takže šance na trefení celého tiketu je v
+praxi výrazně nižší, než naznačuje prostý součet dílčích edge. To je obecná
+vlastnost kombinovaných sázek, ne specifikum tohohle modelu - je to přesně
+důvod, proč jsou AKO sázky pro sázkové kanceláře tak výhodné. Skript proto
+dává AKO jen 30 % rizikového rozpočtu dne (SÓLO 70 %) - i to je spíš "los
+do loterie" než hlavní strategie.
+
+**SÓLO samotné vyšlo mírně ztrátově (-14,8 %), ne ziskově.** To je čestný a
+očekávatelný výsledek: `Avg*` kurzy jsou průměr už tak dost ostrých
+sázkových trhů, které v sobě mají zaceněné informace (zranění, čerstvé
+přestupy, pohyb peněz od informovaných sázejících), jaké náš jednoduchý
+historický průměr nevidí. Trvale porazit zavírací/průměrnou tržní cenu je
+i pro profesionální sázkové analytiky vzácné - tenhle model na to není
+stavěný a výsledek to potvrzuje. Neznamená to, že je model k ničemu (pořád
+dobře odhaduje SMĚR - kdo je favorit, viz tabulka přesnosti výš), jen že
+rozdíl mezi jeho čísly a tržními kurzy není spolehlivý zdroj skutečné
+sázkové výhody.
+
+**Na otázku "nesmí se dostat banka pod 1000 Kč":** v testu se to i přes
+konzervativní řízení rizika (jen 35 % rozpočtu denně, žádné AKO navíc)
+nepovedlo v 65 % dní (26 z 40). To není selhání skriptu - žádná sázková
+strategie se zápornou dlouhodobou hodnotou (a tenhle test žádnou kladnou
+hodnotu neprokázal) nemůže zaručit, že banka neklesne pod startovní částku.
+Konzervativní staking omezuje, o KOLIK klesne (nejhorší den v testu: 650 Kč,
+tedy ne celá tisícovka), ale garance "nikdy pod 1000" by vyžadovala
+nesázet vůbec.
