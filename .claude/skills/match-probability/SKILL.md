@@ -47,6 +47,18 @@ Uživatel chce HOLÁ PROCENTA, ne esej. Formát odpovědi:
 
 Žádné dlouhé zdůvodňování navíc. Pokud se uživatel zeptá "proč" nebo "na základě čeho", teprve pak rozveď klíčová čísla (formu, vzájemnou bilanci) ze skriptového výstupu.
 
+## Volitelně: herní úroveň u tenisu (kdo vyhraje konkrétní game)
+
+Hlavní tenisová data (`tenis/*.csv`) mají jen konečné skóre setu (např. "7-6 6-4"), ne pořadí jednotlivých gamů. Pro to existuje doplňkový nástroj nad `tenis/prubeh/` (Match Charting Project):
+
+```bash
+python3 .claude/skills/match-probability/scripts/game_flow.py "Jannik Sinner" "Carlos Alcaraz"
+```
+
+Vrátí pravděpodobnost udržení podání pro oba hráče z jejich historie - ale **pokrytí je jen ~15-20 % zápasů od 2020, silně zkreslené k top hráčům** (viz `README.md`). Pokud skript řekne, že zápas není nachartovaný, neznamená to chybu - prostě ta úroveň detailu u tohohle zápasu/hráče není k dispozici, řekni to uživateli stejně přímo jako u chybějících dat jinde.
+
+**Důležitý poctivý nález z backtestu** (`game_flow.py --backtest`): predikce "kdo vyhraje game N" se u testovaných 40 zápasů (963 gamů) **shodovala 1:1 s triviálním pravidlem "podávající vždy vyhraje svůj game"** (79,3 % přesnost obou). V profi tenise je držení podání natolik dominantní (typicky 65-85 %), že jemnější zohlednění brejkové úspěšnosti soupeře prakticky nikdy nezmění tip. Řekni tohle uživateli na rovinu, pokud se zeptá "jak přesné to je" - je to poctivé zjištění o tenise samotném, ne o nedostatečném modelu. Kdo podává v gamu 1 (a tedy i ve všech lichých gamech) se losuje těsně před zápasem - to predikovat nejde, je to 50:50.
+
 ## Volitelně: porovnání s živými sázkovými kurzy
 
 Pokud je nastavená proměnná prostředí `ODDS_API_KEY` (klíč z the-odds-api.com, zdarma 500 kreditů/měsíc - viz hlavička `scripts/odds_compare.py`), můžeš navíc spustit:

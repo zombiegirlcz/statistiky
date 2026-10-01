@@ -108,6 +108,42 @@ obecně nejčastějšího vzorce pro daný počet setů - v testu nedal žádné
 zlepšení (vzájemných zápasů se stejným best_of je mezi dvěma konkrétními
 hráči obvykle málo), takže zůstal obecný vzorec.
 
+## Herní úroveň u tenisu (`game_flow.py`): kdo vyhraje konkrétní game
+
+Hlavní tenisová data mají jen konečné skóre setu - z nich NEJDE spočítat,
+kdo vyhrál game č. 3/4/5/6, protože se tam neukládá pořadí gamů, jen výsledek
+setu. Pro tohle je potřeba úplně jiný typ zdroje - bod-po-bodu záznam
+zápasu, ne jen souhrnné statistiky.
+
+Takový zdroj existuje: [Jeff Sackmannův Match Charting Project](https://github.com/JeffSackmann/tennis_MatchChartingProject),
+dobrovolnický crowdsourced projekt. Pokrývá ale jen **cca 15-20 % profi
+zápasů od roku 2020** a silně nerovnoměrně - u sledovaných hráčů (Sinner,
+Alcaraz, Djokovič) stovky zápasů, u hráčů mimo top 100 žebříčku často nic,
+protože dobrovolníci chartují hlavně zápasy, které sledují. Licence CC
+BY-NC-SA 4.0 (jen nekomerční použití). Ze syrových bod-po-bodu dat (93 MB,
+notace úderů nečitelná pro člověka) jsme si odvodili jen kompaktní tabulku
+"kdo podával a kdo vyhrál který game" (`tenis/prubeh/games_{m,w}.csv`,
+~10 MB) - víc jsme z toho nepotřebovali.
+
+**Metodika**: z historických nachartovaných zápasů (před datem testovaného
+zápasu) se spočítá `hold_rate` (jak často hráč udrží vlastní podání) a
+`break_rate` (jak často prolomí soupeřovo). Pravděpodobnost, že podávající
+vyhraje daný game: `(hold_rate podávajícího + (1 - break_rate přijímajícího)) / 2`.
+
+**Poctivý nález z backtestu** (40 zápasů, 963 gamů, `game_flow.py --backtest`):
+tahle predikce vyšla **přesně stejně** jako triviální "podávající vždy
+vyhraje svůj game" - 79,3 % oboje. Rozsah predikovaných pravděpodobností
+byl 59-94 %, nikdy pod 50 % - tedy model nikdy nedoporučil vsadit na
+přijímajícího, protože v profi tenise je držení podání (typicky 65-85 %) tak
+dominantní, že ani nadprůměrný brejkér soupeře obvykle nestačí na podprůměr
+ve hře toho druhého. Tohle je reálné zjištění o tenise, ne o nedostatečnosti
+vzorce - jednotlivý game je v profi tenise mnohem předvídatelnější (kdo
+podává) než set nebo zápas jako celek.
+
+Kdo podává v gamu 1 (a tím i ve všech lichých gamech) se losuje těsně před
+zápasem - to z dat předem zjistit nejde, je to 50:50 nezávisle na všem
+ostatním.
+
 **Karty, trestné minuty a dvojchyby jsou dlouhodobě nejslabší disciplíny** - prostý
 průměr týmu/hráče na ně nestačí, protože je mnohem víc ovlivňují okolnosti
 konkrétního zápasu (rozhodčí, rivalita, aktuální forma podání) než historický
