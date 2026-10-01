@@ -104,10 +104,12 @@ def show_hockey(name):
         my_golmani = [s for s in golmani if s["player_id"] == b["player_id"]]
         if my_golmani:
             print(f"\nSezonni staty (brankar):")
-            print(f"{'sezona':<16}{'tym':<10}{'Z':<5}{'V':<5}{'P':<5}{'OTL':<5}{'GAA':<7}{'SV%':<7}{'shutouty'}")
+            print(f"{'sezona':<16}{'tym':<10}{'Z':<5}{'V':<5}{'P':<5}{'OTL':<5}{'GAA':<8}{'SV%':<8}{'shutouty'}")
             for s in sorted(my_golmani, key=lambda s: s["season"]):
+                gaa = f"{float(s['goals_against_avg']):.2f}" if s["goals_against_avg"] else "?"
+                sv = f"{float(s['save_pct']):.1%}" if s["save_pct"] else "?"
                 print(f"{s['season']:<16}{s['team']:<10}{s['games']:<5}{s['wins']:<5}{s['losses']:<5}"
-                      f"{s['ot_losses']:<5}{s['goals_against_avg']:<7}{s['save_pct']:<7}{s['shutouts']}")
+                      f"{s['ot_losses']:<5}{gaa:<8}{sv:<8}{s['shutouts']}")
 
 
 def main():
