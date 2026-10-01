@@ -47,6 +47,18 @@ Uživatel chce HOLÁ PROCENTA, ne esej. Formát odpovědi:
 
 Žádné dlouhé zdůvodňování navíc. Pokud se uživatel zeptá "proč" nebo "na základě čeho", teprve pak rozveď klíčová čísla (formu, vzájemnou bilanci) ze skriptového výstupu.
 
+## Volitelně: porovnání s živými sázkovými kurzy
+
+Pokud je nastavená proměnná prostředí `ODDS_API_KEY` (klíč z the-odds-api.com, zdarma 500 kreditů/měsíc - viz hlavička `scripts/odds_compare.py`), můžeš navíc spustit:
+
+```bash
+python3 .claude/skills/match-probability/scripts/odds_compare.py fotbal "Arsenal" "Leeds"
+```
+
+Tohle vrátí implikovanou pravděpodobnost z průměru živých bookmakerských kurzů (bez marže) pro nadcházející zápas - je to dobrá kontrola, jestli náš odhad z historie nejede mimo realitu, protože trh v sobě má zaceněné i věci, co náš model neumí (zranění, čerstvá forma, motivace - viz `references/metodika.md`). Velký rozdíl (>15-20 procentních bodů) stojí za zmínku uživateli jako "náš odhad se dost liší od trhu, pravděpodobně kvůli něčemu, co data nezachycují."
+
+**Nepoužívej to automaticky u každého dotazu** - stojí to API kredity (u fotbalu/hokeje 1 kredit, u tenisu pár kreditů podle počtu právě běžících turnajů) a funguje to jen pro NADCHÁZEJÍCÍ zápasy, ne historické. Použij to, když o to uživatel výslovně požádá ("porovnej to s kurzy", "co na to sázkové kanceláře") nebo když chceš u důležité predikce druhou kontrolu. Pokud proměnná `ODDS_API_KEY` není nastavená, skript to rovnou řekne i s návodem na založení účtu - neřeš to jako chybu, je to čistě volitelný doplněk.
+
 ## Když data chybí
 
 Skript hledá jen v tom, co je v `/statistiky` - u fotbalu je to 22 evropských lig, u hokeje jen NHL, u tenisu prakticky celá ATP/WTA túra (viz `/statistiky/README.md` pro přesný rozsah). Pokud se někdo zeptá na zápas mimo tento rozsah (např. mimoevropský klub, KHL, MS v hokeji), skript žádná data nenajde - v tom případě to uživateli řekni rovnou, místo abys dopočítal procenta z ničeho. Je v pořádku říct "na tenhle zápas nemám v datech dost podkladů."
