@@ -483,3 +483,110 @@ Pokud se o automatizaci přesto chce uživatel pokusit, poctivé další kroky
    backtesting, řízení rizika) s papírovým obchodováním, ne jako zdroj
    příjmu - a smířit se s tím, že matematicky očekávaná hodnota je záporná,
    dokud se nenajde opravdu nová informační výhoda.
+
+## Živý in-play simulátor na skutečných zápasech (`live_tennis_simulator.py`)
+
+Navazuje na sekci "Živé kurzy 'mezi gemy/sety'" výš, ale s **jedním zásadním
+rozdílem: žádný simulovaný trh**. Po té, co se ukázalo, že "trh = zpožděná
+kopie modelu" je tautologie (viz tamtéž), byl nástroj postavený znovu na
+skutečných datech z obou stran:
+
+| Složka | Zdroj | Granularita |
+|---|---|---|
+| Průběh zápasu | Live Tennis API (livetennisapi.com) | sety + **gemy + body**, kdo podává |
+| Kurzy | The Odds API (`h2h`, odvigované) | skutečné živé kurzy bookmakerů |
+| Schopnosti hráčů | `tenis/prubeh/` (Match Charting) přes `game_flow.py` | hold/break rate |
+
+**Proč Live Tennis API a ne The Odds API `/scores`:** `/scores` vrací u tenisu
+jen skóre **po setech**, ne průběh uvnitř setu. Model, který má ohodnocovat
+situaci "mezi gemy", tak od něj dostával stav zastaralý až o celý set, což
+vyrábělo falešné "obrovské edge". Live Tennis API má ve free tieru (30 volání/
+min, 100/den) skóre na úrovni gemu i bodu.
+
+### Formát dat Live Tennis API (pozor, snadno se přečte špatně)
+
+Pole `games` je `[gemy_hráče_1_po_setech, gemy_hráče_2_po_setech]` - tedy
+indexované **nejdřív hráčem, pak setem**. Není to `[skóre_1._setu,
+skóre_2._setu]`. Aktuální rozehraný set je `(games[0][-1], games[1][-1])`.
+
+Ověřeno na dokončeném zápase Udvardy–Gao (id 196994): `games=[[2,3],[6,6]]`,
+`sets=[0,2]` → 1. set 2:6, 2. set 3:6, Gao 2:0 na sety. Souhlasí.
+
+První implementace tohle četla jako `games[-1][0], games[-1][1]`, což jednak
+padalo na `IndexError` u zápasů s jediným odehraným setem, jednak u ostatních
+tiše vracelo nesmyslné skóre - a na jeho základě vznikla **chybná analýza
+zápasu Bublik–Mensik (1. 10. 2026)**, kde `games=[[4,1],[6,0]]` bylo přečteno
+jako "Mensik vede 6:0 ve 2. setu, skoro mečbol", zatímco správné čtení je
+"Mensik vyhrál 1. set 6:4, Bublik vede ve 2. setu 1:0". Zapsáno jako varování:
+u každého nového API vždy ověř strukturu pole proti zápasu se **známým**
+výsledkem, ne proti dojmu, že čísla vypadají rozumně.
+
+Vítěz dokončeného zápasu je v **top-level** poli `winner` (číslo `1` nebo `2`),
+`outcome` je řetězec `"completed"`, ne objekt. (Výpis dokončených zápasů
+`status=completed` je placený, detail konkrétního zápasu podle ID je zdarma.)
+
+### Podlaha a strop pravděpodobnosti (`MIN_PROB` / `MAX_PROB`)
+
+Čistě kombinatorický model považuje stav typu 6:0 6:5 za jistotu (p → 1).
+Skutečný zápas ale může kdykoli skončit skrečí, zraněním nebo diskvalifikací -
+a to i u vedoucího hráče. Naměřeno v `tenis/atp_matches_202*.csv` +
+`wta_matches_202*.csv`: ze **30 885 zápasů končí 3,59 % zkratkou**
+(`RET` / `W/O` / `DEF` ve sloupci `score`).
+
+Model proto každou výslednou pravděpodobnost ořezává do intervalu
+**⟨0,02; 0,98⟩** - zhruba polovina naměřené míry skreče jako rezerva na "může
+se stát cokoliv". Je to hrubý odhad, ale podložený daty, ne zvolený od oka.
+Praktický dopad: skript nikdy nepostaví tiket s argumentem "je to jisté" a
+kurz nad ~50 se nikdy netváří jako hodnota.
+
+### Ochrany proti falešné hodnotě
+
+| Parametr | Hodnota | Proti čemu chrání |
+|---|---|---|
+| `MIN_HOLD_N` | 20 podávacích gemů na hráče | šum u málo zaznamenaných hráčů (stejný mechanismus jako "Almere City problém" u fotbalu) |
+| `EDGE_MIN` | 0,06 | obchodování na šumu |
+| `EDGE_MAX` | 0,25 | **rozdíl nad 25 p. b. je skoro vždy zastaralé/špatně přečtené skóre, ne nalezená hodnota** |
+| `MIN_PROB`/`MAX_PROB` | 0,02 / 0,98 | tvrzení "100 % jisté" (viz výš) |
+
+### Ověřený běh (1. 10. 2026)
+
+Z 34 živých zápasů: 14 mělo dost historických dat pro oba hráče, 9 nebylo
+v nabídce Odds API, 4 vypadla na `MIN_HOLD_N`. Vznikl **jeden** tiket
+(Gao proti Udvardy @ 1,27 při stavu 0:1 na sety a 3:5 na gemy, edge +8 %),
+který po dohrání zápasu vyhrál → fiktivní banka 1000 → 1005 mincí.
+
+**Jeden tiket nedokazuje vůbec nic** - je to ověření, že celý cyklus
+`scan → resolve` funguje na skutečných datech, ne výsledek měření. Smysluplný
+závěr o tom, jestli model má nad trhem výhodu, vyžaduje řádově stovky tiketů
+sbíraných v čase; log `live_bets_log.jsonl` je k tomu určený (je přírůstkový
+a mezi spuštěními bezstavový). Očekávání na základě fotbalové části projektu
+je spíš "žádná výhoda" - kurzy obsahují informace, které model nevidí.
+
+### Sledování průběhu a oddělené vyhodnocování (`watch` + `bet_evaluator.py`)
+
+Nástroj byl rozdělený na dvě role, protože jde o dvě různě časované činnosti:
+
+- `live_tennis_simulator.py watch` - při každém spuštění zapíše snímek stavu
+  **každého** živého zápasu (sety, gemy, body, kdo podává, naše pravděpodobnost)
+  do `live_progress_log.jsonl` a porovná ho s minulým snímkem. Hlášené události:
+  brejk, uzavřený set, tiebreak, setbol/mečbol, posun pravděpodobnosti o ≥10 p.b.
+  a změna favorita. Průběh se sleduje i u zápasů, na které se nedá sázet (chybí
+  historická data nebo kurzy) - sledování a sázení jsou záměrně oddělené.
+- `bet_evaluator.py` - dotáhne výsledky dohraných zápasů, připíše výhry/prohry
+  do banky a vypíše ROI, vývoj banky a rozpad podle kurzových a edge pásem.
+
+**Řízení rozpočtu** (1000 fiktivních mincí): vklad je 2 % aktuální banky
+(minimálně 10), strop souběžné expozice 25 % banky, max. jeden tiket na zápas.
+Proporční vklad znamená, že při klesající bance se sázky samy zmenšují - banka
+tak nemůže spadnout na nulu skokem, jen se asymptoticky zmenšuje. To není
+ochrana proti ztrátě, jen proti rychlému bankrotu z jedné série proher.
+
+**Čím se měří výsledek:** jediné vypovídající číslo je **ROI**, ne konečná banka
+a ne úspěšnost. Sázky na favority s kurzem 1,2 mohou mít 85 % úspěšnost a přitom
+být ztrátové. Vyhodnocovač proto u každého výpisu připomíná, že pod ~100
+vyhodnocenými tikety je jakýkoli výsledek šum.
+
+**Stav ověřeného běhu (1. 10. 2026):** ze 30 živých zápasů bylo 15 dvouher,
+u 5 z nich chyběla historická data na aspoň jednoho hráče a 9 nebylo v nabídce
+Odds API. Oba režimy i celý cyklus `watch → vyhodnot` běží na skutečných datech;
+naměřený vzorek je zatím **1 tiket**, což neznamená nic než že mechanika funguje.
