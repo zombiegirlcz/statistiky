@@ -35,6 +35,50 @@ _DATA_DIR = os.path.join(_SCRIPT_DIR, "..")
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 from InquirerPy.separator import Separator
+from InquirerPy.prompts.list import InquirerPyListControl as _ListControl
+from prompt_toolkit.formatted_text import ANSI as _ANSI, to_formatted_text as _to_ft
+
+
+def A(text):
+    """Označí řetězec s ANSI barvami pro InquirerPy.
+
+    InquirerPy sám o sobě buď vykreslí ANSI escape kódy jako doslovné znaky
+    ('^[[32m'), nebo při předání objektu ANSI() spadne na .split(). Proto
+    vracíme obyčejný řetězec a níže monkey-patchujeme ListPrompt, aby ho
+    převedl na fragmenty (skutečné barvy)."""
+    return text
+
+
+def _barevne_fragmenty(text):
+    """Převede řetězec s ANSI kódy na fragmenty pro prompt_toolkit."""
+    if isinstance(text, str) and "\x1b[" in text:
+        return list(_to_ft(_ANSI(text)))
+    return [("", text)]
+
+
+def _lp_normal(self, choice):
+    d = [("", len(self._pointer) * " "),
+         ("class:marker", self._marker if choice["enabled"] else self._marker_pl)]
+    if isinstance(choice["value"], Separator):
+        d.append(("class:separator", choice["name"]))
+    else:
+        d.extend(_barevne_fragmenty(choice["name"]))
+    return d
+
+
+def _lp_hover(self, choice):
+    d = [("class:pointer", self._pointer),
+         ("class:marker", self._marker if choice["enabled"] else self._marker_pl),
+         ("[SetCursorPosition]", "")]
+    d.extend(_barevne_fragmenty(choice["name"]))
+    return d
+
+
+# InquirerPy bere choice["name"] a strká ho rovnou do prompt_toolkit, který
+# ANSI kódy neumí - přepíšeme obě vykreslovací metody NA KONTROLE (ne na
+# promptu - tam metody nejsou, jsou na InquirerPyListControl).
+_ListControl._get_normal_text = _lp_normal
+_ListControl._get_hover_text = _lp_hover
 
 import agents as reg
 import live_tennis_simulator as base
@@ -334,7 +378,7 @@ def menu_agenti():
         popis = (f"{a['id']:<12} {strat:<10} banka {barva}{_fmt(banka):>8}{Z} "
                  f"(alok {_fmt(a['bank'])}, {barva}{pnl:+.0f}{Z}) V{won}/P{lost}/~{pend}"
                  + ("" if a["active"] else f" {Y}[VYPNUT]{Z}"))
-        choices.append(Choice(a["id"], popis))
+        choices.append(Choice(a["id"], A(popis)))
     choices.append(Separator())
     choices.append(Choice("__zpet__", "←  Zpět do menu"))
 
@@ -452,7 +496,7 @@ def menu_config(aid):
             znak = f"{Y}*{Z}" if zmeneno else " "
             choices.append(Choice(
                 klic,
-                f"{znak} {popis:<42} {G}{hodnota}{Z}  {D}(default {defaults[klic]}) {poznamka}{Z}"))
+                A(f"{znak} {popis:<42} {G}{hodnota}{Z}  {D}(default {defaults[klic]}) {poznamka}{Z}")))
         choices.append(Separator())
         choices.append(Choice("__reset__", "↺  Vrátit vše na výchozí hodnoty strategie"))
         choices.append(Choice("__zpet__", "←  Zpět"))
@@ -510,7 +554,7 @@ def menu_novy_agent():
 
     strategie = inquirer.select(
         message="Strategie:",
-        choices=[Choice(k, f"{v['nazev']}  {D}[{k}]{Z}") for k, v in reg.STRATEGIE.items()],
+        choices=[Choice(k, A(f"{v['nazev']}  {D}[{k}]{Z}")) for k, v in reg.STRATEGIE.items()],
         qmark="🎯").execute()
 
     castka = inquirer.number(
