@@ -619,3 +619,52 @@ přes jeho sjednocené CLI: `nh system notification -t <titulek> -c <text>`.
 Implementace je defenzivní - `notify()` je obalená v `try/except` a nikdy
 nespadne, i kdyby `nh` chybělo nebo selhalo (notifikace je bonus, ne
 kritická funkce; skript musí fungovat i mimo NetHunter prostředí).
+
+### Agresivní režim: rychlé znásobení s cílem a limitem (`agresivni-tick`, 1. 10. 2026)
+
+Uživatel explicitně odmítl pomalé proporční sázení ("agent dává malé sázky,
+jedna špatná sázka způsobí ztrátu celkového [zisku]") a chtěl: sázet **celou
+banku** na tiket, cíl 6× znásobení (1000 → 6000), a po jeho dosažení zastavit
+se při poklesu o 1000 z vrcholu.
+
+**Poctivé varování, které jsem dal PŘED implementací:** sázet doslova celou
+banku na jeden tiket s pravděpodobností výhry 70-85 % dává **15-30% šanci,
+že HNED PRVNÍ sázka smaže banku na nulu bez možnosti zotavení** - to je
+nejvyšší možná šance na okamžitý krach, přesný opak toho, o co uživatel
+žádal ("nejvyšší šance na jednoduché stoupání"). Navrhl jsem kompromis
+(50 % banky na tiket - jedna prohra banku jen zmenší, nezničí).
+
+**Uživatel reagoval:** "risk je zisk, proto to existuje" - a trval na celé
+bance. To je informované rozhodnutí po jasném vysvětlení rizika, ne
+přehlédnutý detail - implementováno přesně takhle (`AGGR_STAKE_FRACTION = 1.0`).
+
+**Druhá chyba, kterou jsem našel a opravil SÁM při návrhu (ne po chybě v
+provozu):** kdyby se "ochranný režim" po dosažení cíle dál sázel celou
+bankou, trailing stop "pokles o 1000 od vrcholu" by byl matematicky
+nedosažitelný - jedna prohra po dosažení cíle by vynulovala rovnou celý
+vrchol (např. 6000), ne jen 1000, takže stop by nikdy nestihl zareagovat.
+Oprava: v ochranném režimu se sází nejvýš `AGGR_TRAILING_STOP` (1000), ne
+celá banka - tím je garantováno, že jedna sázka nikdy nestrhne víc než
+rezervu, na kterou je trailing stop nastavený. Ověřeno numericky (viz
+scénář v testech `_replay_aggressive`): banka 6275 po jedné prohře s
+vkladem capnutým na 1000 klesne na 5275 a `halted=True` s přesným důvodem.
+
+**Třetí problém, který se ukázal až při prvním živém běhu:** výběr "nejvyšší
+pravděpodobnost" (bezpečnější) vybral zápas na 97 % s kurzem 1,03 - takový
+tiket banku sotva pohne, přímo odporuje cíli "rychle znásob". Oprava: v
+růstové fázi se vybírá **nejnižší** pravděpodobnost, co ještě splní
+bezpečnostní práh (`GAME_FAV_MIN = 0,70`) - to dá nejvyšší dostupný kurz v
+rámci prahu, tedy nejrychlejší očekávaný růst při stejné bezpečnostní
+hranici.
+
+**Jak o tom mluvit s uživatelem:** tohle NENÍ "spíš poroste" nástroj jako
+`watch` nebo normální `tick` (proporční 2% sázky). Realistický výsledek je
+buď rychlý růst k 6000, nebo rychlá ztráta celé startovní banky - žádné
+plynulé mezistádium, protože při frakci 1.0 nejde o postupné kolísání, ale
+o posloupnost "vše, nebo nic" sázek. Matematicky: pravděpodobnost dosažení
+cíle BEZ jediné prohry po cestě je součin pravděpodobností jednotlivých
+sázek (při p≈0,70-0,85 a potřebě cca 6-10 výher v řadě na dosažení 6×,
+podle konkrétních kurzů, to vychází řádově v jednotkách až nízkých
+desítkách procent) - zbytek případů končí vynulováním. To je legitimní,
+uživatelem zvolený kompromis (vysoká odměna, vysoké riziko), ne chyba
+implementace.

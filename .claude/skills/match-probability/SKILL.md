@@ -141,6 +141,17 @@ python3 .claude/skills/match-probability/scripts/live_game_bet.py status   # př
 
 Potřebuje spouštět **mnohem častěji** než `watch` (řádově co 1-3 minuty, ne co 15-30) - při free tieru (100 volání/den) to vydrží jen pár hodin provozu, takže ho spouštěj v časově omezené smyčce, ne natrvalo, a vždy zkontroluj `/usage` a `crontab -l`, jestli neběží souběžně i `watch` na stejný klíč. Kompletní návod včetně modelu a příkladu smyčky je v `AGENT_NAVOD.md`, sekce 12.
 
+### Agresivní varianta: rychlé znásobení s cílem a limitem (`agresivni-tick`)
+
+Třetí, oddělený režim ve stejném skriptu (vlastní banka `live_game_bet_aggressive_log.jsonl`) - na výslovné přání uživatele, který chtěl "rychle znásobit" a potvrdil, že chce i riziko okamžité ztráty všeho ("risk je zisk, proto to existuje"). **Sází se CELÁ aktuální banka na jeden tiket** (vybírá se zápas s nejnižší pravděpodobností, co ještě splní bezpečnostní práh 70 %, pro nejvyšší dostupný kurz). Po dosažení cíle 6000 (6× start) se přepne do ochranné fáze (sází se už jen nejvýš 1000 z banky) a sleduje vrchol - jakmile banka klesne o 1000 od vrcholu, agent se **natrvalo zastaví**.
+
+```bash
+python3 .claude/skills/match-probability/scripts/live_game_bet.py agresivni-tick     # jedno kolo
+python3 .claude/skills/match-probability/scripts/live_game_bet.py agresivni-status   # přehled, nestojí API kvótu
+```
+
+**Tohle není "spíš poroste" nástroj jako ostatní dva** - je to vědomě vysoce rizikové nastavení. Realistický výsledek je buď rychlý růst k cíli, nebo rychlá ztráta všeho - žádné plynulé mezistádium. Mluv o tom s uživatelem takhle na rovinu. Jakmile hlásí "ZASTAVENO", dál to nespouštěj (agent sám odmítne nový tiket). Podrobnosti a zdůvodnění 50%→100% kompromisu v `AGENT_NAVOD.md`, sekce 13, a v `references/metodika.md`.
+
 ## Když data chybí
 
 Skript hledá jen v tom, co je v `/statistiky` - u fotbalu je to 22 evropských lig, u hokeje jen NHL, u tenisu prakticky celá ATP/WTA túra (viz `/statistiky/README.md` pro přesný rozsah). Pokud se někdo zeptá na zápas mimo tento rozsah (např. mimoevropský klub, KHL, MS v hokeji), skript žádná data nenajde - v tom případě to uživateli řekni rovnou, místo abys dopočítal procenta z ničeho. Je v pořádku říct "na tenhle zápas nemám v datech dost podkladů."

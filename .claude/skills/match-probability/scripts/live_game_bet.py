@@ -39,6 +39,46 @@ REŽIMY:
              nové příležitosti a zakládá tikety. VŠE JEDNÍM VOLÁNÍM API.
   `status` - přehled banky a tiketů, BEZ volání API.
 
+  `agresivni-tick`   - DRUHÝ, ODDĚLENÝ režim (vlastní banka, vlastní log
+             `live_game_bet_aggressive_log.jsonl`). Cíl: rychle znásobit
+             banku místo pomalého přírůstku - viz AGR_* konstanty a sekce
+             "AGRESIVNÍ REŽIM" níže. JEN JEDEN otevřený tiket zároveň
+             (velká sázka, nemá smysl riskovat souběžně víc).
+  `agresivni-status` - přehled agresivní banky, BEZ volání API.
+
+AGRESIVNÍ REŽIM (na výslovné přání uživatele - "rychle znásob, nastav strop
+výhry a po jeho dosažení limit prohry"):
+  - Sází se AGR_STAKE_FRACTION (100 %) AKTUÁLNÍ banky na KAŽDÝ tiket (ne
+    pevná 2% frakce jako v normálním `tick`) - tím roste/klesá geometricky,
+    nejrychleji, jak to jde.
+  - **VÝSLOVNĚ POTVRZENÉ RIZIKO:** nejdřív jsem navrhoval 50 % banky místo
+    100 % s upozorněním, že sázet DOSLOVA celou banku s pravděpodobností
+    výhry ~70-85 % dává 15-30% šanci, že HNED PRVNÍ sázka smaže banku na
+    nulu BEZ MOŽNOSTI ZOTAVENÍ. Uživatel na to reagoval "risk je zisk, proto
+    to existuje" a trval na celé bance - je to jeho informované rozhodnutí,
+    ne přehlédnutý detail. Při `AGGR_STAKE_FRACTION = 1.0` banka matematicky
+    přežije JEN sérii samých výher v řadě - jedna jediná prohra kdykoliv
+    (i po deseti výhrách) ji vynuluje natrvalo (žádný tiket na nulové bance
+    nejde založit, `agresivni-tick` se pak už jen hlásí jako "vynulováno").
+  - Jakmile banka DOSÁHNE AGR_PROFIT_TARGET (6000 = 6x start), přepne se do
+    "ochranného" režimu a sází se JINAK: **DŮLEŽITÁ OPRAVA vlastního
+    návrhu** - kdyby se v ochranném režimu dál sázela CELÁ banka, jedna
+    prohra by ji vynulovala rovnou (ztráta 6000, ne 1000) a "trailing stop
+    o 1000 od vrcholu" by nikdy nestihl zareagovat - matematicky nemožné.
+    Proto se v ochranném režimu sází nejvýš AGR_TRAILING_STOP (1000 mincí),
+    NE celá banka - to je přesně ten "limit prohry", co uživatel chtěl:
+    dokud je v bance rezerva nad (vrchol - 1000), riskuje se jen z téhle
+    rezervy, nikdy víc. Jakmile banka klesne na (vrchol - 1000) nebo níž,
+    OKAMŽITĚ A NATRVALO SE ZASTAVÍ (žádné nové tikety, i kdyby pak zápasy
+    dál běžely) - garantovaně se stihne včas, protože jedna sázka nikdy
+    nemůže strhnout víc než těch 1000 mincí rezervy najednou.
+  - Pokud banka klesne pod minimální vklad PŘED dosažením cíle, taky se
+    natrvalo zastaví (došly peníze).
+  - Stav (vrchol, fáze růst/ochrana, zastaveno/ne) se NIKDE neukládá zvlášť -
+    při každém běhu se přepočítá chronologickým přehráním celého logu
+    (`_replay_aggressive`), stejný princip jako `current_bank()` jinde
+    v projektu - log je jediný zdroj pravdy.
+
 Tenhle skript je určený ke spouštění ve SMYČCE s krátkým intervalem (řádově
 1-3 minuty - gem je rychlá událost). To stojí API kvótu rychleji než
 `live_tennis_simulator.py` (ten stačí co 15-30 min) - hlídej `/usage` a
@@ -71,6 +111,17 @@ STARTING_BANK = 1000.0
 STAKE_PCT = 0.02
 MIN_STAKE = 10.0
 MAX_EXPOSURE_PCT = 0.50  # gemy se vyhodnocují rychle, tolerujeme víc souběžných tiketů
+
+# --- AGRESIVNÍ REŽIM (oddělená banka/log, viz docstring výš) ---
+AGGR_LOG_PATH = os.path.join(_DATA_DIR, "live_game_bet_aggressive_log.jsonl")
+AGGR_STAKE_FRACTION = 1.00   # CELÁ banka na každý tiket - výslovné, potvrzené rozhodnutí
+                             # uživatele i přes upozornění, že jedna prohra = banka na 0
+                             # bez možnosti zotavení ("risk je zisk, proto to existuje").
+                             # Při fraction=1.0 je to matematicky to samé jako "série
+                             # mincí": banka přežije JEN sérii samých výher v řadě.
+AGGR_PROFIT_TARGET = 6000.0  # 6x start - po dosažení se přepne do ochranného režimu
+AGGR_TRAILING_STOP = 1000.0  # v ochranném režimu: pokles o tolik od vrcholu = trvalé zastavení
+AGGR_MIN_STAKE = 10.0
 
 
 # ---------------------------------------------------------------------------
@@ -344,12 +395,192 @@ def cmd_status():
               f"@ {e['odds']} (p={e['model_p']:.0%}) při {e.get('score_at_bet', '?')}")
 
 
+# ---------------------------------------------------------------------------
+# AGRESIVNÍ REŽIM - vlastní banka/log, viz docstring nahoře souboru
+# ---------------------------------------------------------------------------
+def aggr_load_log():
+    return base._load_jsonl(AGGR_LOG_PATH)
+
+
+def aggr_append_log(entry):
+    base._append_jsonl(AGGR_LOG_PATH, entry)
+
+
+def aggr_rewrite_log(entries):
+    with open(AGGR_LOG_PATH, "w", encoding="utf-8") as f:
+        for e in entries:
+            f.write(json.dumps(e, ensure_ascii=False) + "\n")
+
+
+def _replay_aggressive(log):
+    """Přehraje CHRONOLOGICKY celý log a spočítá: aktuální banku, vrchol
+    banky, jestli už jsme v 'ochranném' režimu (vrchol >= cíl) a jestli je
+    agent natrvalo ZASTAVEN (trailing stop po dosažení cíle, nebo došly
+    peníze). Nic se neukládá zvlášť - log je jediný zdroj pravdy, stejně
+    jako current_bank() jinde v projektu."""
+    bank = STARTING_BANK
+    peak = bank
+    protecting = False
+    halted = False
+    halt_reason = None
+    chron = sorted((e for e in log if e["status"] in ("won", "lost")),
+                   key=lambda e: e["resolved_at"])
+    for e in chron:
+        profit = e["stake"] * (e["odds"] - 1) if e["status"] == "won" else -e["stake"]
+        bank += profit
+        if bank > peak:
+            peak = bank
+        if not protecting and peak >= AGGR_PROFIT_TARGET:
+            protecting = True
+        if protecting and bank <= peak - AGGR_TRAILING_STOP:
+            halted = True
+            halt_reason = (f"trailing stop: banka {bank:.0f} klesla o "
+                           f"{peak - bank:.0f} z vrcholu {peak:.0f} (limit {AGGR_TRAILING_STOP:.0f})")
+        if bank < AGGR_MIN_STAKE:
+            halted = True
+            halt_reason = f"banka vynulována ({bank:.0f} mincí, pod minimální vklad)"
+    return {"bank": bank, "peak": peak, "protecting": protecting,
+            "halted": halted, "halt_reason": halt_reason}
+
+
+def cmd_aggressive_tick():
+    log = aggr_load_log()
+    state = _replay_aggressive(log)
+    matches = base.fetch_live_matches()
+    live_by_id = {m["id"]: m for m in matches}
+
+    # 1) vyhodnocení dřívějšího otevřeného tiketu (max. jeden zároveň)
+    pending = [e for e in log if e["status"] == "pending"]
+    n_settled = 0
+    for e in pending:
+        if _settle_one(e, live_by_id):
+            n_settled += 1
+            print(f"  [{e['status']:<5}] {e['player1']} vs {e['player2']} - "
+                  f"tiket na {e['pick']} ({e.get('void_reason') or e.get('actual_winner', '')})")
+    if n_settled:
+        aggr_rewrite_log(log)
+        log = aggr_load_log()
+        state = _replay_aggressive(log)
+        settled_now = next((e for e in pending if e["status"] in ("won", "lost")), None)
+        if settled_now:
+            bank_before = state["bank"] - (settled_now["stake"] * (settled_now["odds"] - 1)
+                                           if settled_now["status"] == "won" else -settled_now["stake"])
+            profit = state["bank"] - bank_before
+            emoji = "🚀" if profit > 0 else "💥"
+            base.notify(
+                f"{emoji} AGRESIVNÍ: {settled_now['status'].upper()} - {settled_now['pick']}",
+                f"Banka: {bank_before:.0f} -> {state['bank']:.0f} mincí ({profit:+.0f})\n"
+                f"Vrchol: {state['peak']:.0f}" + (" | V OCHRANNÉM REŽIMU" if state["protecting"] else ""),
+            )
+
+    if state["halted"]:
+        print(f"\nAGRESIVNÍ REŽIM ZASTAVEN: {state['halt_reason']}")
+        print(f"Konečná banka: {state['bank']:.0f} mincí (start {STARTING_BANK:.0f}, vrchol {state['peak']:.0f})")
+        return
+
+    # 2) nový tiket, jen pokud žádný neběží
+    if any(e["status"] == "pending" for e in log):
+        print(f"\nTiket už běží, čeká se na výsledek. Banka: {state['bank']:.0f} mincí")
+        return
+
+    stake_cap = AGGR_TRAILING_STOP if state["protecting"] else state["bank"]
+    stake = min(state["bank"], max(AGGR_MIN_STAKE, round(state["bank"] * AGGR_STAKE_FRACTION)))
+    stake = min(stake, stake_cap)
+    if stake < AGGR_MIN_STAKE:
+        print(f"\nV ochranném režimu nezbývá dost rezervy na další tiket "
+              f"(banka {state['bank']:.0f}, vrchol {state['peak']:.0f}).")
+        return
+
+    singles = [m for m in matches if not m.get("is_doubles") and m.get("draw") == "singles"]
+    best = None  # (p_win, server_name, name1, name2, m, cur, pts)
+    for m in singles:
+        sc = m.get("score") or {}
+        if not sc.get("sets") or sc.get("stale"):
+            continue
+        cur = base.parse_score(sc, best_of_5=(m.get("format") == "BO5"))
+        if cur["is_tiebreak"] or cur["games"] == [6, 6] or cur["between_sets"]:
+            continue
+        p1, p2 = m["players"]["p1"], m["players"]["p2"]
+        name1, name2 = p1["name"], p2["name"]
+        gender = m.get("gender", "men")
+        a_serves = (cur["server"] == 1)
+        server_name = name1 if a_serves else name2
+        hold, n_hold = base.get_hold_rate(server_name, gender)
+        if hold is None or n_hold < base.MIN_HOLD_N:
+            continue
+        pts = cur["points"]
+        p_server, p_returner = (pts[0], pts[1]) if a_serves else (pts[1], pts[0])
+        p_win = game_win_prob(hold, p_server, p_returner)
+        if p_win is None or p_win < GAME_FAV_MIN:
+            continue
+        # Vybíráme NEJNIŽŠÍ pravděpodobnost, co JEŠTĚ splňuje bezpečnostní
+        # práh (GAME_FAV_MIN) - ne nejvyšší. Nejvyšší pravděpodobnost =
+        # nejnižší kurz (např. 1,03 při p=97 %), což přímo odporuje cíli
+        # "rychle znásob" - takový tiket banku sotva pohne. Nejnižší
+        # bezpečná pravděpodobnost dá nejvyšší kurz, jaký je ještě v rámci
+        # prahu - rychlejší růst při stejné bezpečnostní hranici.
+        if best is None or p_win < best[0]:
+            best = (p_win, server_name, name1, name2, m, cur, pts)
+
+    if best is None:
+        print(f"\nŽádný dost silný favorit tenhle tick. Banka: {state['bank']:.0f} mincí "
+              f"(vrchol {state['peak']:.0f}){' [OCHRANNÝ REŽIM]' if state['protecting'] else ''}")
+        return
+
+    p_win, server_name, name1, name2, m, cur, pts = best
+    odds = round(1 / p_win, 2)
+    entry = {
+        "match_id": m["id"], "logged_at": datetime.now(timezone.utc).isoformat(),
+        "tournament": m.get("tournament"), "player1": name1, "player2": name2,
+        "pick": server_name, "odds": odds, "model_p": round(p_win, 4),
+        "score_at_bet": (f"sety {cur['sets'][0]}:{cur['sets'][1]}, "
+                         f"gemy {cur['games'][0]}:{cur['games'][1]}, body {pts[0]}:{pts[1]}"),
+        "state_at_bet": {"sets": cur["sets"], "games": cur["games"],
+                         "between_sets": cur["between_sets"]},
+        "stake": stake, "status": "pending",
+    }
+    aggr_append_log(entry)
+    phase = "OCHRANNÝ REŽIM" if state["protecting"] else "růst"
+    print(f"\n=> AGRESIVNÍ TIKET [{phase}] na {server_name} @ {odds} (p={p_win:.0%}), "
+          f"vklad {stake:.0f} z banky {state['bank']:.0f} [{name1} vs {name2}]")
+    base.notify(
+        f"🎲 AGRESIVNÍ tiket: {server_name}",
+        f"Vklad {stake:.0f} mincí (banka {state['bank']:.0f}) @ {odds}, p={p_win:.0%}\n"
+        f"[{name1} vs {name2}]" + (f" | OCHRANNÝ REŽIM, vrchol {state['peak']:.0f}" if state["protecting"] else ""),
+    )
+
+
+def cmd_aggressive_status():
+    log = aggr_load_log()
+    if not log:
+        print("Agresivní režim zatím nemá žádné tikety (spusť 'agresivni-tick').")
+        return
+    state = _replay_aggressive(log)
+    won = sum(1 for e in log if e["status"] == "won")
+    lost = sum(1 for e in log if e["status"] == "lost")
+    void = sum(1 for e in log if e["status"] == "void")
+    pend = sum(1 for e in log if e["status"] == "pending")
+    print(f"Tiketů celkem: {len(log)} (výhra {won}, prohra {lost}, zrušeno {void}, nevyřízeno {pend})")
+    print(f"Banka: {state['bank']:.0f} mincí (start {STARTING_BANK:.0f}, vrchol {state['peak']:.0f})")
+    print(f"Cíl {AGGR_PROFIT_TARGET:.0f}: {'DOSAŽEN - ' + ('v ochranném režimu' if not state['halted'] else 'zastaveno') if state['protecting'] else 'ještě ne'}")
+    if state["halted"]:
+        print(f"STAV: ZASTAVENO - {state['halt_reason']}")
+    print("\nPosledních 8 tiketů:")
+    for e in log[-8:]:
+        print(f"  [{e['status']:<8}] {e['player1']} vs {e['player2']} - na {e['pick']} "
+              f"@ {e['odds']} (vklad {e['stake']:.0f}) při {e.get('score_at_bet', '?')}")
+
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else None
     if mode == "tick":
         cmd_tick()
     elif mode == "status":
         cmd_status()
+    elif mode == "agresivni-tick":
+        cmd_aggressive_tick()
+    elif mode == "agresivni-status":
+        cmd_aggressive_status()
     else:
         print(__doc__)
         sys.exit(1)

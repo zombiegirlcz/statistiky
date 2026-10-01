@@ -437,3 +437,51 @@ for i in $(seq 1 30); do
 done
 python3 live_game_bet.py status
 ```
+
+---
+
+## 13. TŘETÍ, agresivní režim: rychlé znásobení s cílem a limitem (`agresivni-tick`)
+
+Na výslovné přání uživatele existuje ještě třetí, oddělený režim (vlastní
+banka `live_game_bet_aggressive_log.jsonl`) - cíl NENÍ postupný růst, ale
+**co nejrychlejší znásobení**, s jasně danou metou a pojistkou:
+
+```bash
+python3 live_game_bet.py agresivni-tick     # jedno kolo (vyhodnotí + případně založí nový tiket)
+python3 live_game_bet.py agresivni-status   # přehled, nestojí API kvótu
+```
+
+**Jak to funguje:**
+1. **Růstová fáze** - sází se **CELÁ aktuální banka** na jeden tiket (jen
+   jeden otevřený zároveň). Vybírá se zápas s NEJNIŽŠÍ pravděpodobností, co
+   ještě splní bezpečnostní práh 70 % (`GAME_FAV_MIN`) - to dá nejvyšší
+   dostupný kurz v rámci prahu, tedy nejrychlejší růst. Tohle je VÝSLOVNĚ
+   POTVRZENÉ RIZIKO - jedna jediná prohra KDYKOLIV vynuluje banku bez
+   možnosti zotavení. Uživatel na tohle upozornění reagoval "risk je zisk,
+   proto to existuje" - je to jeho informované rozhodnutí, neopravuj to
+   zpátky na opatrnější sázení bez vyžádání.
+2. Jakmile banka dosáhne **6000 (6× start)**, přepne se do **ochranné
+   fáze** - od tohohle bodu se už NEsází celá banka, ale nejvýš 1000 mincí
+   na tiket (schválně, aby trailing stop níže mohl vůbec zafungovat - celá
+   banka by jednou prohrou smazala vrchol napřímo, ne jen posledních 1000).
+3. V ochranné fázi se sleduje VRCHOL banky - jakmile banka klesne na
+   (vrchol − 1000) nebo níž, agent se **OKAMŽITĚ A NATRVALO ZASTAVÍ**
+   (žádné další tikety, i kdyby zápasy dál běžely).
+4. Pokud banka klesne pod minimální vklad PŘED dosažením cíle (= došly
+   peníze po sérii proher), taky se natrvalo zastaví.
+
+**Stav (vrchol, fáze, zastaveno/ne) se nikde zvlášť neukládá** - při
+každém spuštění se přepočítá přehráním celého logu od začátku
+(`_replay_aggressive`), stejný princip jako jinde v projektu.
+
+**Jakmile `agresivni-status` nebo `agresivni-tick` hlásí "ZASTAVENO" (viz
+`halt_reason`), NESPOUŠTĚJ to dál** - agent to sám odmítne (nezaloží nový
+tiket), ale nemá smysl dál plýtvat API voláním na kontrolu něčeho, co se
+už nehne.
+
+**Jak o tomhle režimu mluvit s uživatelem:** tohle NENÍ "bezpečná" verze
+nástroje jako `watch` nebo normální `tick` - je to vědomě vysoce rizikové
+nastavení na uživatelovo přání. Nikdy netvrď, že "spíš poroste" stejným
+tónem jako u opatrnějších režimů - tady je realistický výsledek buď rychlý
+růst k cíli, nebo rychlá ztráta všeho, bez průběžného "spíš nahoru". Řekni
+to takhle na rovinu, pokud se uživatel zeptá na pravděpodobnost úspěchu.
