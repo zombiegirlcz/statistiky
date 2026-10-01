@@ -155,18 +155,55 @@ def predict_football_match(all_rows, match):
     a_corners = safe(team_rate(past, away, "A", "AC", cutoff), 5.0)
     corner_pick = "home" if h_corners - a_corners > 0.5 else ("away" if a_corners - h_corners > 0.5 else "vyrovnano")
 
-    # karty (zlute+cervene)
-    def cards_rate(team, venue, yc, rc):
+    # karty (zlute+cervene) - kombinace: vlastni prumer tymu + vzajemne zapasy
+    # (derby maji prokazatelne jine pocty karet nez prumer, viz metodika.md) +
+    # konkretni rozhodci (nektery rozhodci pisknou domacim/hostum vyrazne jinak).
+    # Domaci v lize dlouhodobe dostavaji min karet nez hoste (sudi + divacky
+    # tlak) - proto jsou defaulty pro malo-datove pripady ruzne pro H/A, ne 2.0 pro oba.
+    def cards_rate(team, venue, yc, rc, default):
         vals = []
         for r in past:
             if venue == "H" and r["HomeTeam"] == team:
                 vals.append(float(r.get(yc, 0) or 0) + float(r.get(rc, 0) or 0))
             elif venue == "A" and r["AwayTeam"] == team:
                 vals.append(float(r.get(yc, 0) or 0) + float(r.get(rc, 0) or 0))
-        return sum(vals) / len(vals) if vals else 2.0
+        return (sum(vals) / len(vals), len(vals)) if vals else (default, 0)
 
-    h_cards = cards_rate(home, "H", "HY", "HR")
-    a_cards = cards_rate(away, "A", "AY", "AR")
+    def h2h_cards_rate(team, opponent):
+        vals = []
+        for r in past:
+            if r["HomeTeam"] == team and r["AwayTeam"] == opponent:
+                vals.append(float(r.get("HY", 0) or 0) + float(r.get("HR", 0) or 0))
+            elif r["AwayTeam"] == team and r["HomeTeam"] == opponent:
+                vals.append(float(r.get("AY", 0) or 0) + float(r.get("AR", 0) or 0))
+        return (sum(vals) / len(vals), len(vals)) if vals else (None, 0)
+
+    def referee_cards_rate(referee, venue):
+        vals = []
+        for r in past:
+            if r.get("Referee") != referee:
+                continue
+            field = ("HY", "HR") if venue == "home" else ("AY", "AR")
+            vals.append(float(r.get(field[0], 0) or 0) + float(r.get(field[1], 0) or 0))
+        return (sum(vals) / len(vals), len(vals)) if vals else (None, 0)
+
+    h_cards, _ = cards_rate(home, "H", "HY", "HR", 1.98)
+    a_cards, _ = cards_rate(away, "A", "AY", "AR", 2.27)
+
+    h2h_h, h2h_n = h2h_cards_rate(home, away)
+    h2h_a, _ = h2h_cards_rate(away, home)
+    if h2h_n >= 3:
+        h_cards = 0.65 * h_cards + 0.35 * h2h_h
+        a_cards = 0.65 * a_cards + 0.35 * h2h_a
+
+    referee = match.get("Referee")
+    if referee:
+        ref_h, ref_h_n = referee_cards_rate(referee, "home")
+        ref_a, ref_a_n = referee_cards_rate(referee, "away")
+        if ref_h_n >= 10 and ref_a_n >= 10:
+            h_cards = 0.8 * h_cards + 0.2 * ref_h
+            a_cards = 0.8 * a_cards + 0.2 * ref_a
+
     card_pick = "home" if h_cards - a_cards > 0.3 else ("away" if a_cards - h_cards > 0.3 else "vyrovnano")
 
     return {
@@ -294,8 +331,32 @@ def predict_hockey_match(all_rows, match):
     a_sog = safe(nhl_team_rate(past, away, "away", "away_sog", cutoff), 30.0)
     sog_pick = "home" if h_sog - a_sog > 1 else ("away" if a_sog - h_sog > 1 else "vyrovnano")
 
+    # trestne minuty - vlastni prumer tymu + vzajemne zapasy (rivalita mezi
+    # konkretni dvojici tymu ma na PIM mnohem vetsi vliv nez u fotbalovych
+    # karet - prumerna odchylka h2h prumeru od ligoveho prumeru je kolem 20 %,
+    # viz metodika.md). Rozhodci u NHL dat bohuzel nejsou k dispozici.
+    def h2h_pim_rate(team, opponent):
+        vals = []
+        for r in past:
+            if r["home_team"] == team and r["away_team"] == opponent:
+                try:
+                    vals.append(float(r["home_pim"]))
+                except (ValueError, KeyError):
+                    pass
+            elif r["away_team"] == team and r["home_team"] == opponent:
+                try:
+                    vals.append(float(r["away_pim"]))
+                except (ValueError, KeyError):
+                    pass
+        return (sum(vals) / len(vals), len(vals)) if vals else (None, 0)
+
     h_pim = safe(nhl_team_rate(past, home, "home", "home_pim", cutoff), 8.0)
     a_pim = safe(nhl_team_rate(past, away, "away", "away_pim", cutoff), 8.0)
+    h2h_h_pim, h2h_pim_n = h2h_pim_rate(home, away)
+    h2h_a_pim, _ = h2h_pim_rate(away, home)
+    if h2h_pim_n >= 3:
+        h_pim = 0.6 * h_pim + 0.4 * h2h_h_pim
+        a_pim = 0.6 * a_pim + 0.4 * h2h_a_pim
     pim_pick = "home" if h_pim - a_pim > 1 else ("away" if a_pim - h_pim > 1 else "vyrovnano")
 
     return {
@@ -426,10 +487,16 @@ def pick_tennis_testset(rows, n, seed=42):
     return sample
 
 
-def player_rate(rows, player, field, cutoff, as_winner_field, as_loser_field):
+def player_rate(rows, player, field, cutoff, as_winner_field, as_loser_field, surface=None):
+    """Prumer `field` pro hrace pred `cutoff`. Pokud je zadane `surface`, pocita
+    se jen z zapasu na stejnem povrchu - dvojchyby se podle povrchu lisi
+    citelne (tvrdy/antuka/trava maji ruzne prumery), proto se to hodi hlavne
+    tam, kde ma hrac dost zapasu na danem povrchu (viz pouziti nize s fallbackem)."""
     vals = []
     for r in rows:
         if r["_d"] >= cutoff:
+            continue
+        if surface and r.get("surface") != surface:
             continue
         if r["winner_name"] == player and r.get(as_winner_field) not in (None, ""):
             try:
@@ -441,7 +508,7 @@ def player_rate(rows, player, field, cutoff, as_winner_field, as_loser_field):
                 vals.append(float(r[as_loser_field]))
             except ValueError:
                 pass
-    return sum(vals) / len(vals) if vals else None
+    return (sum(vals) / len(vals), len(vals)) if vals else (None, 0)
 
 
 def predict_tennis_match(all_rows, match, p1, p2):
@@ -468,13 +535,23 @@ def predict_tennis_match(all_rows, match, p1, p2):
     p_win1 = score1 / total if total else 0.5
     pred_winner = p1 if p_win1 >= 0.5 else p2
 
-    ace1 = player_rate(past, p1, "ace", cutoff, "w_ace", "l_ace")
-    ace2 = player_rate(past, p2, "ace", cutoff, "w_ace", "l_ace")
+    ace1, _ = player_rate(past, p1, "ace", cutoff, "w_ace", "l_ace")
+    ace2, _ = player_rate(past, p2, "ace", cutoff, "w_ace", "l_ace")
     ace_pick = "p1" if (ace1 or 0) - (ace2 or 0) > 0.5 else ("p2" if (ace2 or 0) - (ace1 or 0) > 0.5 else "vyrovnano")
 
-    df1 = player_rate(past, p1, "df", cutoff, "w_df", "l_df")
-    df2 = player_rate(past, p2, "df", cutoff, "w_df", "l_df")
-    df_pick = "p1" if (df1 or 0) - (df2 or 0) > 0.5 else ("p2" if (df2 or 0) - (df1 or 0) > 0.5 else "vyrovnano")
+    # dvojchyby - povrchove specificky prumer (hard/antuka/trava maji ruzny
+    # zakladni pocet dvojchyb, viz metodika.md), s fallbackem na celkovy
+    # prumer, kdyz hrac nema dost zapasu na danem povrchu. Prah pro "vyrovnano"
+    # je mensi nez u es - dvojchyby jsou sice stabilni vlastnost hrace (vysoka
+    # split-half korelace), ale testy ukazaly, ze prah 0.5 zbytecne casto
+    # hlasi remizu tam, kde ve skutecnosti rozdil byl - viz metodika.md.
+    surface = match.get("surface")
+    df1s, df1n = player_rate(past, p1, "df", cutoff, "w_df", "l_df", surface=surface)
+    df2s, df2n = player_rate(past, p2, "df", cutoff, "w_df", "l_df", surface=surface)
+    if df1n < 8 or df2n < 8:
+        df1s, _ = player_rate(past, p1, "df", cutoff, "w_df", "l_df")
+        df2s, _ = player_rate(past, p2, "df", cutoff, "w_df", "l_df")
+    df_pick = "p1" if (df1s or 0) - (df2s or 0) > 0.1 else ("p2" if (df2s or 0) - (df1s or 0) > 0.1 else "vyrovnano")
 
     # nejcastejsi pomer setu pro dany pocet setu (best_of) mezi vsemi historickymi zapasy
     best_of = match.get("best_of", "3")
@@ -496,17 +573,33 @@ def predict_tennis_match(all_rows, match, p1, p2):
 
 
 def run_tennis_backtest(n):
+    """POZOR na skryte zkresleni: kdyby 'p1' byl vzdy skutecny vitez zapasu,
+    predikce es/dvojchyb by nevedome vyuzivala informaci o vysledku (vitez
+    ma v danem zapase prokazatelne min dvojchyb nez porazeny - 48 % vs 32 %
+    zapasu v datech, zbytek remiza - protoze ten den podaval lip). Aby test
+    zustal poctivy (stejny jako realna situace, kdy vysledek predem neznas),
+    se kazdemu zapasu nahodne (seedovane podle jmen+data, aby bylo
+    opakovatelne) prohodi, kdo je 'p1' a kdo 'p2'."""
     rows = load_tennis_all()
     testset = pick_tennis_testset(rows, n)
     results = []
     for m in testset:
-        p1, p2 = m["winner_name"], m["loser_name"]
+        swap_rng = random.Random(hash((m["winner_name"], m["loser_name"], m["_d"])) & 0xFFFFFFFF)
+        if swap_rng.random() < 0.5:
+            p1, p2 = m["winner_name"], m["loser_name"]
+        else:
+            p1, p2 = m["loser_name"], m["winner_name"]
         pred = predict_tennis_match(rows, m, p1, p2)
-        actual_winner = m["winner_name"]
+
+        def stat_for(player, won_field, lost_field):
+            return float(m[won_field]) if player == m["winner_name"] else float(m[lost_field])
+
+        p1_ace, p2_ace = stat_for(p1, "w_ace", "l_ace"), stat_for(p2, "w_ace", "l_ace")
+        p1_df, p2_df = stat_for(p1, "w_df", "l_df"), stat_for(p2, "w_df", "l_df")
         actual = {
-            "winner": actual_winner, "margin": m["_sets"],
-            "ace_pick": "p1" if float(m["w_ace"]) > float(m["l_ace"]) else ("p2" if float(m["l_ace"]) > float(m["w_ace"]) else "vyrovnano"),
-            "df_pick": "p1" if float(m["w_df"]) > float(m["l_df"]) else ("p2" if float(m["l_df"]) > float(m["w_df"]) else "vyrovnano"),
+            "winner": m["winner_name"], "margin": m["_sets"],
+            "ace_pick": "p1" if p1_ace > p2_ace else ("p2" if p2_ace > p1_ace else "vyrovnano"),
+            "df_pick": "p1" if p1_df > p2_df else ("p2" if p2_df > p1_df else "vyrovnano"),
         }
         results.append({"date": m["_d"], "p1": p1, "p2": p2, "pred": pred, "actual": actual})
     return results

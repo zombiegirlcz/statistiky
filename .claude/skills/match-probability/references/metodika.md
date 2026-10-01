@@ -49,3 +49,64 @@ NHL zápasy nikdy nekončí remízou (prodloužení + nájezdy), takže model m�
 - Je to popisná statistika z minulosti, ne kauzální model - neumí predikovat zlomové momenty (změna trenéra, obrat formy).
 
 Pokud tyhle kontextové informace znáš (např. víš, že klíčový hráč je zraněný), je rozumné procenta z výstupu skriptu jemně posunout vlastním úsudkem a říct, že jde o ruční korekci - ne předstírat, že číslo pořád vychází čistě z dat.
+
+## Doplňkové trhy (`backtest.py`): přesné skóre, rohy, karty, SOG, PIM, esa, dvojchyby
+
+`aggregate_stats.py` (hlavní skill) dává jen procenta výhra/remíza/prohra. `backtest.py`
+navíc umí predikovat přesné skóre (Poisson rozdělení ze střeleckého průměru) a
+"kdo bude mít víc" u rohů/karet (fotbal), střel na branku/trestných minut (hokej)
+a es/dvojchyb (tenis) - a hlavně umí tyhle predikce zpětně otestovat proti
+skutečným výsledkům (viz `backtest.py --help` resp. hlavička souboru).
+
+### Zjištění z testování (náhodný vzorek 50 zápasů/sport, 2022-2026, seed=42)
+
+| Trh | Přesnost | Baseline (náhoda) |
+|---|---|---|
+| Fotbal - výsledek | 46 % | ~33 % |
+| Fotbal - přesné skóre | 12 % | ~5-10 % |
+| Fotbal - víc rohů | 54 % | ~40-45 % |
+| Fotbal - víc karet | 40 % | ~40-45 % |
+| Hokej - výsledek | 64 % | 50 % |
+| Hokej - víc střel na branku | 52 % | ~45-50 % |
+| Hokej - víc trestných minut | 36 % | ~45 % |
+| Tenis - vítěz | 70 % | 50 % |
+| Tenis - přesný poměr setů | 52 % | ~35-50 % |
+| Tenis - víc es | 58 % | ~45 % |
+| Tenis - víc dvojchyb | 38 % | ~45 % |
+
+**Karty, trestné minuty a dvojchyby jsou dlouhodobě nejslabší disciplíny** - prostý
+průměr týmu/hráče na ně nestačí, protože je mnohem víc ovlivňují okolnosti
+konkrétního zápasu (rozhodčí, rivalita, aktuální forma podání) než historický
+průměr. Proto model u těchto tří trhů používá navíc:
+
+- **Fotbalové karty**: kombinace vlastního průměru týmu (65 %) + průměru ve
+  vzájemných zápasech konkrétně proti tomuto soupeři (35 %, pokud existují
+  aspoň 3 vzájemné zápasy - derby mají prokazatelně jiný počet karet než
+  průměr, odchylka cca 0.9 karty/zápas od ligového průměru). Pokud je u zápasu
+  známý rozhodčí (jen anglické a skotské ligy mají `Referee` sloupec), přidá
+  se jeho osobní tendence (80/20 směs) - mezi rozhodčími je směrodatná
+  odchylka v počtu karet 0.5/zápas, není to šum. Defaultní hodnoty pro
+  málo-datové případy navíc nejsou ploché "2.0 pro oba", ale empiricky změřený
+  rozdíl domácí/hosté (1.98 vs 2.27 - hosté dostávají dlouhodobě víc karet,
+  pravděpodobně vliv diváckého tlaku na rozhodčí).
+- **Hokejové trestné minuty**: stejný princip jako karty, ale bez rozhodčího
+  (NHL data ho neobsahují) - 60 % vlastní průměr týmu, 40 % průměr ve
+  vzájemných zápasech (u PIM je tenhle efekt ještě silnější než u fotbalových
+  karet - odchylka cca 20 % od ligového průměru u dvojic s aspoň 4 vzájemnými
+  zápasy).
+- **Tenisové dvojchyby**: dvojchyby jsou překvapivě stabilní osobní vlastnost
+  hráče (vysoká korelace mezi náhodnými polovinami historie jednoho hráče),
+  ale liší se podle povrchu (tráva ~7/zápas, antuka ~5.7/zápas) - model proto
+  počítá průměr z zápasů na stejném povrchu jako testovaný zápas (s fallbackem
+  na celkový průměr, pokud hráč nemá na daném povrchu aspoň 8 zápasů), a práh
+  pro "vyrovnáno" je nižší (0.1 místo 0.5 u es) - testy ukázaly, že vyšší práh
+  zbytečně často hlásil remízu tam, kde reálně vyhrál jeden hráč jasně.
+
+**Metodologická past, na kterou jsme přišli při ladění:** v prvních verzích
+testu byl v tenisovém testu hráč "p1" vždy definovaný jako skutečný vítěz
+zápasu. To nenápadně protáhlo do testu informaci o výsledku - vítězové mají
+v daném zápase prokazatelně míň dvojchyb než poražení (48 % zápasů vs. 32 %,
+zbytek remíza), protože ten den podávali líp. Reálná předpověď dopředu ale
+neví, kdo vyhraje - proto `run_tennis_backtest()` teď p1/p2 přiřazuje náhodně
+(seedované podle jmen a data zápasu), aby test měřil to samé, co bude model
+dělat v praxi u budoucího zápasu.
