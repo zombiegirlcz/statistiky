@@ -483,3 +483,45 @@ Pokud se o automatizaci přesto chce uživatel pokusit, poctivé další kroky
    backtesting, řízení rizika) s papírovým obchodováním, ne jako zdroj
    příjmu - a smířit se s tím, že matematicky očekávaná hodnota je záporná,
    dokud se nenajde opravdu nová informační výhoda.
+
+## Živé sledování zápasů in-play (`live_tennis_simulator.py` + `bet_evaluator.py`)
+
+Nezávisle na backtestu výš (předzápasové kurzy, historická WTA data) existuje
+druhý nástroj pro **právě probíhající** zápasy - sleduje živý průběh (sety,
+gemy, body, kdo podává) přes Live Tennis API a kde vidí rozdíl proti živým
+kurzům z Odds API, založí fiktivní tiket. Po backtestu výš **neočekávej, že
+tenhle nástroj najde skutečnou výhodu** - je to stejná rodina modelu
+(hold/break rate ze stejných veřejných dat) jen uvnitř zápasu místo před ním,
+a výše popsaný nález ("žádná váha modelu nezlepší čistý trh") pravděpodobně
+platí i tady. Hodnota nástroje je v **mechanice sledování a měření**
+(průběžný log, oddělené vyhodnocení, poctivé ROI), ne v očekávaném zisku.
+
+- `live_tennis_simulator.py watch` - při každém spuštění zapíše snímek stavu
+  **každého** živého zápasu do `live_progress_log.jsonl`, porovná ho
+  s minulým snímkem a hlásí události (brejk, uzavřený set, tiebreak,
+  setbol/mečbol, posun pravděpodobnosti ≥10 p.b., změna favorita). Sází jen
+  tam, kde má dost historických dat na oba hráče **a** zápas je v nabídce
+  živých kurzů (menšina zápasů).
+- `bet_evaluator.py` - dotáhne výsledky dohraných zápasů, připíše výhry/prohry
+  do banky (start 1000 fiktivních mincí, vklad 2 % banky, strop expozice
+  25 %) a vypíše ROI, vývoj banky a rozpad podle kurzových/edge pásem.
+
+**Ověřený běh (1. 10. 2026):** ze 30 živých zápasů bylo 15-18 dvouher, cca
+třetina bez dost historických dat, cca dvě třetiny bez živých kurzů v nabídce.
+Vznikl jeden tiket (Gao vs. Udvardy @ 1,27, edge +8 %), po dohrání vyhrál,
+banka 1000 → 1005. **Jeden tiket nedokazuje vůbec nic** - je to ověření, že
+cyklus `watch → vyhodnot` funguje na skutečných datech, ne výsledek měření.
+Smysluplný závěr vyžaduje řádově stovky tiketů; log je k tomu určený
+(přírůstkový, mezi spuštěními bezstavový).
+
+**Chyba ve čtení pole "games" z Live Tennis API (opravena):** poslední záznam
+v `games[hráč]` není vždy rozehraný set - mezi sety (dokud nezačal první gem
+nového setu) je to pořád skóre PRÁVĚ DOHRANÉHO setu, už započítané v poli
+"sets". Když se bral bezmyšlenkovitě jako rozehraný, vznikly dva reálně
+pozorované efekty: (1) stav "sety 1:1, gemy 6:4" se počítal, jako by někdo
+vedl 6:4 v rozehraném 3. setu, což vyrábělo falešné hlášky "BREJK" hned na
+začátku nového setu, a (2) model dostával nesmyslný stav gemů. Oprava:
+rozehraný set se pozná podle počtu záznamů v poli (`games[0]` má víc prvků
+než je dohraných setů) - pokud ne, gemy jsou 0:0 a zápas je "mezi sety".
+Ověřeno na reálném běhu: po opravě hlásí skript smysluplné "MEČBOL"/"setbol"
+a žádné falešné brejky při přechodu mezi sety.

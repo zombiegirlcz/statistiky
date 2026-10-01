@@ -124,19 +124,37 @@ def fetch_match(match_id):
 # Čtení skóre z API (pozor na strukturu, snadno se přečte špatně)
 # ---------------------------------------------------------------------------
 def parse_score(sc, best_of_5=False):
-    """Vytáhne ze 'score' aktuální stav. DŮLEŽITÉ: pole "games" je
-    [gemy_hráče_1_po_setech, gemy_hráče_2_po_setech], tedy indexované
-    NEJDŘÍV HRÁČEM, PAK SETEM - není to [skóre_1._setu, skóre_2._setu].
-    Aktuální rozehraný set je proto poslední index v KAŽDÉM z těch dvou
-    seznamů. Ověřeno na dokončeném zápase id 196994 (games=[[2,3],[6,6]],
-    sets=[0,2] -> 1. set 2:6, 2. set 3:6, sedí)."""
+    """Vytáhne ze 'score' aktuální stav.
+
+    DŮLEŽITÉ 1: pole "games" je [gemy_hráče_1_po_setech, gemy_hráče_2_po_setech],
+    tedy indexované NEJDŘÍV HRÁČEM, PAK SETEM - není to [skóre_1._setu,
+    skóre_2._setu]. Ověřeno na dokončeném zápase id 196994 (games=[[2,3],[6,6]],
+    sets=[0,2] -> 1. set 2:6, 2. set 3:6, sedí).
+
+    DŮLEŽITÉ 2: poslední záznam v těch seznamech NEMUSÍ být rozehraný set.
+    Mezi sety (a po skončení zápasu) je to skóre setu, který už je dohraný a
+    už je započítaný v "sets". Kdyby se bral jako rozehraný, model by ten set
+    přiřkl někomu DRUHÝ RAZ (např. stav sety 1:1 + gemy 6:4 by spočítal jako
+    2:1). Rozpoznává se to podle počtu záznamů: je-li jich víc než dohraných
+    setů, poslední je rozehraný; jinak se žádný set zrovna nehraje a gemy jsou
+    0:0."""
     sets_a, sets_b = sc["sets"][0], sc["sets"][1]
-    games = sc.get("games") or [[0], [0]]
-    ga = games[0][-1] if games[0] else 0
-    gb = games[1][-1] if games[1] else 0
+    games = sc.get("games") or [[], []]
+    per_set_a = list(games[0]) if len(games) > 0 else []
+    per_set_b = list(games[1]) if len(games) > 1 else []
+    completed = sets_a + sets_b
+    n = min(len(per_set_a), len(per_set_b))
+    if n > completed:
+        ga, gb = per_set_a[n - 1], per_set_b[n - 1]
+        between_sets = False
+    else:
+        ga, gb = 0, 0
+        between_sets = True
     return {
         "sets": [sets_a, sets_b],
         "games": [ga, gb],
+        "set_scores": [per_set_a, per_set_b],
+        "between_sets": between_sets,
         "points": list(sc.get("points") or ["0", "0"]),
         "server": sc.get("server"),
         "is_tiebreak": bool(sc.get("is_tiebreak")),
@@ -371,14 +389,19 @@ def detect_events(prev, cur, name1, name2):
     ps, cs = prev["sets"], cur["sets"]
     pg, cg = prev["games"], cur["games"]
 
-    # uzavřený set
+    # uzavřený set - skóre se bere z dohraného setu v AKTUÁLNÍM snímku
+    # (minulý snímek ukazoval stav před posledním gemem, tedy např. 5:4)
     for i in (0, 1):
         if cs[i] > ps[i]:
-            ev.append(f"{names[i]} získal {cs[0] + cs[1]}. set "
-                      f"({pg[0]}:{pg[1]}) - stav na sety {cs[0]}:{cs[1]}")
+            set_no = cs[0] + cs[1]
+            ev.append(f"{names[i]} získal {set_no}. set "
+                      f"({_completed_set_score(cur, set_no)}) - "
+                      f"stav na sety {cs[0]}:{cs[1]}")
 
-    # odehrané gemy v rozehraném setu (jen když se set nezměnil)
-    if cs == ps:
+    # odehrané gemy v rozehraném setu (jen když se set nezměnil a oba snímky
+    # jsou z rozehraného setu - mezi sety by se "gemy 0:0 -> 1:0" chybně
+    # vyhodnotilo jako brejk podle serveru, který už patří novému setu)
+    if cs == ps and not prev.get("between_sets") and not cur.get("between_sets"):
         for i in (0, 1):
             if cg[i] > pg[i]:
                 prev_server = prev.get("server")
@@ -402,6 +425,14 @@ def detect_events(prev, cur, name1, name2):
             ev.append(f"změna favorita na {name1 if cp > 0.5 else name2}")
 
     return ev
+
+
+def _completed_set_score(cur, set_no):
+    a, b = cur.get("set_scores", [[], []])
+    i = set_no - 1
+    if i < len(a) and i < len(b):
+        return f"{a[i]}:{b[i]}"
+    return "?"
 
 
 def _break_point_label(cur, names):

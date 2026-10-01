@@ -87,6 +87,17 @@ odpověď může klidně být "nemá". Ve fotbalové části tohohle projektu
 (`ticket_builder.py`) vyšla po poctivém měření ztráta ve VŠECH testovaných
 variantách (viz `references/metodika.md`). Tady může vyjít totéž.
 
+**Mezitím už existuje mnohem silnější důkaz přesně tohohle u tenisu**
+(`scripts/tennis_value_backtest.py`, běh na 11 730 skutečných historických
+kurzech WTA 2021-2025) - model **nemá žádnou prokázanou výhodu** (ROI -7,7 %
+až -10,1 %, trh tipuje vítěze přesněji, a nejpřísnější test ukázal, že žádná
+váha modelu nezlepší čistý trh - model nedrží vůbec žádnou informaci navíc).
+Tenhle živý nástroj je stejná rodina modelu (hold/break rate ze stejných
+veřejných dat), jen uvnitř zápasu místo před ním - **čekej stejný výsledek**.
+Hodnota nástroje je ve sledování a poctivém měření, ne v očekávaném zisku.
+Podrobnosti v `references/metodika.md`, sekce "Automatizované sázení na
+tenis pomocí AI".
+
 **Když banka klesá, je to platný výsledek, ne chyba, kterou máš opravit.**
 Neupravuj parametry dodatečně tak, aby výsledek vyšel hezky - to je přefitování
 a výsledek pak nic neznamená. Když chceš parametry měnit, změň je PŘED dalším

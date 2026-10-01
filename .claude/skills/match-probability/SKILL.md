@@ -114,6 +114,22 @@ python3 .claude/skills/match-probability/scripts/tennis_value_backtest.py --segm
 
 **Poctivý nález** (viz `references/metodika.md` pro plná čísla): model (ani jednoduchý `forma+h2h`, ani Elo) **nemá žádnou prokázanou sázkovou výhodu** - trh tipuje vítěze přesněji (66,0 % vs. 60,6-63,8 %), hodnotové sázky jsou ztrátové (ROI -7,7 % až -10,1 %) a nejpřísnější test (namíchání modelu do tržní ceny) ukázal, že **žádná váha modelu nezlepší predikci nad čistý trh** - model nedrží vůbec žádnou informaci navíc. Řekni tohle uživateli přímo, pokud se zeptá na stavbu automatizovaného sázecího bota - není to nedostatek implementace (zkusily se dvě různé metodiky), je to důsledek toho, že ATP/WTA kurzy jsou jeden z nejlikvidnějších a nejefektivnějších sportovních trhů - veřejná data, ze kterých model počítá, už má trh dávno zaceněná.
 
+## Volitelně: živé sledování probíhajících tenisových zápasů (fiktivní tikety)
+
+Pokud uživatel chce sledovat **právě probíhající** tenisové zápasy a nechat model zakládat fiktivní tikety "za běhu" (mezi gemy/sety), použij dvojici skriptů. Potřebují dva klíče v `~/.env`: `LIVE_TENNIS_API_KEY` (livetennisapi.com - živé skóre po gemech a bodech) a `ODDS_API_KEY` (skutečné živé kurzy).
+
+```bash
+cd /root/statistiky/.claude/skills/match-probability/scripts && source ~/.env
+python3 live_tennis_simulator.py watch   # sleduje průběh VŠECH živých zápasů, hlásí události, zakládá tikety
+python3 live_tennis_simulator.py status  # rychlý přehled, nestojí API kvótu
+python3 bet_evaluator.py vyhodnot        # zjistí výsledky dohraných zápasů a připíše je do banky
+python3 bet_evaluator.py report          # jen přehled s ROI a vývojem banky, nestojí API kvótu
+```
+
+Rozpočet je **1000 fiktivních mincí** (žádné skutečné peníze, žádný sázkový účet), stav žije v `live_bets_log.jsonl` a `live_progress_log.jsonl` - skripty jsou mezi spuštěními bezstavové, dají se spouštět opakovaně v čase (doporučeně `watch` každých 15-30 minut, limit free tieru je 100 volání/den). **Kompletní samostatný návod je v `AGENT_NAVOD.md`.**
+
+Po nálezu výš **neočekávej skutečnou výhodu ani tady** - je to stejná rodina modelu, jen uvnitř zápasu místo před ním. Hodnota nástroje je ve sledování a poctivém měření (ROI, ne banka ani úspěšnost), ne v očekávaném zisku.
+
 ## Když data chybí
 
 Skript hledá jen v tom, co je v `/statistiky` - u fotbalu je to 22 evropských lig, u hokeje jen NHL, u tenisu prakticky celá ATP/WTA túra (viz `/statistiky/README.md` pro přesný rozsah). Pokud se někdo zeptá na zápas mimo tento rozsah (např. mimoevropský klub, KHL, MS v hokeji), skript žádná data nenajde - v tom případě to uživateli řekni rovnou, místo abys dopočítal procenta z ničeho. Je v pořádku říct "na tenhle zápas nemám v datech dost podkladů."
