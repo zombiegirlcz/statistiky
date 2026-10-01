@@ -13,6 +13,7 @@ Dvě vrstvy dat za posledních ~5 sezón ve třech sportech, vše převedeno do 
   `HS/AS` střely, `HST/AST` střely na branku, `HF/AF` fauly, **`HC/AC` rohové kopy**, `HY/AY/HR/AR` žluté/červené karty, kurzy sázkových kanceláří.
   Ligy: Anglie (Premier League, Championship, League One/Two, National League), Skotsko (4 ligy), Německo (Bundesliga, 2. Bundesliga), Itálie (Serie A/B), Španělsko (La Liga/Segunda), Francie (Ligue 1/2), Nizozemsko, Belgie, Portugalsko, Turecko, Řecko.
   Zdroj: [football-data.co.uk](https://www.football-data.co.uk)
+- **`fotbal/hraci/`** — profily jednotlivých hráčů: věk, pozice, aktuální klub, tržní hodnota, mezinárodní starty (`players.csv`), kompletní přestupová historie od 2021 (`transfers.csv`), sezónní statistiky hráč×sezóna×soutěž - starty, góly, asistence, karty, minuty (`sezonni_staty.csv`). **Pokrytí jen 11 z 22 lig - pouze NEJVYŠŠÍ soutěž každé země** (Premier League, Bundesliga, Serie A, La Liga, Ligue 1, Eredivisie, Jupiler, Primeira Liga, Süper Lig, Super League Greece, Scottish Premiership) - druhé ligy a nižší skotské soutěže v tomto zdroji nejsou. Zdroj: [dcaribou/transfermarkt-datasets](https://github.com/dcaribou/transfermarkt-datasets) (Transfermarkt data, licence CC0 - veřejná doména). Data aktuální k 6. 7. 2026, pipeline zdroje je od poloviny července 2026 pozastavená, takže nejnovější přestupy/zápasy chybí.
 
 ### `tenis/`
 - 5× přehled roku (2021–2025, Wikipedia)
@@ -24,6 +25,7 @@ Dvě vrstvy dat za posledních ~5 sezón ve třech sportech, vše převedeno do 
 - 5× přehled roku (2021–2025, Wikipedia)
 - **5 CSV/MD souborů** = NHL sezóny 2021-22 až 2025-26 (základní část + play-off), ~1400 zápasů/sezóna, ~7000 zápasů celkem. Každý řádek = 1 zápas se sloupci: střely na branku (`sog`), vhazování (`faceoffWinningPctg`), přesilovky (`powerPlay`), **vyloučení v minutách (`pim`)**, hity, zblokované střely, ztráty/zisky puku, pro domácí i hostující tým.
   Zdroj: [NHL API](https://api-web.nhle.com) (oficiální veřejné rozhraní)
+- **`hokej/hraci/`** — profily hráčů a brankářů (věk, pozice, draft, aktuální tým - `hraci.csv`) a sezónní statistiky hráč×sezóna zvlášť pro pole hráče (góly, asistence, +/-, trestné minuty, střely, přesilovky - `sezonni_staty_hraci.csv`) a brankáře (výhry/prohry, % úspěšnosti zákroků, průměr obdržených gólů, čistá konta - `sezonni_staty_brankari.csv`), včetně základní části i play-off. NHL nemá "přestupy" jako fotbal (dresy/trejdy), ale změnu týmu v rámci sezóny je vidět přímo ve sloupci `team` (více zkratek = hráč byl v sezóně trejdnutý). Zdroj: [NHL API stats](https://api.nhle.com/stats/rest/en) (oficiální).
 
 ## Známá omezení rozsahu ("co nejširší pokus")
 
