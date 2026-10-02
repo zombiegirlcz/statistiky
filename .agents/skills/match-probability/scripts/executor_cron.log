@@ -32,3 +32,14 @@ Banka: 1000 mincí (start 1000), vázáno 0
 
 Nových set tiketů: 0 (bez set kurzu: 4)
 Banka: 1000 mincí, nevyřízeno 0 tiketů
+Spouštím aktivní agenty: 1
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 24 (z toho dvouhry: 6) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 2)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
