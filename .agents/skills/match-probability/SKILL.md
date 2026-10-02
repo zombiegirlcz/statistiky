@@ -152,6 +152,59 @@ python3 .agents/skills/match-probability/scripts/live_game_bet.py agresivni-stat
 
 **Tohle není "spíš poroste" nástroj jako ostatní dva** - je to vědomě vysoce rizikové nastavení. Realistický výsledek je buď rychlý růst k cíli, nebo rychlá ztráta všeho - žádné plynulé mezistádium. Mluv o tom s uživatelem takhle na rovinu. Jakmile hlásí "ZASTAVENO", dál to nespouštěj (agent sám odmítne nový tiket). Podrobnosti a zdůvodnění 50%→100% kompromisu v `AGENT_NAVOD.md`, sekce 13, a v `references/metodika.md`.
 
+## CLI: Komplexní nástroj pro správu sázejícího agenta
+
+Pokud uživatel potřebuje **přímé ovládání agenta bez TUI** (skrze příkazový řádek), nebo když potřebuješ **spravovat agenty programově z ostatních skriptů**, použij:
+
+```bash
+cd /root/statistiky/.agents/skills/match-probability/scripts && python3 cli.py
+```
+
+CLI nabízí následující příkazy:
+
+### Bank (správa hlavní banky)
+```bash
+python3 cli.py bank status                # zobrazit stav (volná banka, alokace, celkem)
+python3 cli.py bank deposit 1000          # vložit mince do hlavní banky
+python3 cli.py bank withdraw 500          # vybrat mince z hlavní banky
+```
+
+### Agent (správa jednotlivých agentů)
+```bash
+python3 cli.py agent list                                      # seznam všech agentů
+python3 cli.py agent create "Nový agent" match_fav 500         # vytvořit agenta (jméno, strategie, alokace)
+python3 cli.py agent fund match-fav 200                        # přidat mince agentovi
+python3 cli.py agent defund match-fav 100                      # vybrat mince od agenta
+python3 cli.py agent toggle match-fav                          # zapnout/vypnout agenta
+python3 cli.py agent remove match-fav --force                  # smazat agenta (vrátit jeho banku)
+```
+
+Dostupné strategie: `match_fav` (vítěz zápasu), `gem` (vítěz gemu), `gem_aggr` (agresivní gem).
+
+### Run (spuštění sázkového cyklu)
+```bash
+python3 cli.py run                         # spustit všechny aktivní agenty
+python3 cli.py run --agent match-fav      # spustit jen konkrétního agenta
+```
+
+### Status (přehled)
+```bash
+python3 cli.py status                      # zobrazit banku, agenty, nedávné tikety dohromady
+python3 cli.py results --limit 10          # posledních 10 tiketů a statistiku (procento výher, ROI)
+```
+
+### TUI (interaktivní menu)
+```bash
+python3 cli.py tui                         # spustit main.py (barevné interaktivní menu s InquirerPy)
+```
+
+**Příklady typických sekvencí:**
+- Inicializace: `cli.py bank status` → `cli.py agent create "Můj agent" match_fav 500` → `cli.py agent list`
+- Běh: `cli.py status` → `cli.py run` → `cli.py results`
+- Finančí operace: `cli.py bank deposit 1000` → `cli.py agent fund match-fav 500` → `cli.py bank status`
+
+CLI vrací standardní exit kódy (0 = OK, >0 = chyba) a je navržen tak, aby šel používat z shell skriptů a Modal deploymentu bez interakce. TUI (barevný interaktivní režim) je pro manuální spuštění.
+
 ## Když data chybí
 
 Skript hledá jen v tom, co je v `/statistiky` - u fotbalu je to 22 evropských lig, u hokeje jen NHL, u tenisu prakticky celá ATP/WTA túra (viz `/statistiky/README.md` pro přesný rozsah). Pokud se někdo zeptá na zápas mimo tento rozsah (např. mimoevropský klub, KHL, MS v hokeji), skript žádná data nenajde - v tom případě to uživateli řekni rovnou, místo abys dopočítal procenta z ničeho. Je v pořádku říct "na tenhle zápas nemám v datech dost podkladů."
