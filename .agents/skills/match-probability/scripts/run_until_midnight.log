@@ -1264,3 +1264,124 @@ Banka: 876 mincí (start 1000), nevyřízeno 17 tiketů
 --- live_game_bet agresivni-tick ---
 
 Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
+
+########## 2026-10-01 23:20:00 UTC ##########
+Živých zápasů: 8 (z toho dvouhry: 3)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Hoyoung Roh vs Charlie Robertson [ITF M15 Fayetteville, AR Men] sety 1:1, gemy 6:6, body 0:0 | model: málo historických dat
+      - BREJK pro Charlie Robertson (6:6)
+      - tiebreak
+Theo Papamalamis vs Tito Chavez [ITF M15 Fayetteville, AR Men] sety 1:0, gemy 3:1, body 30:40 | model: málo historických dat
+Elias Ymer vs Federico Cinà [Jingshan] sety 0:0, gemy 1:0, body 0:0 | model: 55% / 45%
+
+Sledováno zápasů: 3
+  bez modelu (málo historických dat na hráče): 2
+  bez živých kurzů v nabídce: 0
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+--- live_game_bet tick ---
+
+Zkontrolováno na podání: 1 (bez dost dat: 1, přeskočeno tiebreak/mezi sety: 1)
+Vyhodnoceno dřívějších tiketů: 0, nových tiketů: 0
+Banka: 876 mincí (start 1000), nevyřízeno 17 tiketů
+--- live_game_bet agresivni-tick ---
+
+Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
+
+########## 2026-10-01 23:40:00 UTC ##########
+Živých zápasů: 8 (z toho dvouhry: 1)
+Banka: 1005 mincí (start 1000), vázáno v nevyřízených tiketech: 0
+
+Elias Ymer vs Federico Cinà [Jingshan] sety 0:0, gemy 1:0, body 0:0 | model: 55% / 45%
+
+Sledováno zápasů: 1
+  bez modelu (málo historických dat na hráče): 0
+  bez živých kurzů v nabídce: 0
+Nových fiktivních tiketů: 0
+Banka: 1005 mincí, nevyřízeno 0 tiketů (0 mincí vázáno)
+
+Vyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot
+--- live_game_bet tick ---
+
+Zkontrolováno na podání: 0 (bez dost dat: 0, přeskočeno tiebreak/mezi sety: 0)
+Vyhodnoceno dřívějších tiketů: 0, nových tiketů: 0
+Banka: 876 mincí (start 1000), nevyřízeno 17 tiketů
+--- live_game_bet agresivni-tick ---
+
+Tiket už běží, čeká se na výsledek. Banka: 1411 mincí
+=== FINÁLE 2026-10-01 23:40:04 UTC ===
+Žádné nevyřízené tikety.
+
+==================================================================
+PŘEHLED FIKTIVNÍCH TENISOVÝCH SÁZEK (strategie: silný favorit)
+==================================================================
+Podíl rostoucích tiketů (výher): 100.0%  -> PŘEVAŽUJE RŮST
+  (1 roste / 0 klesá z 1 vyhodnocených)
+
+Rozpočet na start:          1000 mincí
+Banka teď:                  1005 mincí  (+5)
+Vázáno v nevyřízených:         0 mincí (0 tiketů)
+
+Tiketů celkem:                 1
+  vyhodnocených:               1  (výhra 1, prohra 0)
+  vsazeno / vráceno:          20 / 25 mincí
+  ROI:                   +27.0%  (poctivé měřítko peněz - i vysoký podíl výher může dát záporné ROI)
+  průměrný kurz:            1.27
+
+------------------------------------------------------------------
+POZOR: vyhodnocených tiketů je 1, to je málo na spolehlivý podíl výher. I u skutečných favoritů se pár desítek
+tiketů může sejít příznivěji nebo hůř, než je jejich dlouhodobá
+úspěšnost. Spolehlivější obrázek dá řádově 100+ tiketů.
+Mince jsou FIKTIVNÍ. I strategie se spoustou výherních tiketů může mít
+záporné ROI (jedna velká prohra smaže víc malých výher) a žádná
+strategie nemůže zaručit, že banka neklesne pod startovní hodnotu.
+------------------------------------------------------------------
+==================================================================
+PŘEHLED FIKTIVNÍCH TENISOVÝCH SÁZEK (strategie: silný favorit)
+==================================================================
+Podíl rostoucích tiketů (výher): 100.0%  -> PŘEVAŽUJE RŮST
+  (1 roste / 0 klesá z 1 vyhodnocených)
+
+Rozpočet na start:          1000 mincí
+Banka teď:                  1005 mincí  (+5)
+Vázáno v nevyřízených:         0 mincí (0 tiketů)
+
+Tiketů celkem:                 1
+  vyhodnocených:               1  (výhra 1, prohra 0)
+  vsazeno / vráceno:          20 / 25 mincí
+  ROI:                   +27.0%  (poctivé měřítko peněz - i vysoký podíl výher může dát záporné ROI)
+  průměrný kurz:            1.27
+
+------------------------------------------------------------------
+POZOR: vyhodnocených tiketů je 1, to je málo na spolehlivý podíl výher. I u skutečných favoritů se pár desítek
+tiketů může sejít příznivěji nebo hůř, než je jejich dlouhodobá
+úspěšnost. Spolehlivější obrázek dá řádově 100+ tiketů.
+Mince jsou FIKTIVNÍ. I strategie se spoustou výherních tiketů může mít
+záporné ROI (jedna velká prohra smaže víc malých výher) a žádná
+strategie nemůže zaručit, že banka neklesne pod startovní hodnotu.
+------------------------------------------------------------------
+Tiketů celkem: 106 (výhra 50, prohra 16, zrušeno 23, nevyřízeno 17)
+Podíl rostoucích tiketů: 75.8% (50/66)
+Banka: 876 mincí (start 1000)
+
+Posledních 8 tiketů:
+  [pending ] Stefan Kozlov vs Mitchell Krueger - na Stefan Kozlov @ 1.26 (p=79%) při sety 1:1, gemy 3:5, body 40:40
+  [void    ] Mary Stoiana vs Julieta Pareja - na Julieta Pareja @ 1.25 (p=80%) při sety 0:1, gemy 0:3, body 0:15
+  [void    ] Mary Stoiana vs Julieta Pareja - na Mary Stoiana @ 1.04 (p=96%) při sety 0:1, gemy 2:4, body 40:0
+  [void    ] Guido Ivan Justo vs Pedro Sakamoto - na Pedro Sakamoto @ 1.31 (p=76%) při sety 1:0, gemy 0:0, body 30:30
+  [void    ] Guido Ivan Justo vs Pedro Sakamoto - na Pedro Sakamoto @ 1.12 (p=90%) při sety 1:0, gemy 3:3, body 0:15
+  [void    ] Pedro Boscardin Dias vs Genaro Alberto Olivieri - na Genaro Alberto Olivieri @ 1.02 (p=98%) při sety 1:0, gemy 0:0, body 0:40
+  [void    ] Madison Brengle vs Arianna Zucchini - na Madison Brengle @ 1.19 (p=84%) při sety 0:0, gemy 1:1, body AD:40
+  [won     ] Madison Brengle vs Arianna Zucchini - na Madison Brengle @ 1.19 (p=84%) při sety 0:0, gemy 5:1, body AD:40
+Tiketů celkem: 3 (výhra 2, prohra 0, zrušeno 0, nevyřízeno 1)
+Banka: 1411 mincí (start 1000, vrchol 1411)
+Cíl 6000: ještě ne
+
+Posledních 8 tiketů:
+  [won     ] Lourdes Ayala vs Diva Bhatia - na Lourdes Ayala @ 1.03 (vklad 1000) při sety 1:0, gemy 3:2, body 40:0
+  [won     ] Martin Krumich vs Pierluigi Basile - na Martin Krumich @ 1.37 (vklad 1030) při sety 0:0, gemy 3:3, body 40:40
+  [pending ] Amandine Monnot vs Salma Djoubri - na Amandine Monnot @ 1.37 (vklad 1411) při sety 0:1, gemy 3:4, body 30:15
+=== cron odstraněn, konec ===
