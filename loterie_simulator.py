@@ -6,7 +6,7 @@ PRAVIDLA (z loterie.md):
   * V kazdem kole se postupne losuje 35 z 48 cisel.
   * Vyhravas, jakmile se vylosuje VSECH 6 tvych cisel (v ramci tech 35).
   * Cim drive padne 6. spravne cislo, tim vyssi nasobek vkladu.
-  * Nasobky podle poradi 6. spravneho cisla (tabulka nize).
+  * Nasobky podle poradi 6. spravneho cisla - viz MULT nize.
 
 Tenhle skript meri:
   1. Jak casto se trefi vsech 6 cisel (hit rate).
@@ -16,7 +16,7 @@ Tenhle skript meri:
 
 Pouziti:
   python3 loterie_simulator.py                # 2 000 000 simulovanych losovani
-  python3 loterie_simulator.py 5000000        # jiny pocet
+  python3 loterie_simulator.py 1000000        # jiny pocet
   python3 loterie_simulator.py --seed 42      # reprodukovatelne
 """
 import argparse
@@ -25,11 +25,12 @@ from collections import Counter
 from math import comb
 
 # Nasobek vkladu podle PORADI, ve kterem padne 6. spravne cislo.
-# (tabulka je monotonne klesajici: 6->20000 ... 18->18, 19->17, 20->16, ... 35->1)
+# Doslovne dle tabulky v loterie.md - pozice 19 a 20 jsou SPECIALNI
+# (8000x / 20000x), zbytek monotonne klesa.
 MULT = {
     6: 20000, 7: 8000, 8: 5500, 9: 2500, 10: 600,
     11: 300, 12: 150, 13: 80, 14: 50, 15: 30,
-    16: 20, 17: 19, 18: 18, 19: 17, 20: 16,
+    16: 20, 17: 19, 18: 18, 19: 8000, 20: 20000,
     21: 15, 22: 14, 23: 13, 24: 12, 25: 11,
     26: 10, 27: 9, 28: 8, 29: 7, 30: 6,
     31: 5, 32: 4, 33: 3, 34: 2, 35: 1,
@@ -55,7 +56,7 @@ def analytic_pos_dist():
     """Presne rozdeleni poradi (6..35) 6. spravneho cisla.
 
     P(pos6 = p) = [P(v prvnich p-1 je prave 5 nasich)] * [p-ty tah je nas posledni]
-                = C(6,5)*C(42, p-6)/C(48, p-1) * 1/(48-(p-1))
+                = C(6,5) * C(42, p-6) / C(48, p-1) * 1/(48-(p-1))
     """
     dist = {}
     for p in range(PICK, DRAWN + 1):
@@ -109,8 +110,7 @@ def main():
     print("LUCKY SIX - simulator (6 cisel z 48, losuje se 35 z 48)")
     print("=" * 70)
     print(f"Presna pravdepodobnost trefy vsech 6 cisel:  {p:.8f}")
-    print(f"  = 1 z {1/p:,.0f} losovani   =  {p*100:.5f} %")
-    print(f"Prumerny pocet losovani na 1 trefu:         {1/p:,.1f}")
+    print(f"  = 1 z {1/p:,.1f} losovani   =  {p*100:.5f} %")
     print(f"Analyticky ocekavany nasobek vkladu:        {ev_mult:.5f}x")
     print(f"Analyticke ROI:                             {analytic_roi:+.3f} %")
     print()
@@ -127,7 +127,7 @@ def main():
     for pos in range(PICK, DRAWN + 1):
         c = res["order_hist"].get(pos, 0)
         sim_p = (100.0 * c / hits) if hits else 0.0
-        theo_p = 100.0 * dist[pos] / p if p else 0.0   # podil z tref
+        theo_p = 100.0 * dist[pos] / p if p else 0.0
         print(f"  {pos:>6} {c:>11,} {sim_p:>10.3f}% {theo_p:>10.3f}% {MULT[pos]:>7}x")
     print()
 
@@ -140,11 +140,8 @@ def main():
     print(f"Vsazeno celkem:             {res['staked']:,.0f} Kc")
     print(f"Vraceno celkem:             {res['returned']:,.0f} Kc")
     print(f"ROI (navratnost):           {roi:+.3f} %")
-    print(f"Ocekavana ztrata na kolo:   {ev_per_bet:+.3f} Kc")
-    print(f"Ztrata na 100 Kc vkladu:    {ev_per_bet/STAKE*100:+.3f} Kc")
+    print(f"Ocekavana zmena na kolo:    {ev_per_bet:+.3f} Kc")
     print("=" * 70)
-    print("POZOR: i kdyz obcas padne 20000x, vzacnost trefy zpusobi, ze")
-    print("dlouhodoba navratnost je vyrazne pod 100 % (hazardni hra).")
 
 
 if __name__ == "__main__":
