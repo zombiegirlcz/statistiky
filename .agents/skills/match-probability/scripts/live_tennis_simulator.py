@@ -988,10 +988,23 @@ def cmd_model_watch():
     """
     log = load_log()
     logged = {e["match_id"] for e in log}
-    matches = fetch_live_matches()
+    # live + upcoming: u upcoming jsou kurzy na SX.bet (a model se rozhoduje
+    # z ciste sily hracu, stav 0:0). U live uz mame rozehrany stav.
+    live = fetch_live_matches()
+    up = fetch_upcoming_matches()
+    matches = []
+    for m in live:
+        m["_phase"] = "live"
+        matches.append(m)
+    for m in up:
+        if m.get("id") not in {x.get("id") for x in matches}:
+            m["_phase"] = "prematch"
+            matches.append(m)
     singles = [m for m in matches
                if not m.get("is_doubles") and m.get("draw") == "singles"]
-    print(f"Živých zápasů: {len(matches)} (z toho dvouhry: {len(singles)}) [MODEL-ONLY]")
+    n_live = sum(1 for m in singles if m.get("_phase") == "live")
+    print(f"Zápasů: {len(matches)} (dvouhry: {len(singles)}, z toho live {n_live}, "
+          f"prematch {len(singles)-n_live}) [MODEL-ONLY]")
     print(f"Banka: {current_bank(log):.0f} mincí (start {STARTING_BANK:.0f}), "
           f"vázáno {pending_exposure(log):.0f}\n")
     ts = datetime.now(timezone.utc).isoformat()
@@ -999,12 +1012,18 @@ def cmd_model_watch():
     for m in singles:
         if m["id"] in logged:
             continue
-        sc = m.get("score") or {}
-        if not sc.get("sets") or sc.get("stale"):
-            continue
-        cur = parse_score(sc, best_of_5=(m.get("format") == "BO5"))
         name1, name2 = m["players"]["p1"]["name"], m["players"]["p2"]["name"]
         gender = m.get("gender", "men")
+        if m.get("_phase") == "live":
+            sc = m.get("score") or {}
+            if not sc.get("sets") or sc.get("stale"):
+                continue
+            cur = parse_score(sc, best_of_5=(m.get("format") == "BO5"))
+            sa, sb = cur["sets"]; ga, gb = cur["games"]; srv = cur["server"] == 1
+            score_txt = (f"sety {sa}:{sb}, gemy {ga}:{gb}")
+        else:
+            sa = sb = ga = gb = 0; srv = True
+            score_txt = "pred zapasem (0:0)"
         hold1, k1 = get_hold_rate(name1, gender)
         hold2, k2 = get_hold_rate(name2, gender)
         if hold1 is None or hold2 is None or k1 < MIN_HOLD_N or k2 < MIN_HOLD_N:
@@ -1012,8 +1031,7 @@ def cmd_model_watch():
             continue
         # model pocita vyhru zapasu z aktualniho stavu (sety/gemy) - pro
         # pred-zapasovy stav 0:0 to je cista sila hracu
-        p1 = match_win_prob(hold1, hold2, cur["sets"][0], cur["sets"][1],
-                            cur["games"][0], cur["games"][1], cur["server"] == 1)
+        p1 = match_win_prob(hold1, hold2, sa, sb, ga, gb, srv)
         # model si vybere stranu, ktere veri vic
         if p1 >= 0.5:
             pick, p_model = name1, p1
@@ -1041,13 +1059,13 @@ def cmd_model_watch():
             continue
         entry = {
             "match_id": m["id"], "market_kind": "model_only",
+            "phase": m.get("_phase"),
             "logged_at": ts, "tournament": m.get("tournament"),
             "player1": name1, "player2": name2, "pick": pick,
             "odds": odds, "model_p": round(p_model, 4),
             "market_p": round(mkt_p, 4) if mkt_p is not None else None,
             "is_underdog": is_dog,
-            "score_at_bet": (f"sety {cur['sets'][0]}:{cur['sets'][1]}, "
-                             f"gemy {cur['games'][0]}:{cur['games'][1]}"),
+            "score_at_bet": score_txt,
             "stake": stake, "status": "pending",
             "odds_source": src, "bookmaker_mode": bm.mode(),
         }
