@@ -1,0 +1,12 @@
+Spouštím aktivní agenty: 1
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 16 (z toho dvouhry: 10) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+  [bookmaker] SX.bet set chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno 32] Broken pipe>
+
+Nových set tiketů: 0 (bez set kurzu: 2)
+Banka: 1000 mincí, nevyřízeno 0 tiketů

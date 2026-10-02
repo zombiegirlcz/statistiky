@@ -29,7 +29,9 @@
   "tdd": {
     "phase": "idle",
     "testFiles": [],
-    "sourceFiles": [],
+    "sourceFiles": [
+      "/tmp/fav_safe_probe.py"
+    ],
     "redVerificationPending": false
   },
   "debug": {
