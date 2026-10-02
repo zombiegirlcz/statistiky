@@ -101,6 +101,11 @@ FAV_MODEL_MIN = 0.75     # náš model musí hráče vidět aspoň na 75 % šanc
 FAV_MARKET_MIN = 0.65    # a skutečný trh ho taky musí vidět jako jasného favorita
 FAV_MAX_ODDS = 1.60      # kurz nad tohle už není "bezpečný" favorit, nesázet
 
+# SET-level strategie (vítěz AKTUÁLNÍHO setu, SX.bet trhy 202/203/204).
+SET_FAV_MODEL_MIN = 0.62
+SET_FAV_MARKET_MIN = 0.55
+SET_FAV_MAX_ODDS = 2.00
+
 STARTING_BANK = 1000.0   # rozpočet ve fiktivních mincích
 STAKE_PCT = 0.02         # vklad = 2 % aktuální banky
 MIN_STAKE = 10.0         # pod tohle se nesází (odpovídá minimálnímu vkladu u sázkovek)
@@ -320,6 +325,46 @@ def match_win_prob(hold_a, hold_b, sa, sb, ga, gb, a_serves, sets_to_win=2):
     to může i vedoucího hráče. Jako podlahu/strop proto bereme zhruba polovinu
     toho čísla (2 %) - hrubý, ale daty podložený odhad, ne číslo z hlavy."""
     raw = _match_win_prob_raw(hold_a, hold_b, sa, sb, ga, gb, a_serves, sets_to_win)
+    return min(MAX_PROB, max(MIN_PROB, raw))
+
+
+def _set_win_prob_raw(hold_a, hold_b, ga, gb, a_serves):
+    """P(A vyhraje set) ze stavu gamu ga:gb v TOMTO setu, A podava (a_serves)."""
+    memo = {}
+
+    def rec(ga, gb, a_serves):
+        if ga >= 6 and ga - gb >= 2:
+            return 1.0
+        if gb >= 6 and gb - ga >= 2:
+            return 0.0
+        if ga == 7:
+            return 1.0
+        if gb == 7:
+            return 0.0
+        key = (ga, gb, a_serves)
+        if key in memo:
+            return memo[key]
+        if ga == 6 and gb == 6:
+            p_tb_a = min(0.95, max(0.05, 0.5 + 0.5 * (hold_a - hold_b)))
+            res = p_tb_a * rec(ga + 1, gb, not a_serves) + \
+                  (1 - p_tb_a) * rec(ga, gb + 1, not a_serves)
+        else:
+            p_server = hold_a if a_serves else hold_b
+            if a_serves:
+                res = p_server * rec(ga + 1, gb, not a_serves) + \
+                      (1 - p_server) * rec(ga, gb + 1, not a_serves)
+            else:
+                res = p_server * rec(ga, gb + 1, not a_serves) + \
+                      (1 - p_server) * rec(ga + 1, gb, not a_serves)
+        memo[key] = res
+        return res
+
+    return rec(ga, gb, a_serves)
+
+
+def set_win_prob(hold_a, hold_b, ga, gb, a_serves):
+    """Jako _set_win_prob_raw, ale s podlahou/stropem (skreč, odstoupení)."""
+    raw = _set_win_prob_raw(hold_a, hold_b, ga, gb, a_serves)
     return min(MAX_PROB, max(MIN_PROB, raw))
 
 
@@ -710,6 +755,92 @@ def cmd_watch():
     print("\nVyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot")
 
 
+def cmd_set_watch():
+    """Sází na vítěze AKTUÁLNÍHO setu (SX.bet trhy 202/203/204)."""
+    log = load_log()
+    logged = {(e["match_id"], e.get("set_no")) for e in log}
+    matches = fetch_live_matches()
+    singles = [m for m in matches
+               if not m.get("is_doubles") and m.get("draw") == "singles"]
+    print(f"Živých zápasů: {len(matches)} (z toho dvouhry: {len(singles)}) [SET-level]")
+    print(f"Banka: {current_bank(log):.0f} mincí (start {STARTING_BANK:.0f}), "
+          f"vázáno {pending_exposure(log):.0f}\n")
+    ts = datetime.now(timezone.utc).isoformat()
+    n_bets = n_nomkt = 0
+    for m in singles:
+        sc = m.get("score") or {}
+        if not sc.get("sets") or sc.get("stale"):
+            continue
+        cur = parse_score(sc, best_of_5=(m.get("format") == "BO5"))
+        if cur["between_sets"]:
+            continue
+        p1, p2 = m["players"]["p1"], m["players"]["p2"]
+        name1, name2 = p1["name"], p2["name"]
+        gender = m.get("gender", "men")
+        set_no = cur["sets"][0] + cur["sets"][1] + 1
+        if set_no > 3 or (m["id"], set_no) in logged:
+            continue
+        hold1, n1 = get_hold_rate(name1, gender)
+        hold2, n2 = get_hold_rate(name2, gender)
+        if hold1 is None or hold2 is None or n1 < MIN_HOLD_N or n2 < MIN_HOLD_N:
+            continue
+        p1_set = set_win_prob(hold1, hold2, cur["games"][0], cur["games"][1],
+                              cur["server"] == 1)
+        probs, best, sx_market, src = bm.get_set_market_info(name1, name2, set_no)
+        if not probs or probs.get(name1) is None or probs.get(name2) is None:
+            n_nomkt += 1
+            continue
+        pick = None
+        for name, p_model in ((name1, p1_set), (name2, 1 - p1_set)):
+            p_mkt = probs.get(name)
+            odds = best.get(name)
+            if p_mkt is None or odds is None:
+                continue
+            if p_model >= SET_FAV_MODEL_MIN and p_mkt >= SET_FAV_MARKET_MIN \
+                    and odds <= SET_FAV_MAX_ODDS:
+                pick = (name, odds, p_model, p_mkt)
+                break
+        if not pick:
+            continue
+        stake, reason = next_stake(log)
+        if stake is None:
+            print(f"      ! set {set_no} favorit {pick[0]} @ {pick[1]}, ale tiket se nezakládá: {reason}")
+            continue
+        name, odds, model_p, market_p = pick
+        entry = {
+            "match_id": m["id"], "set_no": set_no, "market_kind": "set",
+            "logged_at": ts, "tournament": m.get("tournament"),
+            "player1": name1, "player2": name2, "pick": name, "odds": odds,
+            "model_p": round(model_p, 4), "market_p": round(market_p, 4),
+            "score_at_bet": (f"sety {cur['sets'][0]}:{cur['sets'][1]}, "
+                             f"gemy {cur['games'][0]}:{cur['games'][1]}"),
+            "stake": stake, "status": "pending",
+            "odds_source": src, "bookmaker_mode": bm.mode(),
+        }
+        if sx_market:
+            entry["market_hash"] = sx_market.get("marketHash")
+            entry["outcome_side"] = bm.outcome_side_for(name, sx_market)
+        if bm.is_real():
+            try:
+                res = bm.place_bet(name1, name2, pick=name, odds=odds, stake=stake,
+                                   market=sx_market, outcome_side=entry.get("outcome_side"))
+                entry["real_bet"] = res
+                print(f"      => REÁLNÁ SET SÁZKA odeslána: {res}")
+            except Exception as ex:
+                print(f"      ! reálná set sázka selhala: {ex}")
+                continue
+        append_log(entry)
+        log.append(entry)
+        logged.add((m["id"], set_no))
+        n_bets += 1
+        print(f"      => SET {set_no} TIKET na {name} @ {odds} "
+              f"(model {model_p:.0%}, trh {market_p:.0%}), vklad {stake:.0f} [{name1} vs {name2}]")
+    print(f"\nNových set tiketů: {n_bets} (bez set kurzu: {n_nomkt})")
+    log = load_log()
+    print(f"Banka: {current_bank(log):.0f} mincí, "
+          f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů")
+
+
 def cmd_status():
     log = load_log()
     if not log:
@@ -737,6 +868,8 @@ def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else None
     if mode in ("watch", "scan"):
         cmd_watch()
+    elif mode == "set-watch":
+        cmd_set_watch()
     elif mode == "status":
         cmd_status()
     else:

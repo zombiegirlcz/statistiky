@@ -42,6 +42,37 @@ import live_tennis_simulator as sim  # noqa: E402
 N_MEANINGFUL = 100
 
 
+def _settle_set_entry(entry, m):
+    """Vyřeší tiket na vítěze SETU (market_kind == 'set').
+
+    Set je rozhodnutý, jakmile počet dohraných setů dosáhne entry['set_no'].
+    Vítěze setu určí skóre her toho setu: games[0][set_no-1] vs games[1][set_no-1].
+    Vrátí True, když se tiket podařilo vyřešit.
+    """
+    set_no = entry.get("set_no")
+    if not set_no:
+        return False
+    sc = m.get("score") or {}
+    sets = sc.get("sets") or [0, 0]
+    games = sc.get("games") or [[], []]
+    completed = (sets[0] or 0) + (sets[1] or 0)
+    if completed < set_no:
+        return False
+    try:
+        g1 = games[0][set_no - 1]
+        g2 = games[1][set_no - 1]
+    except (IndexError, TypeError, KeyError):
+        return False
+    if g1 == g2:
+        return False
+    winner_name = (m["players"]["p1"]["name"] if g1 > g2
+                   else m["players"]["p2"]["name"])
+    entry["status"] = "won" if winner_name == entry["pick"] else "lost"
+    entry["resolved_at"] = datetime.now(timezone.utc).isoformat()
+    entry["actual_winner"] = winner_name
+    return True
+
+
 def settle_pending():
     """Projde nevyřízené tikety, u dohraných zápasů určí vítěze a zapíše
     výsledek. Vrátí počet vyhodnocených tiketů."""
@@ -56,20 +87,26 @@ def settle_pending():
     bank_running = sim.current_bank(log)
     for e in pending:
         m = sim.fetch_match(e["match_id"])
-        # OVĚŘENO na skutečném dokončeném zápase (id 196994, 1. 10. 2026):
-        # "status": "completed", "outcome": "completed" (ŘETĚZEC, ne objekt!),
-        # vítěz je v TOP-LEVEL poli "winner": 2 (ČÍSLO 1 nebo 2 = p1/p2).
-        winner_slot = m.get("winner")
-        if m.get("status") != "completed" or winner_slot not in (1, 2, "1", "2"):
-            state = m.get("status", "?")
-            print(f"  [čeká] {e['player1']} vs {e['player2']} - zápas je ve stavu "
-                  f"'{state}', vítěz ještě není známý")
-            continue
-        winner_name = (m["players"]["p1"]["name"] if winner_slot in (1, "1")
-                       else m["players"]["p2"]["name"])
-        e["status"] = "won" if winner_name == e["pick"] else "lost"
-        e["resolved_at"] = datetime.now(timezone.utc).isoformat()
-        e["actual_winner"] = winner_name
+        if e.get("market_kind") == "set":
+            if not _settle_set_entry(e, m):
+                print(f"  [čeká] {e['player1']} vs {e['player2']} - set "
+                      f"{e.get('set_no')} ještě není dohrán")
+                continue
+            winner_name = e["actual_winner"]
+        else:
+            # OVĚŘENO na dokončeném zápase (id 196994): status "completed",
+            # vítěz v TOP-LEVEL poli "winner": 1/2 (číslo).
+            winner_slot = m.get("winner")
+            if m.get("status") != "completed" or winner_slot not in (1, 2, "1", "2"):
+                state = m.get("status", "?")
+                print(f"  [čeká] {e['player1']} vs {e['player2']} - zápas je ve stavu "
+                      f"'{state}', vítěz ještě není známý")
+                continue
+            winner_name = (m["players"]["p1"]["name"] if winner_slot in (1, "1")
+                           else m["players"]["p2"]["name"])
+            e["status"] = "won" if winner_name == e["pick"] else "lost"
+            e["resolved_at"] = datetime.now(timezone.utc).isoformat()
+            e["actual_winner"] = winner_name
         # kolik to udělalo s bankou
         e["profit"] = round(e["stake"] * (e["odds"] - 1) if e["status"] == "won"
                             else -e["stake"], 2)

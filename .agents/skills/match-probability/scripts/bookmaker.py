@@ -50,7 +50,7 @@ def is_real():
 # Strategie, které UMÍ reálně sázet přes SX.bet (mají trh na vítěze zápasu).
 # Gem-level strategie (gem, gem_aggr) sázejí na vítěze GEMU, což SX.bet
 # nenabízí — reálně je sázet NELZE, v real režimu se musí přeskočit.
-REAL_CAPABLE_STRATEGIES = {"match_fav"}
+REAL_CAPABLE_STRATEGIES = {"match_fav", "set_fav"}
 
 
 def strategy_can_bet_real(strategy):
@@ -90,6 +90,22 @@ def get_market_info(name1, name2, sport="tenis"):
     if m == "oddsapi":
         probs, best = _oddsapi_probs(name1, name2)
         return probs, best, None, "oddsapi"
+    return None, None, None, None
+
+
+def get_set_market_info(name1, name2, set_no, sport="tenis"):
+    """Kurzy na vítěze JEDNOTLIVÉHO setu (SX.bet trhy 202/203/204).
+
+    Vrací (probs, best_odds, market, source) nebo (None, None, None, None).
+    The Odds API set markets NEMÁ, takže fallback na oddsapi tady neexistuje.
+    """
+    if mode() in ("sxbet_sim", "sxbet_real"):
+        try:
+            probs, best, market = sx.probs_for_set(name1, name2, set_no)
+            if probs:
+                return probs, best, market, "sxbet"
+        except Exception as e:
+            print(f"  [bookmaker] SX.bet set chyba: {e}")
     return None, None, None, None
 
 

@@ -39,9 +39,15 @@ SPORT_HOCKEY = 2
 
 # Typy trhů (viz _markets.md v sx-bet-api-docs) — bereme jen "kdo vyhraje zápas".
 MARKET_TYPE_MATCH_WINNER = {52, 226}   # 12, resp. 12 včetně prodloužení
+# Set-winner trhy: u tenisu je "period" = SET. 202 = 1. set, 203 = 2. set,
+# 204 = 3. set. Ověřeno živě (202 měl knihu, 203/204 někdy prázdnou).
+MARKET_TYPE_SET_WINNER = {202: 1, 203: 2, 204: 3}
 MARKET_TYPE_LABELS = {
     52: "12 (vítěz zápasu)",
     226: "12 včetně prodloužení",
+    202: "vítěz 1. setu",
+    203: "vítěz 2. setu",
+    204: "vítěz 3. setu",
     1: "1X2",
 }
 
@@ -132,6 +138,12 @@ def match_winner_markets(sport_id=SPORT_TENNIS, live_only=None, max_pages=12):
     """Jen trhy na vítěze zápasu (type 52/226)."""
     ms = active_markets(sport_ids=[sport_id], live_only=live_only, max_pages=max_pages)
     return [m for m in ms if m.get("type") in MARKET_TYPE_MATCH_WINNER]
+
+
+def set_winner_markets(sport_id=SPORT_TENNIS, live_only=None, max_pages=12):
+    """Jen trhy na vítěze JEDNOTLIVÉHO setu (type 202/203/204)."""
+    ms = active_markets(sport_ids=[sport_id], live_only=live_only, max_pages=max_pages)
+    return [m for m in ms if m.get("type") in MARKET_TYPE_SET_WINNER]
 
 
 # ---------------------------------------------------------------------------
@@ -240,14 +252,28 @@ def find_match_market(name1, name2, sport_id=SPORT_TENNIS, live_only=None, marke
     return None
 
 
-def probs_for_match(name1, name2, sport_id=SPORT_TENNIS, live_only=None):
-    """Vrátí (probs, best_odds, market) pro zápas, nebo (None, None, None).
+def find_set_market(name1, name2, set_no, sport_id=SPORT_TENNIS, live_only=None, markets=None):
+    """Najde trh na vítěze daného setu (set_no = 1/2/3) pro dvojici jmen."""
+    if markets is None:
+        markets = set_winner_markets(sport_id, live_only=live_only)
+    wanted = {t for t, n in MARKET_TYPE_SET_WINNER.items() if n == set_no}
+    for m in markets:
+        if m.get("type") not in wanted:
+            continue
+        t1, t2 = m.get("teamOneName", ""), m.get("teamTwoName", "")
+        if ((_name_match(name1, t1) and _name_match(name2, t2)) or
+                (_name_match(name1, t2) and _name_match(name2, t1))):
+            return m
+    return None
+
+
+def probs_for_market(m, name1, name2):
+    """Z daného trhu (match i set) spočítá (probs, best_odds, market).
 
     probs      = {jméno_hrace: odmaržovaná_pravděpodobnost}
     best_odds  = {jméno_hrace: nejlepší_desetinný_kurz}
     market     = původní záznam trhu (obsahuje marketHash pro reálnou sázku)
     """
-    m = find_match_market(name1, name2, sport_id=sport_id, live_only=live_only)
     if not m:
         return None, None, None
     odds = market_odds(m["marketHash"])
@@ -255,7 +281,6 @@ def probs_for_match(name1, name2, sport_id=SPORT_TENNIS, live_only=None):
         return None, None, m  # trh existuje, ale zatím prázdný book
 
     t1, t2 = m["teamOneName"], m["teamTwoName"]
-    # namapuj outcomeOne/Two na jména podle toho, jak sedí na vstup
     if _name_match(name1, t1):
         by_name = {name1: ("outcomeOne", t1), name2: ("outcomeTwo", t2)}
     else:
@@ -268,6 +293,18 @@ def probs_for_match(name1, name2, sport_id=SPORT_TENNIS, live_only=None):
         best[nm] = dec
         probs[nm] = dev[side] if dev else p
     return probs, best, m
+
+
+def probs_for_match(name1, name2, sport_id=SPORT_TENNIS, live_only=None, markets=None):
+    """Vrátí (probs, best_odds, market) pro vítěze ZÁPASU, nebo (None, None, None)."""
+    m = find_match_market(name1, name2, sport_id=sport_id, live_only=live_only, markets=markets)
+    return probs_for_market(m, name1, name2)
+
+
+def probs_for_set(name1, name2, set_no, sport_id=SPORT_TENNIS, live_only=None, markets=None):
+    """Vrátí (probs, best_odds, market) pro vítěze daného SETU, nebo (None, None, None)."""
+    m = find_set_market(name1, name2, set_no, sport_id=sport_id, live_only=live_only, markets=markets)
+    return probs_for_market(m, name1, name2)
 
 
 # ---------------------------------------------------------------------------
