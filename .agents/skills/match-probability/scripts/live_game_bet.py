@@ -278,6 +278,62 @@ def _settle_one(entry, live_by_id):
 
 
 # ---------------------------------------------------------------------------
+def _settle_completed(entry):
+    """Dohleda vysledek DOHRANEHO zapasu pres API podle `match_id`, i kdyz uz
+    neni v zivem feedu - proto `_settle_one` (ktery pracuje se snimkem ze
+    /matches?status=live) vraci False navzdy. Vrati True, pokud se tiket
+    podarilo vyresit."""
+    try:
+        m = base.fetch_match(entry["match_id"])
+    except SystemExit:
+        return False  # API nedostupne / klic selhal - zkusi se priste
+    if m.get("status") != "completed":
+        return False
+    # Pozor: NEPOUZIVAT _settle_one - ten cte AKTUALNI stav zapasu proti
+    # state_at_bet a u DOHRANEHO zapasu by vzal konecny stav setu jako
+    # "prave ukonceny set" a viteze si domyslel spatne (bug odhaleny
+    # izolovanym testem). U dohraneho zapasu rozhoduje jedine finalni
+    # pole "winner" z API - to je jedina spolehliva informace.
+    winner_slot = m.get("winner")
+    if winner_slot in (1, 2, "1", "2"):
+        winner_name = (m["players"]["p1"]["name"] if winner_slot in (1, "1")
+                       else m["players"]["p2"]["name"])
+        entry["status"] = "won" if winner_name == entry["pick"] else "lost"
+        entry["actual_winner"] = winner_name
+        entry["resolved_at"] = datetime.now(timezone.utc).isoformat()
+        return True
+    entry["status"] = "void"
+    entry["void_reason"] = "zapas dohran, ale vitez nebyl v API jednoznacne urcen"
+    entry["resolved_at"] = datetime.now(timezone.utc).isoformat()
+    return True
+
+
+def cmd_settle():
+    """Settle-only cesta: vyresi nevyrizene tikety dohranych zapasu, ktere uz
+    nejsou v zivem feedu (typicky 'visici' tiket po preruseni smycky). Projde
+    obe banky (match-level i agresivni) a vysledek dohleda pres API."""
+    for label, log, write in (
+        ("match-level", load_log(), rewrite_log),
+        ("agresivni", aggr_load_log(), aggr_rewrite_log),
+    ):
+        pending = [e for e in log if e["status"] == "pending"]
+        if not pending:
+            print(f"[{label}] zadne nevyrizene tikety.")
+            continue
+        n = 0
+        for e in pending:
+            if _settle_completed(e):
+                n += 1
+                print(f"  [{label}] [{e['status']}] {e['player1']} vs {e['player2']} "
+                      f"- na {e['pick']} ({e.get('void_reason') or e.get('actual_winner', '')})")
+            else:
+                print(f"  [{label}] [ceka] {e['player1']} vs {e['player2']} "
+                      f"- na {e['pick']}")
+        if n:
+            write(log)
+        print(f"[{label}] vyhodnoceno: {n}")
+
+
 # Hlavní režim
 # ---------------------------------------------------------------------------
 def cmd_tick():
@@ -581,6 +637,8 @@ def main():
         cmd_aggressive_tick()
     elif mode == "agresivni-status":
         cmd_aggressive_status()
+    elif mode == "settle":
+        cmd_settle()
     else:
         print(__doc__)
         sys.exit(1)
