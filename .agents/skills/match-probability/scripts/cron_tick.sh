@@ -21,6 +21,10 @@ fi
 # sledování živých zápasů + zakládání tiketů (match-level: vítěz celého zápasu)
 python3 live_tennis_simulator.py watch >> "$LOG" 2>&1
 
+# set-level režim (vítěz AKTUÁLNÍHO setu, SX.bet trhy 202/203/204)
+echo "--- set-watch ---" >> "$LOG"
+python3 live_tennis_simulator.py set-watch >> "$LOG" 2>&1
+
 # gem-level režimy (vítěz AKTUÁLNÍHO gemu) - normální i agresivní banka.
 # Bez tohohle se gemové tikety vyhodnocují/zakládají jen při ručním spuštění.
 echo "--- live_game_bet tick ---" >> "$LOG"
