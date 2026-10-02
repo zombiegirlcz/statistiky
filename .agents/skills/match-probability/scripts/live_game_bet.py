@@ -97,6 +97,7 @@ Použití:
 import json
 import os
 import sys
+import time
 from datetime import datetime, timezone
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -111,6 +112,9 @@ STARTING_BANK = 1000.0
 STAKE_PCT = 0.02
 MIN_STAKE = 10.0
 MAX_EXPOSURE_PCT = 0.50  # gemy se vyhodnocují rychle, tolerujeme víc souběžných tiketů
+
+# Throttle pro cmd_settle: API dovoli 30 volani/min; 2.2 s = max ~27/min.
+SETTLE_THROTTLE_SEC = 2.2
 
 # --- AGRESIVNÍ REŽIM (oddělená banka/log, viz docstring výš) ---
 AGGR_LOG_PATH = os.path.join(_DATA_DIR, "live_game_bet_aggressive_log.jsonl")
@@ -321,7 +325,10 @@ def cmd_settle():
             print(f"[{label}] zadne nevyrizene tikety.")
             continue
         n = 0
-        for e in pending:
+        for i, e in enumerate(pending):
+            # API limit 30 volani/min - pauza MEZI volanimi, ne po poslednim.
+            if i > 0:
+                time.sleep(SETTLE_THROTTLE_SEC)
             if _settle_completed(e):
                 n += 1
                 print(f"  [{label}] [{e['status']}] {e['player1']} vs {e['player2']} "
