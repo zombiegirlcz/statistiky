@@ -111,6 +111,18 @@ STAKE_PCT = 0.02         # vklad = 2 % aktuální banky
 MIN_STAKE = 10.0         # pod tohle se nesází (odpovídá minimálnímu vkladu u sázkovek)
 MAX_EXPOSURE_PCT = 0.25  # max. podíl banky vázaný v nevyřízených tiketech zároveň
 
+# STUPŇOVANÉ SÁZENÍ podle JISTOTY (uživatel: "tutovka klidně all-in").
+# Standardní favorit = malý vklad (nízký kurz = malý zisk, nemá smysl riskovat
+# moc). Ale když se model I trh shodnou na TÉMĚŘ JISTOTĚ, vklad roste - až
+# all-in. Logika: u 1.03 je výhra z 20 mincí skoro nic, kdežto riziko je malé.
+CONF_STRONG_MODEL_MIN = 0.85   # silný favorit: model i trh vysoko
+CONF_STRONG_MARKET_MIN = 0.80
+CONF_STRONG_STAKE_PCT = 0.10   # 10 % banky
+CONF_LOCK_MODEL_MIN = 0.90     # TUTOVKA: model i trh téměř jistí
+CONF_LOCK_MARKET_MIN = 0.90
+CONF_LOCK_MAX_ODDS = 1.10      # a kurz velmi nízký (near-lock)
+CONF_LOCK_STAKE_PCT = 1.00     # ALL-IN na tutovku
+
 BIG_PROB_SHIFT = 0.10    # od jakého posunu pravděpodobnosti to hlásit jako událost
 
 
@@ -504,16 +516,43 @@ def pending_exposure(log):
     return sum(e["stake"] for e in log if e["status"] == "pending")
 
 
-def next_stake(log):
-    """Vrátí (vklad, důvod_zamítnutí). Vklad je None, když se sázet nemá."""
+def stake_tier(model_p, market_p, odds):
+    """Podle jistoty vrátí (podil_banky, nazev_urovne).
+
+    Tutovka (model i trh >= CONF_LOCK_*, kurz <= CONF_LOCK_MAX_ODDS) = all-in.
+    Silný favorit (model i trh vysoko) = vetsi vklad. Jinak standardni STAKE_PCT.
+    """
+    if (model_p is not None and market_p is not None and odds is not None
+            and model_p >= CONF_LOCK_MODEL_MIN and market_p >= CONF_LOCK_MARKET_MIN
+            and odds <= CONF_LOCK_MAX_ODDS):
+        return CONF_LOCK_STAKE_PCT, "TUTOVKA (all-in)"
+    if (model_p is not None and market_p is not None
+            and model_p >= CONF_STRONG_MODEL_MIN and market_p >= CONF_STRONG_MARKET_MIN):
+        return CONF_STRONG_STAKE_PCT, "silny favorit"
+    return STAKE_PCT, "standard"
+
+
+def next_stake(log, model_p=None, market_p=None, odds=None):
+    """Vrátí (vklad, důvod_zamítnutí). Vklad je None, když se sázet nemá.
+
+    Vklad se stupňuje podle jistoty (viz stake_tier) - tutovka jde all-in
+    i pres normalni strop soubezne expozice (maximalni vyuziti volne banky).
+    """
     bank = current_bank(log)
     if bank < MIN_STAKE:
         return None, f"rozpočet vyčerpán (banka {bank:.0f} mincí)"
     exposure = pending_exposure(log)
+    pct, tier = stake_tier(model_p, market_p, odds)
+    if pct >= 1.0:
+        # TUTOVKA = all-in: vsad celou volnou banku (bez ohledu na strop expozice)
+        free = bank - exposure
+        if free < MIN_STAKE:
+            return None, f"tutovka, ale volná banka je jen {free:.0f} mincí (vázáno {exposure:.0f})"
+        return round(free), None
     if exposure >= bank * MAX_EXPOSURE_PCT:
         return None, (f"strop souběžné expozice ({exposure:.0f} z max "
                       f"{bank * MAX_EXPOSURE_PCT:.0f} mincí už je v nevyřízených tiketech)")
-    stake = max(MIN_STAKE, round(bank * STAKE_PCT))
+    stake = max(MIN_STAKE, round(bank * pct))
     free = min(bank - exposure, bank * MAX_EXPOSURE_PCT - exposure)
     if stake > free:
         return None, f"na tiket by zbylo jen {free:.0f} mincí (potřeba {stake:.0f})"
@@ -708,7 +747,7 @@ def cmd_watch():
         if not pick:
             continue
 
-        stake, reason = next_stake(log)
+        stake, reason = next_stake(log, model_p=pick[2], market_p=pick[3], odds=pick[1])
         if stake is None:
             print(f"      ! favorit {pick[0]} @ {pick[1]} (model {pick[2]:.0%}/trh {pick[3]:.0%}), "
                   f"ale tiket se nezakládá: {reason}")
@@ -808,7 +847,7 @@ def cmd_set_watch():
                 break
         if not pick:
             continue
-        stake, reason = next_stake(log)
+        stake, reason = next_stake(log, model_p=pick[2], market_p=pick[3], odds=pick[1])
         if stake is None:
             print(f"      ! set {set_no} favorit {pick[0]} @ {pick[1]}, ale tiket se nezakládá: {reason}")
             continue
@@ -890,7 +929,7 @@ def cmd_prematch_watch():
                 break
         if not pick:
             continue
-        stake, reason = next_stake(log)
+        stake, reason = next_stake(log, model_p=pick[2], market_p=pick[3], odds=pick[1])
         if stake is None:
             print(f"      ! pre-match favorit {pick[0]} @ {pick[1]}, ale tiket se nezaklada: {reason}")
             continue
