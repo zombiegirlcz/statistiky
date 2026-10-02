@@ -38,10 +38,6 @@ i Modal, at zrovna bezel kdokoliv z nich.
 
 SECRETS, KTERE SI MUSIS PRIPRAVIT PRED `modal deploy`
 -------------------------------------------------------
-  modal secret create tenis-github-token GH_TOKEN=<tvuj GitHub PAT>
-      (scope: read repo zombiegilrcz/statistiky + zombiegilrcz/docs_config_memo;
-       pokud je nektere z nich public, token stejne nevadi.)
-
   modal secret create tenis-sazkove-klice \
       SX_API_KEY=... SX_PRIVATE_KEY=... \
       LIVE_TENNIS_API_KEY=... ODDS_API_KEY=... \
@@ -69,18 +65,30 @@ tick.sh predpokladal. PUVODNI ODHAD `--allow-tool bash` ale byl SPATNE -
 pi tenhle flag nezna. Spravny flag pro povoleni nastroju je `--tools`
 (zkratka `-t`), napr. `--tools bash`. Overeno i funkcne: beh s `--tools bash`
 sam spustil `bet_evaluator.py report` a spravne shrnul vystup. tick.sh uz
-je na tenhle opraveny flag aktualizovany. Zbyva jen overit, ze presne
-tahle verze `pi` (a prislusne API klice) je dostupna i v Modal image/sandboxu,
-protoze tenhle test bezel mimo Modal.
+je na tenhle opraveny flag aktualizovany.
+
+Config pro pi uz NENI z `docs_config_memo` repa (tim padem odpadl i
+GH_TOKEN_SECRET, nikde jinde v tomhle souboru se nepouzival) - pouziva se
+primo lokalni `/root/.arvhive/.pi`. add_local_dir ho zapece do image
+stejne jako ostatni lokalni soubory.
+
+POZOR - test skutecneho dotazu (ne jen `pi auth check`) ukazal, ze tenhle
+konkretni adresar ma `auth.json` s klici pro anthropic i deepseek, ktere
+SE AUTENTIZUJI (status "ready"), ale oba vraci "insufficient balance" na
+realnem requestu - tedy maji klice, ne kredit. Ostatni providery v tom
+auth.json (kilocode, openrouter, github-copilot, qwen-token-plan) se u
+tyhle instalace v katalogu modelu vubec neobjevily (`pi --list-models`),
+takze nejsou funkcne pouzitelne bez dalsiho doreseni. Nez na tomhle image
+poustet produkcni tick, over `pi auth check` pro providera, co ma tick.sh
+skutecne pouzivat, a pripadne dopln kredit/opravit klic - "ready" u auth
+check neznamena "ma kredit".
 """
 import modal
 
 APP_NAME = "tenis-sazkovy-agent"
 GITHUB_REPO = "zombiegilrcz/statistiky"
-GITHUB_CONFIG_REPO = "zombiegilrcz/docs_config_memo"
 NVM_VERSION = "v0.40.1"
 
-GH_TOKEN_SECRET = "tenis-github-token"
 ENV_SECRET = "tenis-sazkove-klice"
 REAL_BETTING_CONFIRM_SECRET = "tenis-povoleni-realnych-sazek"
 
@@ -97,25 +105,19 @@ volume = modal.Volume.from_name(VOLUME_NAME, create_if_missing=True)
 
 def _build_image() -> modal.Image:
     """Prevadi presne tvuj seznam prikazu do Modal Image build kroku."""
-    gh_secret = modal.Secret.from_name(GH_TOKEN_SECRET)
-
     image = (
         modal.Image.debian_slim()
-        .apt_install("git", "curl", "gh", "ca-certificates")
+        .apt_install("git", "curl", "ca-certificates")
         # "add local file ~/.gitconfig:~/" - commit identita pro `pi`, kdyz
         # bude pushovat zmeny strategie. copy=True, aby to videly i dalsi
         # build kroky (ne jen runtime).
         .add_local_file("/root/.gitconfig", "/root/.gitconfig", copy=True)
-        # "gh repo clone zombiegilrcz/docs_config_memo ~/" +
-        # "cp docs_config_memo/.pi ~/" - staticky config pro pi-coding-agent,
-        # v poradku zapect do image (na rozdil od repa se sazkami - to NENI
-        # mutable stav, meni se jen kdyz ty sam zmenis docs_config_memo).
-        .run_commands(
-            f"gh repo clone zombiegirlcz/docs_config_memo "
-            f"/root/docs_config_memo",
-            "cp -r /root/docs_config_memo/.pi /root/.pi",
-            secrets=[gh_secret],
-        )
+        # /root/.arvhive/.pi je lokalni pi-coding-agent config SE ZNAMA
+        # FUNKCNI auth.json (anthropic + deepseek, overeno `pi auth check`) -
+        # nejsou to klasicke env-var klice, takze nejdou do Modal Secretu,
+        # kopiruji se proto rovnou do image. copy=True, aby je videly i
+        # dalsi build kroky (instalace pi nize).
+        .add_local_dir("/root/.arvhive/.pi", "/root/.pi", copy=True)
         # curl nvm, nvm install node, npm i -g pi-coding-agent - vsechno v
         # JEDNE bash -lc vrstve (nvm.sh se musi sourcnout ve stejnem shellu,
         # ktery pak volá `nvm`/`npm`), a na konci symlink do /usr/local/bin,
