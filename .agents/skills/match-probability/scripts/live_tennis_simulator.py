@@ -106,6 +106,13 @@ SET_FAV_MODEL_MIN = 0.62
 SET_FAV_MARKET_MIN = 0.55
 SET_FAV_MAX_ODDS = 2.00
 
+# MODEL-ONLY strategie: model se rozhoduje UPLNE SAM, bez trhu. Sazi na
+# stranu, ktere sam veri vic. Kdyz je presvedceny i o SLABSI strane (underdog),
+# muze na ni vsadit - projev "z pocitu, ktery je z cisel" (hold/break rate,
+# forma, h2h). Prah MODEL_ONLY_MIN = jakou minimalni sanci model pozaduje.
+MODEL_ONLY_MIN = 0.50    # 0.50 = model si troufne i na vyrovnane zapasy
+MODEL_ONLY_DOG_MIN = 0.55  # vetsi jistota, kdyz jde o underdoga (slabsi strana)
+
 STARTING_BANK = 1000.0   # rozpočet ve fiktivních mincích
 STAKE_PCT = 0.02         # vklad = 2 % aktuální banky
 MIN_STAKE = 10.0         # pod tohle se nesází (odpovídá minimálnímu vkladu u sázkovek)
@@ -970,6 +977,93 @@ def cmd_prematch_watch():
           f"nevyrizeno {sum(1 for e in log if e['status'] == 'pending')} tiketu")
 
 
+def cmd_model_watch():
+    """MODEL-ONLY sazeni: model se rozhoduje UPLNE SAM, bez trhu.
+
+    Sazi na stranu, ktere model veri vic (podle hold/break rate, formy,
+    h2h - proste 'z cisel'). Kdyz je model presvedceny i o SLABSI strane
+    (underdog), muze na ni vsadit - prave to je ten 'pocit z cisel'.
+    NEPOUZIVA zadny kurzovy filtr - rozhoduje jen model. Pro evidenci se
+    kurz porad zapise (kdyz je k dispozici), ale nevybira se podle nej.
+    """
+    log = load_log()
+    logged = {e["match_id"] for e in log}
+    matches = fetch_live_matches()
+    singles = [m for m in matches
+               if not m.get("is_doubles") and m.get("draw") == "singles"]
+    print(f"Živých zápasů: {len(matches)} (z toho dvouhry: {len(singles)}) [MODEL-ONLY]")
+    print(f"Banka: {current_bank(log):.0f} mincí (start {STARTING_BANK:.0f}), "
+          f"vázáno {pending_exposure(log):.0f}\n")
+    ts = datetime.now(timezone.utc).isoformat()
+    n_bets = n_nodata = n_dog = 0
+    for m in singles:
+        if m["id"] in logged:
+            continue
+        sc = m.get("score") or {}
+        if not sc.get("sets") or sc.get("stale"):
+            continue
+        cur = parse_score(sc, best_of_5=(m.get("format") == "BO5"))
+        name1, name2 = m["players"]["p1"]["name"], m["players"]["p2"]["name"]
+        gender = m.get("gender", "men")
+        hold1, k1 = get_hold_rate(name1, gender)
+        hold2, k2 = get_hold_rate(name2, gender)
+        if hold1 is None or hold2 is None or k1 < MIN_HOLD_N or k2 < MIN_HOLD_N:
+            n_nodata += 1
+            continue
+        # model pocita vyhru zapasu z aktualniho stavu (sety/gemy) - pro
+        # pred-zapasovy stav 0:0 to je cista sila hracu
+        p1 = match_win_prob(hold1, hold2, cur["sets"][0], cur["sets"][1],
+                            cur["games"][0], cur["games"][1], cur["server"] == 1)
+        # model si vybere stranu, ktere veri vic
+        if p1 >= 0.5:
+            pick, p_model = name1, p1
+        else:
+            pick, p_model = name2, 1 - p1
+        # kurz jen pro evidenci (neni filtr)
+        probs, best, sx_market, src = bm.get_market_info(name1, name2)
+        odds = (best or {}).get(pick)
+        mkt_p = (probs or {}).get(pick)
+        is_dog = (mkt_p is not None and mkt_p < 0.5)
+        # prah: normalne MODEL_ONLY_MIN, u underdoga prisnejsi
+        need = MODEL_ONLY_DOG_MIN if is_dog else MODEL_ONLY_MIN
+        if p_model < need:
+            continue
+        # stupnovane sazeni: bez trhu -> jako 'market' pouzijeme model
+        stake, reason = next_stake(log, model_p=p_model, market_p=p_model, odds=odds)
+        if stake is None:
+            print(f"      ! model favorit {pick} (p={p_model:.0%}), ale tiket se nezakládá: {reason}")
+            continue
+        entry = {
+            "match_id": m["id"], "market_kind": "model_only",
+            "logged_at": ts, "tournament": m.get("tournament"),
+            "player1": name1, "player2": name2, "pick": pick,
+            "odds": odds, "model_p": round(p_model, 4),
+            "market_p": round(mkt_p, 4) if mkt_p is not None else None,
+            "is_underdog": is_dog,
+            "score_at_bet": (f"sety {cur['sets'][0]}:{cur['sets'][1]}, "
+                             f"gemy {cur['games'][0]}:{cur['games'][1]}"),
+            "stake": stake, "status": "pending",
+            "odds_source": src, "bookmaker_mode": bm.mode(),
+        }
+        if sx_market and pick:
+            entry["market_hash"] = sx_market.get("marketHash")
+            entry["outcome_side"] = bm.outcome_side_for(pick, sx_market)
+        append_log(entry)
+        log.append(entry)
+        logged.add(m["id"])
+        n_bets += 1
+        if is_dog:
+            n_dog += 1
+        tag = "UNDERDOG" if is_dog else "favorit"
+        print(f"      => MODEL-ONLY [{tag}] TIKET na {pick} "
+              f"(model {p_model:.0%})" + (f", kurz {odds}" if odds else "") +
+              f", vklad {stake:.0f} [{name1} vs {name2}]")
+    print(f"\nNových model-only tiketů: {n_bets} (z toho underdog: {n_dog}, bez dat: {n_nodata})")
+    log = load_log()
+    print(f"Banka: {current_bank(log):.0f} mincí, "
+          f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů")
+
+
 def cmd_status():
     log = load_log()
     if not log:
@@ -1001,6 +1095,8 @@ def main():
         cmd_set_watch()
     elif mode == "prematch-watch":
         cmd_prematch_watch()
+    elif mode == "model-watch":
+        cmd_model_watch()
     elif mode == "status":
         cmd_status()
     else:
