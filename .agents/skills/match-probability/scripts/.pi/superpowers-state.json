@@ -34,7 +34,9 @@
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_bands.py",
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_segments.py",
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_bank.py",
-      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_oos.py"
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_oos.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_clay_robust.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_clay_split.py"
     ],
     "redVerificationPending": false
   },
