@@ -62,13 +62,16 @@ JAK TO VYZKOUSET RUCNE (bez cekani na cron)
 ---------------------------------------------
     modal run deploy/modal_app.py
 
-NEOVERENO - OVER PRED PRVNIM OSTRYM BEHEM
---------------------------------------------
-Presny prikaz pro jednorazove (non-interaktivni) spusteni `pi` v tick.sh
-je ODHAD podle beznych konvenci CLI agentu (podobne `claude -p "..."`).
-Nemam dokumentaci k @earendil-works/pi-coding-agent - over `pi --help` v
-sandboxu (`modal shell` do bezicí instance, nebo pridej do tick.sh docasny
-`pi --help` vypis) a tick.sh over/oprav podle skutecneho rozhrani.
+OVERENO LOKALNE (pi 0.87.1, mimo Modal sandbox, ale stejny binarni CLI)
+--------------------------------------------------------------------------
+`pi -p "..."` skutecne spusti neinteraktivni jednorazovy beh presne jak
+tick.sh predpokladal. PUVODNI ODHAD `--allow-tool bash` ale byl SPATNE -
+pi tenhle flag nezna. Spravny flag pro povoleni nastroju je `--tools`
+(zkratka `-t`), napr. `--tools bash`. Overeno i funkcne: beh s `--tools bash`
+sam spustil `bet_evaluator.py report` a spravne shrnul vystup. tick.sh uz
+je na tenhle opraveny flag aktualizovany. Zbyva jen overit, ze presne
+tahle verze `pi` (a prislusne API klice) je dostupna i v Modal image/sandboxu,
+protoze tenhle test bezel mimo Modal.
 """
 import modal
 
@@ -102,14 +105,13 @@ def _build_image() -> modal.Image:
         # "add local file ~/.gitconfig:~/" - commit identita pro `pi`, kdyz
         # bude pushovat zmeny strategie. copy=True, aby to videly i dalsi
         # build kroky (ne jen runtime).
-        .add_local_file("~/.gitconfig", "/root/.gitconfig", copy=True)
+        .add_local_file("/root/.gitconfig", "/root/.gitconfig", copy=True)
         # "gh repo clone zombiegilrcz/docs_config_memo ~/" +
         # "cp docs_config_memo/.pi ~/" - staticky config pro pi-coding-agent,
         # v poradku zapect do image (na rozdil od repa se sazkami - to NENI
         # mutable stav, meni se jen kdyz ty sam zmenis docs_config_memo).
         .run_commands(
-            f"git clone --depth 1 "
-            f"https://oauth2:$GH_TOKEN@github.com/{GITHUB_CONFIG_REPO}.git "
+            f"gh repo clone zombiegirlcz/docs_config_memo "
             f"/root/docs_config_memo",
             "cp -r /root/docs_config_memo/.pi /root/.pi",
             secrets=[gh_secret],

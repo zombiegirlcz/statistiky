@@ -12,10 +12,12 @@
 #   3. Zapise a pushne zpet do GitHubu, cokoliv se zmenilo (log tiketu,
 #      pripadne upravy strategie, ktere `pi` udela).
 #
-# POZOR: krok 2 (presny prikaz pro `pi`) je potreba OVERIT az bude
-# `pi-coding-agent` nainstalovany - nemam jeho dokumentaci, takze flag pro
-# "jednorazovy prompt bez interaktivniho rezimu" je ODHAD podle beznych
-# konvenci (podobne jako `claude -p "..."`). Zkontroluj `pi --help`.
+# OVERENO (lokalni test, pi 0.87.1): `-p/--print` je skutecne neinteraktivni
+# rezim presne jak se predpokladalo. Povoleni nastroju ale NENI `--allow-tool`
+# (to pi nezna) - spravny flag je `--tools`/`-t` s carkou oddelenym seznamem
+# (napr. `--tools bash`). Testovano i s realnym bash pristupem (spustil
+# bet_evaluator.py report a spravne shrnul vystup), takze cely tenhle krok
+# uz je funkcne overeny, ne jen odhad.
 set -euo pipefail
 
 REPO_DIR="/data/statistiky"
@@ -32,7 +34,8 @@ fi
 cd "$REPO_DIR/.agents/skills/match-probability/scripts"
 
 echo "[tick] spoustim pi agenta (strategie + rozhodnuti)..."
-# ODHAD syntaxe - over podle 'pi --help' po instalaci, viz docstring vyse.
+# Syntax overena lokalnim testem (viz docstring vyse): -p je neinteraktivni
+# rezim, --tools je spravny flag pro povoleni nastroju (ne --allow-tool).
 pi -p "Podivej se na vysledky dosavadnich fiktivnich sazek
 (python3 bet_evaluator.py report, bez volani API) a na aktualni parametry
 strategie v live_tennis_simulator.py (FAV_MODEL_MIN, FAV_MARKET_MIN,
@@ -42,7 +45,7 @@ parametry upravit, uprav je - jinak nech beh probehnout beze zmeny. Vzdy
 BOOKMAKER=sxbet_sim (fiktivni mince), zadne realne sazeni bez vyslovneho
 schvaleni uzivatele. Pak spust 'python3 live_tennis_simulator.py watch' a
 'python3 bet_evaluator.py vyhodnot'." \
-    --allow-tool bash \
+    --tools bash \
     2>&1 || echo "[tick] VAROVANI: beh pi agenta selhal, pokracuji primym behem skriptu"
 
 echo "[tick] jistota: spust watch+vyhodnot i kdyby pi vys nic nespustil"
