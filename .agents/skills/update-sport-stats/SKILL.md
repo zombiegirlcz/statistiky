@@ -13,6 +13,8 @@ Je to návazný nástroj na prvotní historický sběr (ten stáhl 5 kompletníc
 
 ## Jak na to
 
+**Pravidlo pro práci v gitu:** Vždy pracuj na větví `master`.
+
 Spusť skript, nic jiného není potřeba řešit ručně:
 
 ```bash
