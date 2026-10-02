@@ -113,6 +113,10 @@ SET_FAV_MAX_ODDS = 2.00
 MODEL_ONLY_MIN = 0.50    # 0.50 = model si troufne i na vyrovnane zapasy
 MODEL_ONLY_DOG_MIN = 0.55  # vetsi jistota, kdyz jde o underdoga (slabsi strana)
 
+# BET BUILDER: kombinace vitez zapasu + vitez 1.setu (jeden zapas, kurzy se
+# nasobi). Sazi se jen pri kladnem edge modelu proti soucinu trznich kurzu.
+BUILDER_MIN_EDGE = 0.03   # 3 procentni body jako minimalni vyhoda
+
 STARTING_BANK = 1000.0   # rozpočet ve fiktivních mincích
 STAKE_PCT = 0.02         # vklad = 2 % aktuální banky
 MIN_STAKE = 10.0         # pod tohle se nesází (odpovídá minimálnímu vkladu u sázkovek)
@@ -1089,6 +1093,92 @@ def cmd_model_watch():
           f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů")
 
 
+def cmd_builder_watch():
+    """BET BUILDER: kombinuje dva trhy na JEDEN zapas - vitez zapasu A vitez
+    1. setu (stejny hrac). Kurzy se nasobi -> vyssi kurz nez solo. Model
+    pocita SPRAVNOU joint pravdepodobnost = P(set1) * P(match | vyhrany set1),
+    protoze obe nohy jsou KORELOVANE (nelze jen nasobit P(set1)*P(match)).
+
+    Sazi se jen kdyz model vidi KLADNY edge proti soucinu trznich kurzu.
+    """
+    log = load_log()
+    logged = {e["match_id"] for e in log}
+    up = fetch_upcoming_matches()
+    singles = [m for m in up
+               if not m.get("is_doubles") and m.get("draw") == "singles"]
+    print(f"Nadchazejicich dvouher: {len(singles)} [BET BUILDER]")
+    print(f"Banka: {current_bank(log):.0f} mincí (start {STARTING_BANK:.0f}), "
+          f"vázáno {pending_exposure(log):.0f}\n")
+    ts = datetime.now(timezone.utc).isoformat()
+    n_bets = n_nodata = n_noedge = 0
+    for m in singles:
+        if m["id"] in logged:
+            continue
+        name1, name2 = m["players"]["p1"]["name"], m["players"]["p2"]["name"]
+        gender = m.get("gender", "men")
+        hold1, k1 = get_hold_rate(name1, gender)
+        hold2, k2 = get_hold_rate(name2, gender)
+        if hold1 is None or hold2 is None or k1 < MIN_HOLD_N or k2 < MIN_HOLD_N:
+            n_nodata += 1
+            continue
+        # trhy: vitez zapasu + vitez 1. setu
+        pm_probs, pm_odds, pm_mk, _ = bm.get_market_info(name1, name2)
+        ps_probs, ps_odds, ps_mk, _ = bm.get_set_market_info(name1, name2, 1)
+        if not pm_probs or not ps_probs:
+            n_nodata += 1
+            continue
+        # model vybere favorita (podle vitezstvi zapasu)
+        p_m1 = match_win_prob(hold1, hold2, 0, 0, 0, 0, True)
+        fav = name1 if p_m1 >= 0.5 else name2
+        # P(set1) pro favored
+        p_set = set_win_prob(hold1, hold2, 0, 0, True)
+        p_set_fav = p_set if fav == name1 else 1 - p_set
+        # P(match | vyhrany set1) pro favored (stav 1:0, 0:0, podava souper)
+        p_mg = match_win_prob(hold1, hold2, 1, 0, 0, 0, False)
+        p_mg_fav = p_mg if fav == name1 else 1 - p_mg
+        joint = p_set_fav * p_mg_fav
+        om = (pm_odds or {}).get(fav)
+        os_ = (ps_odds or {}).get(fav)
+        if om is None or os_ is None:
+            n_nodata += 1
+            continue
+        comb_odd = om * os_
+        edge = joint - (1.0 / comb_odd)
+        if edge < BUILDER_MIN_EDGE:
+            n_noedge += 1
+            continue
+        stake, reason = next_stake(log, model_p=joint, market_p=joint, odds=comb_odd)
+        if stake is None:
+            print(f"      ! builder {fav} (joint {joint:.0%}), ale tiket se nezakládá: {reason}")
+            continue
+        entry = {
+            "match_id": m["id"], "market_kind": "builder",
+            "logged_at": ts, "tournament": m.get("tournament"),
+            "scheduled_time": m.get("scheduled_time"),
+            "player1": name1, "player2": name2, "pick": fav,
+            "odds": round(comb_odd, 3),
+            "leg_odds_match": round(om, 3), "leg_odds_set1": round(os_, 3),
+            "model_p": round(joint, 4), "market_p": round(1.0 / comb_odd, 4),
+            "edge": round(edge, 4),
+            "score_at_bet": "pred zapasem (0:0)",
+            "stake": stake, "status": "pending",
+            "bookmaker_mode": bm.mode(),
+        }
+        if pm_mk:
+            entry["market_hash"] = pm_mk.get("marketHash")
+        append_log(entry)
+        log.append(entry)
+        logged.add(m["id"])
+        n_bets += 1
+        print(f"      => BUILDER TIKET: {fav} vyhraje zapas I 1. set "
+              f"@ {comb_odd:.2f} ({om:.2f}x{os_:.2f}) | joint {joint:.0%} vs trh "
+              f"{1.0/comb_odd:.0%} | edge {edge:+.0%}, vklad {stake:.0f} [{name1} vs {name2}]")
+    print(f"\nNových builder tiketů: {n_bets} (bez dat/trhu: {n_nodata}, bez edge: {n_noedge})")
+    log = load_log()
+    print(f"Banka: {current_bank(log):.0f} mincí, "
+          f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů")
+
+
 def cmd_status():
     log = load_log()
     if not log:
@@ -1122,6 +1212,8 @@ def main():
         cmd_prematch_watch()
     elif mode == "model-watch":
         cmd_model_watch()
+    elif mode == "builder-watch":
+        cmd_builder_watch()
     elif mode == "status":
         cmd_status()
     else:

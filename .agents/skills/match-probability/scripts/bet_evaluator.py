@@ -42,6 +42,42 @@ import live_tennis_simulator as sim  # noqa: E402
 N_MEANINGFUL = 100
 
 
+def _settle_builder_entry(entry, m):
+    """Vyhodnoti BET BUILDER tiket (market_kind == 'builder').
+
+    Kombinace dvou nohou na jednom zapase: vitez zapasu A vitez 1. setu
+    (stejny hrac). Tiket vyhraje JEN kdyz obe nohy vyhral vybrany hrac.
+    Rozhodne se, az kdyz je zapas dohrany (potrebujeme viteze zapasu i 1.setu).
+    """
+    if m.get("status") != "completed":
+        return False
+    sc = m.get("score") or {}
+    sets = sc.get("sets") or [0, 0]
+    games = sc.get("games") or [[], []]
+    if (sets[0] or 0) + (sets[1] or 0) < 1:
+        return False  # bez dohraneho 1. setu nejde rozhodnout
+    # noha 1: vitez zapasu
+    winner_slot = m.get("winner")
+    if winner_slot not in (1, 2, "1", "2"):
+        return False
+    match_winner = (m["players"]["p1"]["name"] if winner_slot in (1, "1")
+                   else m["players"]["p2"]["name"])
+    # noha 2: vitez 1. setu (podle skore her 1. setu)
+    try:
+        g1, g2 = games[0][0], games[1][0]
+    except (IndexError, TypeError, KeyError):
+        return False
+    if g1 == g2:
+        return False
+    set1_winner = m["players"]["p1"]["name"] if g1 > g2 else m["players"]["p2"]["name"]
+    won = (match_winner == entry["pick"] and set1_winner == entry["pick"])
+    entry["status"] = "won" if won else "lost"
+    entry["actual_winner"] = match_winner
+    entry["actual_set1_winner"] = set1_winner
+    entry["resolved_at"] = datetime.now(timezone.utc).isoformat()
+    return True
+
+
 def _settle_set_entry(entry, m):
     """Vyřeší tiket na vítěze SETU (market_kind == 'set').
 
@@ -87,7 +123,13 @@ def settle_pending():
     bank_running = sim.current_bank(log)
     for e in pending:
         m = sim.fetch_match(e["match_id"])
-        if e.get("market_kind") == "set":
+        if e.get("market_kind") == "builder":
+            if not _settle_builder_entry(e, m):
+                print(f"  [čeká] {e['player1']} vs {e['player2']} - builder "
+                      f"ještě není rozhodnutý")
+                continue
+            winner_name = e["actual_winner"]
+        elif e.get("market_kind") == "set":
             if not _settle_set_entry(e, m):
                 print(f"  [čeká] {e['player1']} vs {e['player2']} - set "
                       f"{e.get('set_no')} ještě není dohrán")
