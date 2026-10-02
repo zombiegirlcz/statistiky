@@ -43,6 +43,20 @@ def _run_match_fav(a, cfg):
     base.cmd_watch()
 
 
+def _run_prematch_fav(a, cfg):
+    base.LOG_PATH = reg.log_path(a)
+    base.STARTING_BANK = float(a["bank"])
+    base.STAKE_PCT = float(cfg["stake_pct"])
+    base.MIN_STAKE = float(cfg["min_stake"])
+    base.MAX_EXPOSURE_PCT = float(cfg["max_exposure_pct"])
+    base.FAV_MODEL_MIN = float(cfg["fav_model_min"])
+    base.FAV_MARKET_MIN = float(cfg["fav_market_min"])
+    base.FAV_MAX_ODDS = float(cfg["fav_max_odds"])
+    import bet_evaluator as ev
+    ev.settle_pending()
+    base.cmd_prematch_watch()
+
+
 def _run_set_fav(a, cfg):
     base.LOG_PATH = reg.log_path(a)
     base.STARTING_BANK = float(a["bank"])
@@ -81,6 +95,7 @@ def _run_gem_aggr(a, cfg):
 
 _RUNNERY = {
     "match_fav": _run_match_fav,
+    "prematch_fav": _run_prematch_fav,
     "set_fav": _run_set_fav,
     "gem": _run_gem,
     "gem_aggr": _run_gem_aggr,

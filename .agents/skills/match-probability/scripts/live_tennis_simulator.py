@@ -216,6 +216,12 @@ def fetch_live_matches():
     return data.get("data", [])
 
 
+def fetch_upcoming_matches():
+    """Nadchazejici zapasy (jeste nezacaly) - pro PRE-MATCH sazeni."""
+    data = _live_api_request("/matches", {"status": "upcoming", "limit": 100})
+    return data.get("data", [])
+
+
 def fetch_match(match_id):
     return _live_api_request(f"/matches/{match_id}")
 
@@ -841,6 +847,90 @@ def cmd_set_watch():
           f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů")
 
 
+def cmd_prematch_watch():
+    """PRE-MATCH sazeni: nadchazejici zapasy, kde SX.bet ma trh na viteze
+    zapasu (typ 52). Model pocita pravdepodobnost z hold/break rate obou
+    hracu na stavu 0:0 (los o podani je 50:50, proto prumeruji obe varianty)."""
+    log = load_log()
+    logged = {e["match_id"] for e in log}
+    matches = fetch_upcoming_matches()
+    singles = [m for m in matches
+               if not m.get("is_doubles") and m.get("draw") == "singles"]
+    print(f"Nadchazejicich zapasu: {len(matches)} (z toho dvouhry: {len(singles)}) [PRE-MATCH]")
+    print(f"Banka: {current_bank(log):.0f} minci (start {STARTING_BANK:.0f}), "
+          f"vazano {pending_exposure(log):.0f}\n")
+    ts = datetime.now(timezone.utc).isoformat()
+    n_bets = n_nodata = n_nomkt = 0
+    for m in singles:
+        if m["id"] in logged:
+            continue
+        name1, name2 = m["players"]["p1"]["name"], m["players"]["p2"]["name"]
+        gender = m.get("gender", "men")
+        hold1, k1 = get_hold_rate(name1, gender)
+        hold2, k2 = get_hold_rate(name2, gender)
+        if hold1 is None or hold2 is None or k1 < MIN_HOLD_N or k2 < MIN_HOLD_N:
+            n_nodata += 1
+            continue
+        # los o podani = 50:50 -> prumer obou variant
+        p_a_serves = match_win_prob(hold1, hold2, 0, 0, 0, 0, True)
+        p_b_serves = match_win_prob(hold1, hold2, 0, 0, 0, 0, False)
+        p1_model = (p_a_serves + p_b_serves) / 2.0
+        probs, best, sx_market, src = bm.get_market_info(name1, name2)
+        if not probs or probs.get(name1) is None or probs.get(name2) is None:
+            n_nomkt += 1
+            continue
+        pick = None
+        for name, p_model in ((name1, p1_model), (name2, 1 - p1_model)):
+            p_mkt = probs.get(name)
+            odds = best.get(name)
+            if p_mkt is None or odds is None:
+                continue
+            if p_model >= FAV_MODEL_MIN and p_mkt >= FAV_MARKET_MIN and odds <= FAV_MAX_ODDS:
+                pick = (name, odds, p_model, p_mkt)
+                break
+        if not pick:
+            continue
+        stake, reason = next_stake(log)
+        if stake is None:
+            print(f"      ! pre-match favorit {pick[0]} @ {pick[1]}, ale tiket se nezaklada: {reason}")
+            continue
+        name, odds, model_p, market_p = pick
+        entry = {
+            "match_id": m["id"], "market_kind": "match_prematch",
+            "logged_at": ts, "tournament": m.get("tournament"),
+            "scheduled_time": m.get("scheduled_time"),
+            "player1": name1, "player2": name2, "pick": name, "odds": odds,
+            "model_p": round(model_p, 4), "market_p": round(market_p, 4),
+            "score_at_bet": "pred zapasem (0:0)",
+            "stake": stake, "status": "pending",
+            "odds_source": src, "bookmaker_mode": bm.mode(),
+        }
+        if sx_market:
+            entry["market_hash"] = sx_market.get("marketHash")
+            entry["outcome_side"] = bm.outcome_side_for(name, sx_market)
+        if bm.is_real():
+            try:
+                res = bm.place_bet(name1, name2, pick=name, odds=odds, stake=stake,
+                                   market=sx_market, outcome_side=entry.get("outcome_side"))
+                entry["real_bet"] = res
+                print(f"      => REALNA PRE-MATCH SAZKA odeslana: {res}")
+            except Exception as ex:
+                print(f"      ! realna sazka selhala: {ex}")
+                continue
+        append_log(entry)
+        log.append(entry)
+        logged.add(m["id"])
+        n_bets += 1
+        print(f"      => PRE-MATCH TIKET na {name} @ {odds} "
+              f"(model {model_p:.0%}, trh {market_p:.0%}), vklad {stake:.0f} "
+              f"[{name1} vs {name2}, {m.get('scheduled_time')}]")
+    print(f"\nNovych pre-match tiketu: {n_bets} "
+          f"(bez dat: {n_nodata}, bez SX.bet trhu: {n_nomkt})")
+    log = load_log()
+    print(f"Banka: {current_bank(log):.0f} minci, "
+          f"nevyrizeno {sum(1 for e in log if e['status'] == 'pending')} tiketu")
+
+
 def cmd_status():
     log = load_log()
     if not log:
@@ -870,6 +960,8 @@ def main():
         cmd_watch()
     elif mode == "set-watch":
         cmd_set_watch()
+    elif mode == "prematch-watch":
+        cmd_prematch_watch()
     elif mode == "status":
         cmd_status()
     else:

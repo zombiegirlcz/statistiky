@@ -90,6 +90,24 @@ STRATEGIE = {
             "game_fav_min": ("Min. pravděpodobnost výhry gemu", 0.01, 1.0, "např. 0.70"),
         },
     },
+    "prematch_fav": {
+        "nazev": "Pre-match: silný favorit na vítěze zápasu (před zápasem)",
+        "log": "live_prematch_bets_log.jsonl",
+        "mod": "live_tennis_simulator",
+        "tick": "prematch-watch",
+        "defaults": {
+            "stake_pct": 0.02, "min_stake": 10.0, "max_exposure_pct": 0.25,
+            "fav_model_min": 0.75, "fav_market_min": 0.65, "fav_max_odds": 1.60,
+        },
+        "popisky": {
+            "stake_pct": ("Vklad jako podíl banky", 0.001, 1.0, "např. 0.02 = 2 %"),
+            "min_stake": ("Minimální vklad (mincí)", 1, 100000, ""),
+            "max_exposure_pct": ("Max. podíl banky v souběžných tiketech", 0.01, 1.0, ""),
+            "fav_model_min": ("Min. šance podle modelu", 0.01, 1.0, "např. 0.75"),
+            "fav_market_min": ("Min. šance podle trhu", 0.01, 1.0, "např. 0.65"),
+            "fav_max_odds": ("Max. kurz", 1.01, 100.0, "nad tímhle se nesází"),
+        },
+    },
     "set_fav": {
         "nazev": "Set-level: silný favorit na vítěze AKTUÁLNÍHO setu",
         "log": "live_set_bets_log.jsonl",
