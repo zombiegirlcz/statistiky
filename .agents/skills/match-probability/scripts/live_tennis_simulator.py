@@ -995,7 +995,7 @@ def cmd_model_watch():
     print(f"Banka: {current_bank(log):.0f} mincí (start {STARTING_BANK:.0f}), "
           f"vázáno {pending_exposure(log):.0f}\n")
     ts = datetime.now(timezone.utc).isoformat()
-    n_bets = n_nodata = n_dog = 0
+    n_bets = n_nodata = n_dog = n_nomkt = 0
     for m in singles:
         if m["id"] in logged:
             continue
@@ -1024,6 +1024,12 @@ def cmd_model_watch():
         odds = (best or {}).get(pick)
         mkt_p = (probs or {}).get(pick)
         is_dog = (mkt_p is not None and mkt_p < 0.5)
+        # Bez kurzu nelze tiket vyhodnotit (profit = stake*(odds-1)) - preskoc.
+        # Model se sice rozhoduje sam KOHO, ale potrebuje cenu, za kterou se
+        # sazi; jinak by tiket visel navzdy (bug odhaleny testem).
+        if odds is None:
+            n_nomkt += 1
+            continue
         # prah: normalne MODEL_ONLY_MIN, u underdoga prisnejsi
         need = MODEL_ONLY_DOG_MIN if is_dog else MODEL_ONLY_MIN
         if p_model < need:
@@ -1058,7 +1064,8 @@ def cmd_model_watch():
         print(f"      => MODEL-ONLY [{tag}] TIKET na {pick} "
               f"(model {p_model:.0%})" + (f", kurz {odds}" if odds else "") +
               f", vklad {stake:.0f} [{name1} vs {name2}]")
-    print(f"\nNových model-only tiketů: {n_bets} (z toho underdog: {n_dog}, bez dat: {n_nodata})")
+    print(f"\nNových model-only tiketů: {n_bets} (z toho underdog: {n_dog}, "
+          f"bez dat: {n_nodata}, bez kurzu: {n_nomkt})")
     log = load_log()
     print(f"Banka: {current_bank(log):.0f} mincí, "
           f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů")

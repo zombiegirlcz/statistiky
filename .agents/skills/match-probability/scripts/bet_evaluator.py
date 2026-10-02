@@ -108,6 +108,14 @@ def settle_pending():
             e["resolved_at"] = datetime.now(timezone.utc).isoformat()
             e["actual_winner"] = winner_name
         # kolik to udělalo s bankou
+        if e.get("odds") is None:
+            # obrana: tiket bez kurzu nelze vyhodnotit - oznac jako void
+            e["status"] = "void"
+            e["void_reason"] = "tiket bez kurzu (nebylo za co vsadit)"
+            e["resolved_at"] = datetime.now(timezone.utc).isoformat()
+            n_settled += 1
+            print(f"  [VOID ] {e['player1']} vs {e['player2']} - chybel kurz")
+            continue
         e["profit"] = round(e["stake"] * (e["odds"] - 1) if e["status"] == "won"
                             else -e["stake"], 2)
         n_settled += 1
