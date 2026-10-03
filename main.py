@@ -302,7 +302,7 @@ def _vklad(popis="Vklad"):
     v = inquirer.number(
         message=f"{popis} ({MENA}, {VKLAD_MIN}–{VKLAD_MAX}):",
         default=VKLAD_DEFAULT, min_allowed=VKLAD_MIN, max_allowed=VKLAD_MAX,
-        float_allowed=True).execute()
+        float_allowed=False).execute()
     return float(v) if v else 0.0
 
 
@@ -513,12 +513,12 @@ def menu_rychla_simulace():
 
     bank_start = inquirer.number(
         message=f"Počáteční bank (startovní kapitál, {MENA}):",
-        default=max(VKLAD_MIN, 100), min_allowed=1, max_allowed=1000000,
+        default=float(max(VKLAD_MIN, 100)), min_allowed=1.0, max_allowed=1000000.0,
         float_allowed=True).execute()
     bank_start = float(bank_start) if bank_start else 100.0
 
-    hodiny = inquirer.number(message="Kolik hodin simulovat?", default=24,
-                             min_allowed=1, max_allowed=72,
+    hodiny = inquirer.number(message="Kolik hodin simulovat?", default=24.0,
+                             min_allowed=1.0, max_allowed=72.0,
                              float_allowed=True).execute()
     hodiny = float(hodiny) if hodiny else 24.0
     kola = int(hodiny * 60 / KOLO_MIN)
