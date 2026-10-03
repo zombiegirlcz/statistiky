@@ -44,6 +44,7 @@ from InquirerPy.base.control import Choice
 from InquirerPy.separator import Separator
 
 import loterie_simulator as lot
+import maxa_sestka as mx
 
 C = "\033[36m"; G = "\033[32m"; R = "\033[31m"; Y = "\033[33m"
 D = "\033[90m"; Z = "\033[0m"; B = "\033[1m"
@@ -615,17 +616,92 @@ def menu_rychla_simulace():
 # ---------------------------------------------------------------------------
 # HLAVNÍ MENU
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# 6) MAXA ŠESTKA (Maxa, dříve Korunka) — simulace do hlavní výhry
+# ---------------------------------------------------------------------------
+def menu_maxa_do_jackpotu():
+    header()
+    print(f"  {B}MAXA ŠESTKA — simulace do hlavní výhry{Z}\n")
+    print(f"  {D}Pravidla: 6 čísel ze 49, losuje se 2x denně (14:10, 18:10).")
+    print(f"  Pevné výhry: 6→5 000 000 · 5→250 000 · 4→2 500 · 3→500 · 2→35 Kč.")
+    rtp = mx.analytic_rtp() * 100
+    print(f"  RTP = {rtp:.2f} % (srov. Lucky Six 75,87 %){Z}\n")
+    print(f"  {B}P(hlavní výhra 6/6) = 1 z {1/mx.p_jackpot():,.0f}{Z}")
+    print(f"  {D}Při 2 losováních denně to je průměrně 1 z "
+          f"{1/mx.p_jackpot()/2/365:,.0f} let hraní.{Z}\n")
+
+    stake = inquirer.number(
+        message="Vklad na tiket (Kč, 35 nebo 70):",
+        default=35, min_allowed=1, max_allowed=100000,
+        float_allowed=False).execute()
+    if not stake:
+        return
+    stake = float(stake)
+
+    seed = inquirer.text(message="Seed (prázdné = náhodný):", default="").execute()
+    seed = int(seed) if seed and seed.strip().isdigit() else None
+
+    max_kol = inquirer.number(
+        message="Max. počet kol (safety limit):",
+        default=200_000_000, min_allowed=1000, max_allowed=2_000_000_000,
+        float_allowed=False).execute()
+    max_kol = int(max_kol) if max_kol else 200_000_000
+
+    header()
+    print(f"  {B}SIMULACE MAXA ŠESTKA{Z}   vklad {_kc(stake)}/tiket")
+    print(f"  {D}Hraju, dokud netrefím všech 6 (hlavní výhra) nebo do limitu "
+          f"{max_kol:,} kol…{Z}\n")
+
+    def _progress(rounds, staked, returned, tiers, done):
+        if done:
+            return
+        print(f"  {D}… {rounds:>13,} kol  vsazeno {staked:>15,.0f} Kč  "
+              f"vráceno {returned:>15,.0f} Kč{Z}")
+
+    print(f"  {D}(může to trvat i miliony kol — průběžně se hlásí){Z}")
+    res = mx.simulate_until_jackpot(
+        stake=stake, max_rounds=max_kol, seed=seed, progress_cb=_progress,
+        progress_every_chunks=25)
+
+    print()
+    print(f"  {B}─── VÝSLEDEK ───{Z}")
+    if res["hit"]:
+        print(f"  {G}{B}★ JACKPOT!{Z} Trefil jsi všech 6 čísel v "
+              f"{B}{res['rounds']:,}{Z}. kole!")
+    else:
+        print(f"  {R}Limit {max_kol:,} kol vyčerpán bez hlavní výhry.{Z}")
+    print(f"  Odehráno kol:     {res['rounds']:,}")
+    print(f"  = {res['rounds']/2:,.0f} dnů hraní  "
+          f"= {res['rounds']/2/365:,.1f} let (2 losování/den)")
+    print()
+    print(f"  Vsazeno:          {_kc(res['total_staked'])}")
+    print(f"  Vráceno:          {_kc(res['total_returned'])}")
+    zisk = res["bank"]
+    print(f"  Zisk/bank:        {(G if zisk>=0 else R)}{zisk:+,.2f} {MENA}{Z}")
+    print()
+    t = res["tiers"]
+    print(f"  Výhry podle tref:  2→{t[2]:,} · 3→{t[3]:,} · "
+          f"4→{t[4]:,} · 5→{t[5]:,}")
+    if res["hit"]:
+        print(f"  6 (jackpot):      1×  ({_kc(stake*mx.MULT[6])})")
+    print(f"  {B}Reálné RTP:        {res['total_returned']/res['total_staked']*100:.2f} %{Z}")
+    print()
+    inquirer.text(message="Enter pro pokračování", default="").execute()
+
+
 def hlavni_menu():
     while True:
         header()
         volba = inquirer.select(
             message="Co chceš dělat?",
             choices=[
-                Choice("solo", "🎟  Hlavní sázka (6 čísel)"),
-                Choice("system", "🧩  Systémová sázka (6/7 – 6/10)"),
-                Choice("special", "🌈  Speciální sázky"),
-                Choice("rychla", "⚡  Rychlá simulace celého dne (24 h / 3:30)"),
-                Choice("stats", "📊  Statistiky & RTP"),
+                Choice("solo", "🎟  Lucky Six — Hlavní sázka (6 čísel)"),
+                Choice("system", "🧩  Lucky Six — Systémová sázka (6/7 – 6/10)"),
+                Choice("special", "🌈  Lucky Six — Vedlejší hry"),
+                Choice("rychla", "⚡  Lucky Six — Rychlá simulace dne (24 h / 3:30)"),
+                Choice("stats", "📊  Lucky Six — Statistiky & RTP"),
+                Separator(),
+                Choice("maxa", "🍀  Maxa Šestka — simulace do hlavní výhry"),
                 Separator(),
                 Choice("konec", "👋  Konec"),
             ], qmark="🎲").execute()
@@ -640,6 +716,8 @@ def hlavni_menu():
             menu_rychla_simulace()
         elif volba == "stats":
             menu_statistiky()
+        elif volba == "maxa":
+            menu_maxa_do_jackpotu()
         elif volba == "konec":
             print(f"\n  {C}Ahoj!{Z}\n")
             return
