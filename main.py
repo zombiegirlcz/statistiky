@@ -53,7 +53,7 @@ PICK = lot.PICK            # 6
 DRAWN = lot.DRAWN          # 35
 MULT = lot.MULT
 
-MENA = "EUR"
+MENA = "Kč"
 VKLAD_MIN = 3
 VKLAD_MAX = 300
 VKLAD_DEFAULT = 10
@@ -82,8 +82,9 @@ def _cisla_na_barvu(cislo):
     return "?"
 
 
-def _eur(x):
-    return f"{x:,.2f} {MENA}".replace(",", " ")
+def _kc(x):
+    """České formátování: mezera pro tisíce, čárka pro desetinná místa."""
+    return f"{x:,.2f} {MENA}".replace(",", "\u00a0").replace(".", ",").replace("\u00a0", " ")
 
 
 def header():
@@ -202,7 +203,7 @@ def menu_solo():
         return
 
     header()
-    print(f"  {B}HLAVNÍ SÁZKA{Z}   vklad {G}{_eur(vklad)}{Z}\n")
+    print(f"  {B}HLAVNÍ SÁZKA{Z}   vklad {G}{_kc(vklad)}{Z}\n")
     draw = losuj()
     pos6, seen = zobraz_losovani(moje, draw, animace=True)
 
@@ -211,14 +212,14 @@ def menu_solo():
     if pos6 is None:
         print(f"  {R}✘ NEVYHRÁVÁŠ{Z} — všech {PICK} čísel se mezi {DRAWN} vygenerovaných nenašlo.")
         print(f"  {D}(trefeno {seen} z {PICK}){Z}")
-        print(f"  {D}Ztráta: {_eur(vklad)}{Z}\n")
+        print(f"  {D}Ztráta: {_kc(vklad)}{Z}\n")
     else:
         mult = MULT[pos6]
         vyhra = vklad * mult
         zisk = vyhra - vklad
         print(f"  {G}✔ VYHRÁVÁŠ!{Z} Poslední (6.) trefené číslo padlo jako "
               f"{B}{pos6}.{Z} v pořadí → koeficient {B}{mult}×{Z}")
-        print(f"  Vklad {_eur(vklad)} × {mult} = {G}{B}{_eur(vyhra)}{Z}  "
+        print(f"  Vklad {_kc(vklad)} × {mult} = {G}{B}{_kc(vyhra)}{Z}  "
               f"({zisk:+,.2f} {MENA})\n")
     inquirer.text(message="Enter pro pokračování", default="").execute()
 
@@ -261,8 +262,8 @@ def menu_system():
 
     header()
     print(f"  {B}SYSTÉM 6/{pocet}{Z}   čísla: " + " ".join(f"{G}{c}{Z}" for c in moje))
-    print(f"  Kombinací: {B}{len(komba)}{Z}   vklad/kombinace {_eur(vklad_kombo)}   "
-          f"celkem {B}{_eur(celkovy_vklad)}{Z}\n")
+    print(f"  Kombinací: {B}{len(komba)}{Z}   vklad/kombinace {_kc(vklad_kombo)}   "
+          f"celkem {B}{_kc(celkovy_vklad)}{Z}\n")
 
     draw = losuj()
     print(f"  {D}Vygenerovaná čísla ({DRAWN}):{Z} " +
@@ -280,14 +281,14 @@ def menu_system():
         vyhra = vklad_kombo * mult
         vyhry += vyhra
         vyhrane_komba += 1
-        print(f"   {G}✔{Z} {kombo} → 6. trefa na {pos6}. místě → {mult}× = {_eur(vyhra)}")
+        print(f"   {G}✔{Z} {kombo} → 6. trefa na {pos6}. místě → {mult}× = {_kc(vyhra)}")
     if vyhrane_komba == 0:
         print(f"   {R}✘ Žádná kombinace netrefila všech 6 čísel.{Z}")
 
     zisk = vyhry - celkovy_vklad
     print()
     print(f"  Vyhraných kombinací: {B}{vyhrane_komba}/{len(komba)}{Z}")
-    print(f"  Vsazeno: {_eur(celkovy_vklad)}   Vráceno: {_eur(vyhry)}   "
+    print(f"  Vsazeno: {_kc(celkovy_vklad)}   Vráceno: {_kc(vyhry)}   "
           f"Zisk: {(G if zisk >= 0 else R)}{zisk:+,.2f} {MENA}{Z}\n")
     inquirer.text(message="Enter pro pokračování", default="").execute()
 
@@ -306,7 +307,7 @@ def _vklad(popis="Vklad"):
 def _vysledek(vyhral, popis_vyhry, vklad, kurz=None):
     if vyhral:
         if kurz:
-            print(f"  {G}✔ VYHRÁVÁŠ{Z} → {_eur(vklad*kurz)}\n")
+            print(f"  {G}✔ VYHRÁVÁŠ{Z} → {_kc(vklad*kurz)}\n")
         else:
             print(f"  {G}✔ VYHRÁVÁŠ{Z} — {popis_vyhry}\n")
     else:
@@ -329,7 +330,7 @@ def special_sest_barvy():
     skupina = set(BARVY[barva])
     vse = skupina.issubset(draw_set)
     header()
-    print(f"  {B}ŠEST ČÍSEL JEDNÉ BARVY{Z}   barva {barva}, vklad {_eur(vklad)}\n")
+    print(f"  {B}ŠEST ČÍSEL JEDNÉ BARVY{Z}   barva {barva}, vklad {_kc(vklad)}\n")
     print(f"  Čísla barvy {barva}: {sorted(skupina)}")
     print(f"  Z toho vygenerováno: {len(skupina & draw_set)}/6\n")
     _vysledek(vse, f"všech 6 čísel barvy {barva} padlo", vklad)
@@ -351,7 +352,7 @@ def special_suda_licha_predcisli():
     liche = 5 - sude
     skutecnost = "sude" if sude > liche else "liche"
     header()
-    print(f"  {B}SUDÁ/LICHÁ – PŘEDČÍSLÍ{Z}   tip: více {tip}, vklad {_eur(vklad)}\n")
+    print(f"  {B}SUDÁ/LICHÁ – PŘEDČÍSLÍ{Z}   tip: více {tip}, vklad {_kc(vklad)}\n")
     print(f"  Prvních 5 čísel: {prvnich5}  → sudých {sude}, lichých {liche}\n")
     _vysledek(tip == skutecnost, f"více {skutecnost}ch", vklad, kurz=2.0)
 
@@ -369,7 +370,7 @@ def special_prvni_sude():
     prvni = draw[0]
     skutecnost = "sude" if prvni % 2 == 0 else "liche"
     header()
-    print(f"  {B}PRVNÍ ČÍSLO SUDÉ/LICHÉ{Z}   tip {tip}, vklad {_eur(vklad)}\n")
+    print(f"  {B}PRVNÍ ČÍSLO SUDÉ/LICHÉ{Z}   tip {tip}, vklad {_kc(vklad)}\n")
     print(f"  První vygenerované číslo: {B}{prvni}{Z} → {skutecnost}\n")
     _vysledek(tip == skutecnost, f"první číslo {skutecnost}", vklad, kurz=2.0)
 
@@ -389,7 +390,7 @@ def special_soucet_predcisli():
     soucet = sum(prvnich5)
     skutecnost = "mensi" if soucet <= 122.5 else "vetsi"
     header()
-    print(f"  {B}SOUČET PŘEDČÍSLÍ (−122.5+){Z}   tip {tip}, vklad {_eur(vklad)}\n")
+    print(f"  {B}SOUČET PŘEDČÍSLÍ (−122.5+){Z}   tip {tip}, vklad {_kc(vklad)}\n")
     print(f"  Prvních 5 čísel: {prvnich5} → součet {B}{soucet}{Z} (hranice 122,5)\n")
     _vysledek(tip == skutecnost, f"součet {skutecnost}", vklad, kurz=2.0)
 
@@ -408,7 +409,7 @@ def special_prvni_cislo():
     prvni = draw[0]
     skutecnost = "mensi" if prvni < 24.5 else "vetsi"
     header()
-    print(f"  {B}PRVNÍ ČÍSLO (−24.5+){Z}   tip {tip}, vklad {_eur(vklad)}\n")
+    print(f"  {B}PRVNÍ ČÍSLO (−24.5+){Z}   tip {tip}, vklad {_kc(vklad)}\n")
     print(f"  První vygenerované číslo: {B}{prvni}{Z} (hranice 24,5)\n")
     _vysledek(tip == skutecnost, f"první číslo {skutecnost}", vklad, kurz=2.0)
 
@@ -427,7 +428,7 @@ def special_barva_prvni_koule():
     prvni = draw[0]
     skutecna = _cisla_na_barvu(prvni)
     header()
-    print(f"  {B}BARVA PRVNÍ KOULE{Z}   sázka na {', '.join(barvy)}, vklad {_eur(vklad)}\n")
+    print(f"  {B}BARVA PRVNÍ KOULE{Z}   sázka na {', '.join(barvy)}, vklad {_kc(vklad)}\n")
     print(f"  První vygenerované číslo: {B}{prvni}{Z} → barva {B}{skutecna}{Z}\n")
     kurz = 8.0 / len(barvy)   # orientační férový kurz (8 barev)
     _vysledek(skutecna in barvy, f"první koule je {skutecna}", vklad, kurz=kurz)
@@ -445,7 +446,7 @@ def special_predcisli_vybrane():
     draw = losuj()
     prvnich5 = draw[:5]
     header()
-    print(f"  {B}PŘEDČÍSLÍ — VYBRANÉ ČÍSLO{Z}   tip {cislo}, vklad {_eur(vklad)}\n")
+    print(f"  {B}PŘEDČÍSLÍ — VYBRANÉ ČÍSLO{Z}   tip {cislo}, vklad {_kc(vklad)}\n")
     print(f"  Prvních 5 čísel: {prvnich5}\n")
     _vysledek(cislo in prvnich5, f"číslo {cislo} je mezi prvními 5", vklad)
 
@@ -563,10 +564,10 @@ def menu_rychla_simulace():
     header()
     print(f"  {B}SIMULACE {kola} kol ({hodiny:g} h){Z}   čísla: " +
           " ".join(f"{B}{c}{Z}" for c in moje) +
-          f"   vklad/kolo {_eur(celkovy)}")
+          f"   vklad/kolo {_kc(celkovy)}")
     if pocet > 6:
-        print(f"  {D}vklad/kombinace {_eur(vklad_kombo)} · {len(komba)} kombinací{Z}")
-    print(f"  {B}Počáteční bank: {_eur(bank_start)}{Z}")
+        print(f"  {D}vklad/kombinace {_kc(vklad_kombo)} · {len(komba)} kombinací{Z}")
+    print(f"  {B}Počáteční bank: {_kc(bank_start)}{Z}")
     print(f"  {D}formát: číslo(pořadí) — zeleně trefeno, šedě netrefeno;")
     print(f"  pořadí 1 = první koule, {DRAWN} = poslední · [bank] = stav po kole{Z}\n")
 
@@ -584,7 +585,7 @@ def menu_rychla_simulace():
         # když banka nestačí na vklad, končíme (ruinace)
         if bank < celkovy:
             first_bust = k
-            print(f"\n  {R}✘ BANKROT ve {k}. kole — bank {_eur(bank)} < vklad {_eur(celkovy)}.{Z}")
+            print(f"\n  {R}✘ BANKROT ve {k}. kole — bank {_kc(bank)} < vklad {_kc(celkovy)}.{Z}")
             print(f"  {D}Simulace ukončena, odehráno {k-1} kol.{Z}")
             break
 
@@ -629,16 +630,16 @@ def menu_rychla_simulace():
     zisk = returned - staked
     print()
     print(f"  {B}─── SOUHRN ZA {odehrano} KOL ({odehrano*KOLO_MIN/60:.1f} h) ───{Z}")
-    print(f"  Počáteční bank: {_eur(bank_start)}")
-    print(f"  Konečný bank:   {(G if bank >= bank_start else R)}{_eur(bank)}{Z}  "
+    print(f"  Počáteční bank: {_kc(bank_start)}")
+    print(f"  Konečný bank:   {(G if bank >= bank_start else R)}{_kc(bank)}{Z}  "
           f"({bank - bank_start:+,.2f})")
-    print(f"  Vsazeno:        {_eur(staked)}")
-    print(f"  Vráceno:        {_eur(returned)}")
+    print(f"  Vsazeno:        {_kc(staked)}")
+    print(f"  Vráceno:        {_kc(returned)}")
     print(f"  Zisk:           {(G if zisk >= 0 else R)}{zisk:+,.2f} {MENA}{Z}")
     print(f"  RTP:            {100*returned/staked:.2f} %   (100 % = návrat vkladu)")
     print(f"  Výherních kol:  {hits}/{odehrano}  ({100*hits/odehrano:.2f} %)")
-    print(f"  Nejnižší bank:  {_eur(bank_min)}  ({bank_min_k}. kolo)")
-    print(f"  Nejvyšší bank:  {_eur(bank_max)}  ({bank_max_k}. kolo)")
+    print(f"  Nejnižší bank:  {_kc(bank_min)}  ({bank_min_k}. kolo)")
+    print(f"  Nejvyšší bank:  {_kc(bank_max)}  ({bank_max_k}. kolo)")
     if first_bust:
         print(f"  {R}Bankrot:        {first_bust}. kolo{Z}")
     else:
