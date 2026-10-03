@@ -1670,3 +1670,173 @@ Nevyřízených tiketů: 8 - zjišťuji výsledky...
 CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-03T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-03T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
 
   (agent bet-builder ukončen: 1)
+Spouštím aktivní agenty: 4
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 4 (z toho dvouhry: 1) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 3 - zjišťuji výsledky...
+
+  [VÝHRA ] Carlos Alcaraz vs Matteo Arnaldi - tiket na Carlos Alcaraz @ 1.09, vyhrál Carlos Alcaraz (+2 mincí)
+  [VÝHRA ] Iga Swiatek vs Xinyu Gao - tiket na Iga Swiatek @ 1.03, vyhrál Iga Swiatek (+1 mincí)
+  [PROHRA] Elena Rybakina vs Alina Charaeva - tiket na Elena Rybakina @ 1.0680907877169559, vyhrál Alina Charaeva (-100 mincí)
+
+Vyhodnoceno nových tiketů: 3
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 88) [PRE-MATCH]
+Banka: 902 minci (start 1000), vazano 0
+
+      => PRE-MATCH TIKET na Daniil Medvedev @ 1.4109347442680775 (model 79%, trh 70%), vklad 18 [Francisco Cerundolo vs Daniil Medvedev, 2026-10-04T08:30:00Z]
+
+Novych pre-match tiketu: 1 (bez dat: 48, bez SX.bet trhu: 22)
+Banka: 902 minci, nevyrizeno 1 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+  [VÝHRA ] Alejandro Tabilo vs Denis Shapovalov - tiket na Denis Shapovalov @ 1.7391304347826089, vyhrál Denis Shapovalov (+15 mincí)
+  [PROHRA] Quentin Halys vs Alex De Minaur - tiket na Quentin Halys @ 3.5242290748898677, vyhrál Alex De Minaur (-20 mincí)
+  [PROHRA] Ashlyn Krueger vs Ann Li - tiket na Ashlyn Krueger @ 2.13903743315508, vyhrál Ann Li (-20 mincí)
+  [VÝHRA ] Katie Volynets vs Elise Mertens - tiket na Elise Mertens @ 1.8691588785046729, vyhrál Elise Mertens (+17 mincí)
+  [VÝHRA ] Coco Gauff vs Camila Osorio - tiket na Coco Gauff @ 1.094391244870041, vyhrál Coco Gauff (+2 mincí)
+  [VÝHRA ] Donna Vekic vs Lin Zhu - tiket na Donna Vekic @ 1.5686274509803924, vyhrál Donna Vekic (+11 mincí)
+  [VÝHRA ] Carlos Alcaraz vs Matteo Arnaldi - tiket na Carlos Alcaraz @ 1.0869565217391304, vyhrál Carlos Alcaraz (+2 mincí)
+  [PROHRA] Jelena Ostapenko vs Paula Badosa - tiket na Paula Badosa @ 1.6842105263157894, vyhrál Jelena Ostapenko (-20 mincí)
+  [VÝHRA ] Elina Svitolina vs Katerina Siniakova - tiket na Elina Svitolina @ 1.3245033112582782, vyhrál Elina Svitolina (+6 mincí)
+  [VÝHRA ] Iga Swiatek vs Xinyu Gao - tiket na Iga Swiatek @ 1.0256410256410258, vyhrál Iga Swiatek (+1 mincí)
+  [VÝHRA ] Roman Safiullin vs Andrey Rublev - tiket na Andrey Rublev @ 1.7241379310344829, vyhrál Andrey Rublev (+14 mincí)
+  [PROHRA] Leylah Fernandez vs Kamilla Rakhimova - tiket na Leylah Fernandez @ 1.3245033112582782, vyhrál Kamilla Rakhimova (-20 mincí)
+
+Vyhodnoceno nových tiketů: 12
+
+Zápasů: 104 (dvouhry: 89, z toho live 1, prematch 88) [MODEL-ONLY]
+Banka: 989 mincí (start 1000), vázáno 0
+
+      => MODEL-ONLY [favorit] TIKET na Jaume Munar (model 57%), kurz 1.7094017094017095, vklad 20 [Jaume Munar vs Kyrian Jacquet]
+      => MODEL-ONLY [favorit] TIKET na Qinwen Zheng (model 67%), kurz 1.556420233463035, vklad 20 [Qinwen Zheng vs Marie Bouzkova]
+      => MODEL-ONLY [favorit] TIKET na Aryna Sabalenka (model 61%), kurz 1.1627906976744187, vklad 20 [Aryna Sabalenka vs Nikola Bartunkova]
+      => MODEL-ONLY [favorit] TIKET na Sonay Kartal (model 71%), kurz 1.3513513513513513, vklad 20 [Alina Charaeva vs Sonay Kartal]
+      => MODEL-ONLY [favorit] TIKET na Coco Gauff (model 63%), kurz 1.06, vklad 20 [Coco Gauff vs Xinran Sun]
+      => MODEL-ONLY [favorit] TIKET na Belinda Bencic (model 73%), kurz 1.2987012987012987, vklad 20 [Belinda Bencic vs Ann Li]
+      => MODEL-ONLY [favorit] TIKET na Iva Jovic (model 59%), kurz 1.1611030478955007, vklad 20 [Iva Jovic vs Kamilla Rakhimova]
+      => MODEL-ONLY [favorit] TIKET na Carlos Alcaraz (model 57%), kurz 1.1527377521613833, vklad 20 [Carlos Alcaraz vs Denis Shapovalov]
+      => MODEL-ONLY [favorit] TIKET na Diana Shnaider (model 57%), kurz 1.4981273408239701, vklad 20 [Ekaterina Alexandrova vs Diana Shnaider]
+      => MODEL-ONLY [favorit] TIKET na Mirra Andreeva (model 61%), kurz 1.0899182561307903, vklad 20 [Mirra Andreeva vs Polina Kudermetova]
+      => MODEL-ONLY [UNDERDOG] TIKET na Hubert Hurkacz (model 72%), kurz 2.3952095808383236, vklad 20 [Karen Khachanov vs Hubert Hurkacz]
+      => MODEL-ONLY [UNDERDOG] TIKET na Andrey Rublev (model 67%), kurz 2.127659574468085, vklad 20 [Andrey Rublev vs Alex De Minaur]
+      ! model favorit Linda Noskova (p=68%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Arthur Fils (p=60%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Daniil Medvedev (p=79%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Jiri Lehecka (p=64%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Novak Djokovic (p=67%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+
+Nových model-only tiketů: 12 (z toho underdog: 2, bez dat: 49, bez kurzu: 21)
+Banka: 989 mincí, nevyřízeno 12 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 8 - zjišťuji výsledky...
+
+  [PROHRA] Quentin Halys vs Alex De Minaur - tiket na Quentin Halys @ 9.679, vyhrál Alex De Minaur (-20 mincí)
+  [PROHRA] Ashlyn Krueger vs Ann Li - tiket na Ashlyn Krueger @ 4.177, vyhrál Ann Li (-20 mincí)
+  [VÝHRA ] Donna Vekic vs Lin Zhu - tiket na Donna Vekic @ 2.485, vyhrál Donna Vekic (+30 mincí)
+  [PROHRA] Qinwen Zheng vs Anna Kalinskaya - tiket na Qinwen Zheng @ 2.628, vyhrál Qinwen Zheng (-20 mincí)
+  [PROHRA] Matteo Berrettini vs Daniel Adolfo Vallejo - tiket na Matteo Berrettini @ 2.721, vyhrál Daniel Adolfo Vallejo (-20 mincí)
+  [VÝHRA ] Marie Bouzkova vs Kimberly Birrell - tiket na Marie Bouzkova @ 2.236, vyhrál Marie Bouzkova (+25 mincí)
+  [VÝHRA ] Cristina Bucsa vs Xinran Sun - tiket na Xinran Sun @ 7.745, vyhrál Xinran Sun (+135 mincí)
+  [PROHRA] Ugo Humbert vs Jiri Lehecka - tiket na Ugo Humbert @ 6.009, vyhrál Jiri Lehecka (-20 mincí)
+
+Vyhodnoceno nových tiketů: 8
+
+Nadchazejicich dvouher: 88 [BET BUILDER]
+Banka: 1089 mincí (start 1000), vázáno 0
+
+      => BUILDER TIKET: Jaume Munar vyhraje zapas I 1. set @ 2.99 (1.71x1.75) | joint 44% vs trh 33% | edge +10%, vklad 22 [Jaume Munar vs Kyrian Jacquet]
+      => BUILDER TIKET: Sinja Kraus vyhraje zapas I 1. set @ 9.14 (3.35x2.73) | joint 15% vs trh 11% | edge +4%, vklad 22 [Dayana Yastremska vs Sinja Kraus]
+      => BUILDER TIKET: Hubert Hurkacz vyhraje zapas I 1. set @ 5.08 (2.40x2.12) | joint 27% vs trh 20% | edge +8%, vklad 22 [Karen Khachanov vs Hubert Hurkacz]
+      => BUILDER TIKET: Andrey Rublev vyhraje zapas I 1. set @ 4.28 (2.13x2.01) | joint 52% vs trh 23% | edge +29%, vklad 22 [Andrey Rublev vs Alex De Minaur]
+      => BUILDER TIKET: Novak Djokovic vyhraje zapas I 1. set @ 8.51 (3.32x2.56) | joint 24% vs trh 12% | edge +12%, vklad 22 [Alexander Zverev vs Novak Djokovic]
+
+Nových builder tiketů: 5 (bez dat/trhu: 74, bez edge: 9)
+Banka: 1089 mincí, nevyřízeno 5 tiketů
+Spouštím aktivní agenty: 4
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 1 (z toho dvouhry: 0) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 1 - zjišťuji výsledky...
+
+  [čeká] Francisco Cerundolo vs Daniil Medvedev - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 88) [PRE-MATCH]
+Banka: 902 minci (start 1000), vazano 18
+
+      => PRE-MATCH TIKET na Naomi Osaka @ 1.3333333333333333 (model 90%, trh 74%), vklad 18 [Sara Bejlek vs Naomi Osaka, 2026-10-04T11:00:00Z]
+
+Novych pre-match tiketu: 1 (bez dat: 47, bez SX.bet trhu: 22)
+Banka: 902 minci, nevyrizeno 2 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+  [čeká] Jaume Munar vs Kyrian Jacquet - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Qinwen Zheng vs Marie Bouzkova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Aryna Sabalenka vs Nikola Bartunkova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Alina Charaeva vs Sonay Kartal - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Coco Gauff vs Xinran Sun - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Belinda Bencic vs Ann Li - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Iva Jovic vs Kamilla Rakhimova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Carlos Alcaraz vs Denis Shapovalov - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Ekaterina Alexandrova vs Diana Shnaider - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Mirra Andreeva vs Polina Kudermetova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Karen Khachanov vs Hubert Hurkacz - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Andrey Rublev vs Alex De Minaur - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Zápasů: 102 (dvouhry: 88, z toho live 0, prematch 88) [MODEL-ONLY]
+Banka: 989 mincí (start 1000), vázáno 240
+
+      ! model favorit Linda Noskova (p=68%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Arthur Fils (p=60%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Daniil Medvedev (p=79%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Jiri Lehecka (p=64%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Naomi Osaka (p=90%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 99)
+
+Nových model-only tiketů: 0 (z toho underdog: 0, bez dat: 48, bez kurzu: 21)
+Banka: 989 mincí, nevyřízeno 12 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 5 - zjišťuji výsledky...
+
+  [čeká] Jaume Munar vs Kyrian Jacquet - builder ještě není rozhodnutý
+  [čeká] Dayana Yastremska vs Sinja Kraus - builder ještě není rozhodnutý
+  [čeká] Karen Khachanov vs Hubert Hurkacz - builder ještě není rozhodnutý
+  [čeká] Andrey Rublev vs Alex De Minaur - builder ještě není rozhodnutý
+  [čeká] Alexander Zverev vs Novak Djokovic - builder ještě není rozhodnutý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich dvouher: 88 [BET BUILDER]
+Banka: 1089 mincí (start 1000), vázáno 110
+
+
+Nových builder tiketů: 0 (bez dat/trhu: 74, bez edge: 10)
+Banka: 1089 mincí, nevyřízeno 5 tiketů
