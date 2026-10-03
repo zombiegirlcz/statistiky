@@ -546,6 +546,12 @@ def menu_rychla_simulace():
         vklad_kombo = vklad * SYSTEM_MULT[pocet]
         celkovy = vklad
 
+    bank_start = inquirer.number(
+        message=f"Počáteční bank (startovní kapitál, {MENA}):",
+        default=max(VKLAD_MIN, 100), min_allowed=1, max_allowed=1000000,
+        float_allowed=True).execute()
+    bank_start = float(bank_start) if bank_start else 100.0
+
     hodiny = inquirer.number(message="Kolik hodin simulovat?", default=24,
                              min_allowed=1, max_allowed=72,
                              float_allowed=True).execute()
@@ -560,13 +566,28 @@ def menu_rychla_simulace():
           f"   vklad/kolo {_eur(celkovy)}")
     if pocet > 6:
         print(f"  {D}vklad/kombinace {_eur(vklad_kombo)} · {len(komba)} kombinací{Z}")
-    print(f"  {D}formát: číslo(pořadí losování) — zeleně trefeno, šedě netrefeno;")
-    print(f"  pořadí 1 = první koule, {DRAWN} = poslední{Z}\n")
+    print(f"  {B}Počáteční bank: {_eur(bank_start)}{Z}")
+    print(f"  {D}formát: číslo(pořadí) — zeleně trefeno, šedě netrefeno;")
+    print(f"  pořadí 1 = první koule, {DRAWN} = poslední · [bank] = stav po kole{Z}\n")
 
     staked = 0.0
     returned = 0.0
     hits = 0
+    bank = bank_start
+    bank_min = bank_start
+    bank_max = bank_start
+    bank_min_k = 0
+    bank_max_k = 0
+    first_bust = None   # první kolo, kdy bank klesl pod vklad
+
     for k in range(1, kola + 1):
+        # když banka nestačí na vklad, končíme (ruinace)
+        if bank < celkovy:
+            first_bust = k
+            print(f"\n  {R}✘ BANKROT ve {k}. kole — bank {_eur(bank)} < vklad {_eur(celkovy)}.{Z}")
+            print(f"  {D}Simulace ukončena, odehráno {k-1} kol.{Z}")
+            break
+
         draw = losuj()
         pos_map = {c: i for i, c in enumerate(draw, start=1)}
 
@@ -579,6 +600,14 @@ def menu_rychla_simulace():
         returned += vyhra_kolo
         if vyhra_kolo > 0:
             hits += 1
+
+        bank += vyhra_kolo - celkovy
+        if bank < bank_min:
+            bank_min = bank
+            bank_min_k = k
+        if bank > bank_max:
+            bank_max = bank
+            bank_max_k = k
 
         casti = []
         for c in moje:
@@ -593,16 +622,27 @@ def menu_rychla_simulace():
             vys = f"{G}✔{Z} {(vyhra_kolo - celkovy):+,.2f}"
         else:
             vys = f"{R}✘{Z} {-celkovy:+,.2f}"
-        print(f"  {k:>3}.  {radek}   {vys}")
+        barva_bank = G if bank >= bank_start else R
+        print(f"  {k:>3}.  {radek}   {vys}   {barva_bank}[{bank:,.2f}]{Z}")
 
+    odehrano = k - 1 if first_bust else kola
     zisk = returned - staked
     print()
-    print(f"  {B}─── SOUHRN ZA {kola} KOL ({hodiny:g} h) ───{Z}")
+    print(f"  {B}─── SOUHRN ZA {odehrano} KOL ({odehrano*KOLO_MIN/60:.1f} h) ───{Z}")
+    print(f"  Počáteční bank: {_eur(bank_start)}")
+    print(f"  Konečný bank:   {(G if bank >= bank_start else R)}{_eur(bank)}{Z}  "
+          f"({bank - bank_start:+,.2f})")
     print(f"  Vsazeno:        {_eur(staked)}")
     print(f"  Vráceno:        {_eur(returned)}")
     print(f"  Zisk:           {(G if zisk >= 0 else R)}{zisk:+,.2f} {MENA}{Z}")
     print(f"  RTP:            {100*returned/staked:.2f} %   (100 % = návrat vkladu)")
-    print(f"  Výherních kol:  {hits}/{kola}  ({100*hits/kola:.2f} %)")
+    print(f"  Výherních kol:  {hits}/{odehrano}  ({100*hits/odehrano:.2f} %)")
+    print(f"  Nejnižší bank:  {_eur(bank_min)}  ({bank_min_k}. kolo)")
+    print(f"  Nejvyšší bank:  {_eur(bank_max)}  ({bank_max_k}. kolo)")
+    if first_bust:
+        print(f"  {R}Bankrot:        {first_bust}. kolo{Z}")
+    else:
+        print(f"  {G}Přežil celou simulaci.{Z}")
     print()
     inquirer.text(message="Enter pro pokračování", default="").execute()
 
