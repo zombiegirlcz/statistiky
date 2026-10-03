@@ -317,9 +317,23 @@ def _vysledek(vyhral, popis_vyhry, vklad, kurz=None):
     inquirer.text(message="Enter pro pokračování", default="").execute()
 
 
-def special_sest_barvy():
+# --- Oficiální vedlejší hry dle Herního plánu Fortuna ČR, čl. 6.9–6.14 ---
+#
+# Tři vedlejší hry Lucky Six online (všechny RTP 75 % / 75,87 %):
+#   1) Číselná loterie „Barva“            – 6 čísel jedné barvy, stejné
+#      výherní násobky jako hlavní hra (čl. 6.10, 6.7)
+#   2) Číselná loterie „Prvních 5“        – 1 číslo mezi prvními 5 (čl. 6.12)
+#      výherní násobek 7,2x, výherní jistina 75 %
+#   3) Číselná loterie „Barva prvního čísla“ – 1/2/4 skupiny (čl. 6.13)
+#      násobek 6,0x / 3,0x / 1,5x, výherní jistina 75 %
+
+
+def special_barva():
+    """Číselná loterie „Barva“ (čl. 6.10): tipneš barvu (6 čísel).
+    Výhra = stejné násobky jako hlavní hra podle pořadí posledního
+    z tvých 6 čísel. RTP 75,87 %."""
     barva = inquirer.select(
-        message="Na kterou barvu sázíš, že padne všech 6 čísel stejné barvy?",
+        message="Na kterou barvu (6 čísel) sázíš?",
         choices=[Choice(b, b) for b in BARVY] + [Separator(), Choice("zpet", "←  Zpět")],
         qmark="🎨").execute()
     if barva == "zpet":
@@ -327,117 +341,27 @@ def special_sest_barvy():
     vklad = _vklad()
     if not vklad:
         return
+    moje = sorted(BARVY[barva])
     draw = losuj()
     draw_set = set(draw)
-    skupina = set(BARVY[barva])
-    vse = skupina.issubset(draw_set)
+    pos6, seen = vyhodnot(moje, draw)
     header()
-    print(f"  {B}ŠEST ČÍSEL JEDNÉ BARVY{Z}   barva {barva}, vklad {_kc(vklad)}\n")
-    print(f"  Čísla barvy {barva}: {sorted(skupina)}")
-    print(f"  Z toho vygenerováno: {len(skupina & draw_set)}/6\n")
-    _vysledek(vse, f"všech 6 čísel barvy {barva} padlo", vklad)
+    print(f"  {B}ČÍSELNÁ LOTERIE „BARVA“{Z}   barva {barva}, vklad {_kc(vklad)}\n")
+    print(f"  Tvá čísla: {moje}")
+    print(f"  Z toho vygenerováno: {len(set(moje) & draw_set)}/6")
+    if pos6 is not None:
+        mult = MULT[pos6]
+        print(f"  Poslední (6.) číslo padlo jako {B}{pos6}.{Z} v pořadí → {mult}×\n")
+        _vysledek(True, "", vklad, kurz=mult)
+    else:
+        print(f"  {D}(trefeno {seen} z 6){Z}\n")
+        _vysledek(False, "", vklad)
 
 
-def special_suda_licha_predcisli():
-    tip = inquirer.select(
-        message="Mezi prvními 5 čísly bude více:",
-        choices=[Choice("sude", "Sudých"), Choice("liche", "Lichých"),
-                 Separator(), Choice("zpet", "←  Zpět")], qmark="⚖").execute()
-    if tip == "zpet":
-        return
-    vklad = _vklad()
-    if not vklad:
-        return
-    draw = losuj()
-    prvnich5 = draw[:5]
-    sude = sum(1 for x in prvnich5 if x % 2 == 0)
-    liche = 5 - sude
-    skutecnost = "sude" if sude > liche else "liche"
-    header()
-    print(f"  {B}SUDÁ/LICHÁ – PŘEDČÍSLÍ{Z}   tip: více {tip}, vklad {_kc(vklad)}\n")
-    print(f"  Prvních 5 čísel: {prvnich5}  → sudých {sude}, lichých {liche}\n")
-    _vysledek(tip == skutecnost, f"více {skutecnost}ch", vklad, kurz=2.0)
-
-
-def special_prvni_sude():
-    tip = inquirer.select(message="První číslo bude:",
-                          choices=[Choice("sude", "Sudé"), Choice("liche", "Liché"),
-                                   Separator(), Choice("zpet", "←  Zpět")], qmark="⚖").execute()
-    if tip == "zpet":
-        return
-    vklad = _vklad()
-    if not vklad:
-        return
-    draw = losuj()
-    prvni = draw[0]
-    skutecnost = "sude" if prvni % 2 == 0 else "liche"
-    header()
-    print(f"  {B}PRVNÍ ČÍSLO SUDÉ/LICHÉ{Z}   tip {tip}, vklad {_kc(vklad)}\n")
-    print(f"  První vygenerované číslo: {B}{prvni}{Z} → {skutecnost}\n")
-    _vysledek(tip == skutecnost, f"první číslo {skutecnost}", vklad, kurz=2.0)
-
-
-def special_soucet_predcisli():
-    tip = inquirer.select(message="Součet prvních 5 čísel bude:",
-                          choices=[Choice("mensi", "Menší (≤ 122,5)"),
-                                   Choice("vetsi", "Větší (> 122,5)"),
-                                   Separator(), Choice("zpet", "←  Zpět")], qmark="➕").execute()
-    if tip == "zpet":
-        return
-    vklad = _vklad()
-    if not vklad:
-        return
-    draw = losuj()
-    prvnich5 = draw[:5]
-    soucet = sum(prvnich5)
-    skutecnost = "mensi" if soucet <= 122.5 else "vetsi"
-    header()
-    print(f"  {B}SOUČET PŘEDČÍSLÍ (−122.5+){Z}   tip {tip}, vklad {_kc(vklad)}\n")
-    print(f"  Prvních 5 čísel: {prvnich5} → součet {B}{soucet}{Z} (hranice 122,5)\n")
-    _vysledek(tip == skutecnost, f"součet {skutecnost}", vklad, kurz=2.0)
-
-
-def special_prvni_cislo():
-    tip = inquirer.select(message="První číslo bude:",
-                          choices=[Choice("mensi", "Menší (< 24,5)"),
-                                   Choice("vetsi", "Větší (> 24,5)"),
-                                   Separator(), Choice("zpet", "←  Zpět")], qmark="🔢").execute()
-    if tip == "zpet":
-        return
-    vklad = _vklad()
-    if not vklad:
-        return
-    draw = losuj()
-    prvni = draw[0]
-    skutecnost = "mensi" if prvni < 24.5 else "vetsi"
-    header()
-    print(f"  {B}PRVNÍ ČÍSLO (−24.5+){Z}   tip {tip}, vklad {_kc(vklad)}\n")
-    print(f"  První vygenerované číslo: {B}{prvni}{Z} (hranice 24,5)\n")
-    _vysledek(tip == skutecnost, f"první číslo {skutecnost}", vklad, kurz=2.0)
-
-
-def special_barva_prvni_koule():
-    barvy = inquirer.checkbox(
-        message="Na kterou/é barvu/y první koule sázíš? (mezerník = vybrat)",
-        choices=[Choice(b, b) for b in BARVY],
-        qmark="🎨").execute()
-    if not barvy:
-        return
-    vklad = _vklad()
-    if not vklad:
-        return
-    draw = losuj()
-    prvni = draw[0]
-    skutecna = _cisla_na_barvu(prvni)
-    header()
-    print(f"  {B}BARVA PRVNÍ KOULE{Z}   sázka na {', '.join(barvy)}, vklad {_kc(vklad)}\n")
-    print(f"  První vygenerované číslo: {B}{prvni}{Z} → barva {B}{skutecna}{Z}\n")
-    kurz = 8.0 / len(barvy)   # orientační férový kurz (8 barev)
-    _vysledek(skutecna in barvy, f"první koule je {skutecna}", vklad, kurz=kurz)
-
-
-def special_predcisli_vybrane():
-    cislo = int(inquirer.number(message=f"Které číslo (1–{TOTAL}) tipuješ do předčíslí?",
+def special_prvnich_5():
+    """Číselná loterie „Prvních 5“ (čl. 6.12): tipneš 1 číslo z 48.
+    Vyhraješ, když padne mezi prvními 5. Pevný násobek 7,2× (RTP 75 %)."""
+    cislo = int(inquirer.number(message=f"Které číslo (1–{TOTAL}) tipuješ do prvních 5?",
                                 default=13, min_allowed=1, max_allowed=TOTAL,
                                 float_allowed=False).execute() or 0)
     if not cislo:
@@ -448,36 +372,73 @@ def special_predcisli_vybrane():
     draw = losuj()
     prvnich5 = draw[:5]
     header()
-    print(f"  {B}PŘEDČÍSLÍ — VYBRANÉ ČÍSLO{Z}   tip {cislo}, vklad {_kc(vklad)}\n")
-    print(f"  Prvních 5 čísel: {prvnich5}\n")
-    _vysledek(cislo in prvnich5, f"číslo {cislo} je mezi prvními 5", vklad)
+    print(f"  {B}ČÍSELNÁ LOTERIE „PRVNÍCH 5“{Z}   tip {cislo}, vklad {_kc(vklad)}\n")
+    print(f"  Prvních 5 vygenerovaných čísel: {prvnich5}\n")
+    if cislo in prvnich5:
+        print(f"  {G}✔ VYHRÁVÁŠ{Z} — číslo {cislo} je mezi prvními 5 (násobek 7,2×)\n")
+    else:
+        print(f"  {R}✘ NEVYHRÁVÁŠ{Z} — číslo {cislo} v prvních 5 není.\n")
+    inquirer.text(message="Enter pro pokračování", default="").execute()
+
+
+def special_barva_prvniho_cisla():
+    """Číselná loterie „Barva prvního čísla“ (čl. 6.13): tipneš 1, 2 nebo 4
+    barevné skupiny. Vyhraješ, když první tažené číslo patří do tvé skupiny.
+    Násobek 6,0× / 3,0× / 1,5× (RTP 75 %)."""
+    pocet = inquirer.select(
+        message="Kolik barevných skupin tipuješ?",
+        choices=[Choice(1, "1 skupina (6 čísel)  — násobek 6,0×"),
+                 Choice(2, "2 skupiny (12 čísel) — násobek 3,0×"),
+                 Choice(4, "4 skupiny (24 čísel) — násobek 1,5×"),
+                 Separator(), Choice("zpet", "←  Zpět")], qmark="🎨").execute()
+    if pocet == "zpet":
+        return
+    barvy = inquirer.checkbox(
+        message=f"Vyber {pocet} barevné skupiny (mezerník = vybrat):",
+        choices=[Choice(b, b) for b in BARVY],
+        qmark="🎨").execute()
+    if not barvy:
+        return
+    if len(barvy) != pocet:
+        print(f"  {R}✘ Musíš vybrat přesně {pocet} skupin (vybral jsi {len(barvy)}).{Z}")
+        inquirer.text(message="Enter", default="").execute()
+        return
+    vklad = _vklad()
+    if not vklad:
+        return
+    mnozina = set()
+    for b in barvy:
+        mnozina |= set(BARVY[b])
+    draw = losuj()
+    prvni = draw[0]
+    vyhral = prvni in mnozina
+    mult = {1: 6.0, 2: 3.0, 4: 1.5}[pocet]
+    header()
+    print(f"  {B}ČÍSELNÁ LOTERIE „BARVA PRVNÍHO ČÍSLA“{Z}   "
+          f"{pocet} skupin ({', '.join(barvy)}), vklad {_kc(vklad)}\n")
+    print(f"  První vygenerované číslo: {B}{prvni}{Z} "
+          f"→ barva {B}{_cisla_na_barvu(prvni)}{Z}\n")
+    _vysledek(vyhral, f"první číslo v tvé skupině (násobek {mult}×)", vklad, kurz=mult)
 
 
 def menu_specialni():
     while True:
         header()
+        print(f"  {D}Oficiální vedlejší hry Lucky Six online (Herní plán Fortuna ČR){Z}\n")
         volba = inquirer.select(
-            message="Speciální sázka:",
+            message="Vedlejší hra:",
             choices=[
-                Choice("sest", "🌈  Šest čísel jedné barvy"),
-                Choice("suda_licha", "⚖  Sudá/Lichá – Předčíslí"),
-                Choice("prvni_sude", "⚖  První číslo Sudé/Liché"),
-                Choice("soucet", "➕  Součet předčíslí (−122.5+)"),
-                Choice("prvni_cislo", "🔢  První číslo (−24.5+)"),
-                Choice("barva1", "🎨  Barva první koule (více barev)"),
-                Choice("predcisli", "🎯  Předčíslí – Vybrané číslo"),
+                Choice("barva", "🌈  Číselná loterie „Barva“ (6 čísel jedné barvy)"),
+                Choice("prvnich5", "🖐  Číselná loterie „Prvních 5“ (1 číslo v prvních 5)"),
+                Choice("barva1", "🎨  Číselná loterie „Barva prvního čísla“"),
                 Separator(),
                 Choice("zpet", "←  Zpět"),
             ], qmark="🎲").execute()
         if volba == "zpet":
             return
-        {"sest": special_sest_barvy,
-         "suda_licha": special_suda_licha_predcisli,
-         "prvni_sude": special_prvni_sude,
-         "soucet": special_soucet_predcisli,
-         "prvni_cislo": special_prvni_cislo,
-         "barva1": special_barva_prvni_koule,
-         "predcisli": special_predcisli_vybrane}[volba]()
+        {"barva": special_barva,
+         "prvnich5": special_prvnich_5,
+         "barva1": special_barva_prvniho_cisla}[volba]()
 
 
 # ---------------------------------------------------------------------------
@@ -663,7 +624,7 @@ def hlavni_menu():
                 Choice("solo", "🎟  Hlavní sázka (6 čísel)"),
                 Choice("system", "🧩  Systémová sázka (6/7 – 6/10)"),
                 Choice("special", "🌈  Speciální sázky"),
-                Choice("rychla", "⚡  Rychlá simulace celého dne (24 h / 2:30)"),
+                Choice("rychla", "⚡  Rychlá simulace celého dne (24 h / 3:30)"),
                 Choice("stats", "📊  Statistiky & RTP"),
                 Separator(),
                 Choice("konec", "👋  Konec"),
