@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<meta name="description" content="Lucky Six a Maxa Šestka — simulátor, statistiky a RTP. Offline PWA.">
+<title>Loterie — Lucky Six &amp; Maxa Šestka</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <button id="back" class="iconbtn" aria-label="Zpět" hidden>‹</button>
+  <div class="brand">
+    <span class="logo">L6</span>
+    <span class="title" id="scr-title">Loterie</span>
+  </div>
+  <button id="install" class="iconbtn" aria-label="Nainstalovat" hidden>⤓</button>
+</header>
+<main id="app" class="app"></main>
+<footer class="foot">
+  <span id="netdot" class="dot"></span>
+  <span id="nettext">offline</span>
+  <span class="sep">·</span>
+  <span>simulace, žádné reálné peníze</span>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
