@@ -21,13 +21,19 @@ from datetime import date, datetime
 
 import requests
 
-BASE = "/root/statistiky"
+import shutil
+
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(_SCRIPT_DIR))))
+BASE = _REPO_ROOT if os.path.exists(os.path.join(_REPO_ROOT, "fotbal")) else "/root/statistiky"
+
 UA = "Mozilla/5.0 (StatistikyBot update tool)"
 S = requests.Session()
 S.headers.update({"User-Agent": UA})
 LOG_PATH = os.path.join(BASE, "_update_log.txt")
-MARKITDOWN = "/root/markitdown/.venv/bin/markitdown"
-MARKITDOWN_PY = "/root/markitdown/.venv/bin/python3"
+
+MARKITDOWN = shutil.which("markitdown") or "/root/markitdown/.venv/bin/markitdown"
+MARKITDOWN_PY = sys.executable
 
 _log_lines = []
 
