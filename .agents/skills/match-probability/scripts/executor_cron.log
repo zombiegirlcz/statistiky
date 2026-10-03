@@ -330,3 +330,212 @@ Banka: 1000 mincí (start 1000), vázáno 160
 
 Nových builder tiketů: 0 (bez dat/trhu: 51, bez edge: 15)
 Banka: 1000 mincí, nevyřízeno 8 tiketů
+Spouštím aktivní agenty: 4
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 11 (z toho dvouhry: 4) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 2)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 3 - zjišťuji výsledky...
+
+  [čeká] Carlos Alcaraz vs Matteo Arnaldi - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Iga Swiatek vs Xinyu Gao - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Elena Rybakina vs Alina Charaeva - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 74) [PRE-MATCH]
+Banka: 1000 minci (start 1000), vazano 140
+
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno 32] Broken pipe>
+  [bookmaker] SX.bet chyba: [Errno 38] Function not implemented
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -2] Name or service not known>
+
+Novych pre-match tiketu: 0 (bez dat: 31, bez SX.bet trhu: 22)
+Banka: 1000 minci, nevyrizeno 0 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Žádné nevyřízené tikety.
+
+CHYBA síťového připojení (Live Tennis API): <urlopen error [Errno -2] Name or service not known>
+  (agent model-only ukončen: 1)
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Žádné nevyřízené tikety.
+
+CHYBA síťového připojení (Live Tennis API): <urlopen error [Errno -2] Name or service not known>
+  (agent bet-builder ukončen: 1)
+Spouštím aktivní agenty: 4
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 9 (z toho dvouhry: 3) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 2)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 3 - zjišťuji výsledky...
+
+  [čeká] Carlos Alcaraz vs Matteo Arnaldi - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Iga Swiatek vs Xinyu Gao - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Elena Rybakina vs Alina Charaeva - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 74) [PRE-MATCH]
+Banka: 1000 minci (start 1000), vazano 140
+
+
+Novych pre-match tiketu: 0 (bez dat: 31, bez SX.bet trhu: 18)
+Banka: 1000 minci, nevyrizeno 3 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+  [čeká] Alejandro Tabilo vs Denis Shapovalov - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Quentin Halys vs Alex De Minaur - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Ashlyn Krueger vs Ann Li - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Katie Volynets vs Elise Mertens - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Coco Gauff vs Camila Osorio - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Donna Vekic vs Lin Zhu - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Carlos Alcaraz vs Matteo Arnaldi - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Jelena Ostapenko vs Paula Badosa - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Elina Svitolina vs Katerina Siniakova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Iga Swiatek vs Xinyu Gao - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Roman Safiullin vs Andrey Rublev - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Leylah Fernandez vs Kamilla Rakhimova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Zápasů: 108 (dvouhry: 76, z toho live 2, prematch 74) [MODEL-ONLY]
+Banka: 1000 mincí (start 1000), vázáno 240
+
+      ! model favorit Iva Jovic (p=67%), ale tiket se nezakládá: na tiket by zbylo jen 10 mincí (potřeba 20)
+      ! model favorit Belinda Bencic (p=72%), ale tiket se nezakládá: na tiket by zbylo jen 10 mincí (potřeba 20)
+      ! model favorit Qinwen Zheng (p=58%), ale tiket se nezakládá: na tiket by zbylo jen 10 mincí (potřeba 20)
+      ! model favorit Matteo Berrettini (p=77%), ale tiket se nezakládá: na tiket by zbylo jen 10 mincí (potřeba 20)
+      ! model favorit Xinran Sun (p=58%), ale tiket se nezakládá: na tiket by zbylo jen 10 mincí (potřeba 20)
+      ! model favorit Marie Bouzkova (p=62%), ale tiket se nezakládá: na tiket by zbylo jen 10 mincí (potřeba 20)
+      ! model favorit Ugo Humbert (p=65%), ale tiket se nezakládá: na tiket by zbylo jen 10 mincí (potřeba 20)
+      ! model favorit Jakub Menšik (p=78%), ale tiket se nezakládá: na tiket by zbylo jen 10 mincí (potřeba 20)
+      ! model favorit Daniil Medvedev (p=60%), ale tiket se nezakládá: na tiket by zbylo jen 10 mincí (potřeba 20)
+      ! model favorit Sonay Kartal (p=64%), ale tiket se nezakládá: na tiket by zbylo jen 10 mincí (potřeba 20)
+      ! model favorit Alexander Zverev (p=62%), ale tiket se nezakládá: na tiket by zbylo jen 10 mincí (potřeba 20)
+      ! model favorit Elena Rybakina (p=90%), ale tiket se nezakládá: na tiket by zbylo jen 10 mincí (potřeba 100)
+
+Nových model-only tiketů: 0 (z toho underdog: 0, bez dat: 32, bez kurzu: 19)
+Banka: 1000 mincí, nevyřízeno 12 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 8 - zjišťuji výsledky...
+
+  [čeká] Quentin Halys vs Alex De Minaur - builder ještě není rozhodnutý
+  [čeká] Ashlyn Krueger vs Ann Li - builder ještě není rozhodnutý
+  [čeká] Donna Vekic vs Lin Zhu - builder ještě není rozhodnutý
+  [čeká] Qinwen Zheng vs Anna Kalinskaya - builder ještě není rozhodnutý
+  [čeká] Matteo Berrettini vs Daniel Adolfo Vallejo - builder ještě není rozhodnutý
+  [čeká] Marie Bouzkova vs Kimberly Birrell - builder ještě není rozhodnutý
+  [čeká] Cristina Bucsa vs Xinran Sun - builder ještě není rozhodnutý
+  [čeká] Ugo Humbert vs Jiri Lehecka - builder ještě není rozhodnutý
+
+Vyhodnoceno nových tiketů: 0
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-03T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-03T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent bet-builder ukončen: 1)
+Spouštím aktivní agenty: 4
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-03T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-03T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent set-favorit ukončen: 1)
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 3 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-03T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-03T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent pre-match-favorit ukončen: 1)
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-03T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-03T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent model-only ukončen: 1)
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 8 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-03T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-03T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent bet-builder ukončen: 1)
+Spouštím aktivní agenty: 4
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-03T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-03T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent set-favorit ukončen: 1)
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 3 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-03T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-03T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent pre-match-favorit ukončen: 1)
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-03T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-03T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent model-only ukončen: 1)
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 8 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-03T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-03T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent bet-builder ukončen: 1)
