@@ -25,16 +25,25 @@ from collections import Counter
 from math import comb
 
 # Nasobek vkladu podle PORADI, ve kterem padne 6. spravne cislo.
-# Overeno z oficialni napovedy hry ("Lucky Six Napoveda.md", vyplatni
-# tabulka "Pocet zasahu -> Pomer"). Monotonne klesa - zadne specialni
-# skoky na 19./20. pozici (to byl artefakt OCR prepisu webu).
+# OVERENO z oficialniho Herniho planu Fortuna CR (PDF z ifortuna.cz,
+# file/658301651f48d321062d1d89), clanek 6.7 "Lucky six online" -
+# tabulka "VYHERNI NASOBEK podle PORADI VYLOSOVANI POSLEDNIHO ZE VSECH
+# CISEL TIPOVANYCH SAZEJICIM".
+#
+# Kontrola: RTP z teto tabulky = 75.87 %, coz PRESNE odpovida clanku 6.8
+# herniho planu: "Vyse Vyherni jistiny pro Ciselnou loterii Lucky six
+# online cini v dlouhodobem prumeru 75,87 %."
+#
+# (Drivejsi tabulka z napovedy v aplikaci byla pro jinou/EUR verzi hry:
+#  min 3 EUR, RTP 85,87-99,63 %, s bonusovym kolem, ktere cesky plan
+#  v Lucky Six vubec neobsahuje.)
 MULT = {
-    6: 10000, 7: 5000, 8: 2000, 9: 1000, 10: 500,
-    11: 100, 12: 50, 13: 25, 14: 20, 15: 19,
-    16: 18, 17: 17, 18: 16, 19: 15, 20: 14,
-    21: 13, 22: 12, 23: 11, 24: 10, 25: 9,
-    26: 8, 27: 7, 28: 6, 29: 5, 30: 4,
-    31: 3, 32: 2.5, 33: 2, 34: 1.5, 35: 1,
+    6: 10000, 7: 7500, 8: 5000, 9: 2000, 10: 1000,
+    11: 500, 12: 200, 13: 100, 14: 70, 15: 50,
+    16: 40, 17: 30, 18: 25, 19: 20, 20: 17,
+    21: 15, 22: 14, 23: 13, 24: 12, 25: 11,
+    26: 10, 27: 9, 28: 8, 29: 7, 30: 6,
+    31: 5, 32: 4, 33: 3, 34: 2, 35: 1,
 }
 
 TOTAL = 48        # z kolika cisel se losuje

@@ -8,7 +8,7 @@ main.py — interaktivní TUI pro hru Lucky Six (Fortuna).
       Červená 1,9,17,25,33,41 · Zelená 2,10,18,26,34,42
       Modrá 3,11,19,27,35,43 · Fialová 4,12,20,28,36,44
       Hnědá 5,13,21,29,37,45 · Žlutá 6,14,22,30,38,46
-      Oranžová 7,15,23,31,39,47 · Černá 8,16,24,32,40,48
+      Oranžová 7,15,23,31,39,47 · Šedá 8,16,24,32,40,48
   * V kole se vygeneruje 35 z 48 čísel (v pořadí).
   * Vyhraješ, když je všech tvých 6 čísel mezi 35 → výhra = vklad ×
     koeficient posledního (6.) trefeného čísla.
@@ -25,7 +25,7 @@ Sázkové trhy (dle nápovědy):
   - Předčíslí – Vybrané číslo
 
 Informace o hře: min vklad 3, max vklad 300, měna EUR,
-RTP 85,87 % – 99,63 % (bonusové kolo + konfigurace).
+RTP 75,87 % (of. Herni plan Fortuna CR, čl. 6.8).
 
 Spuštění:
   cd /root/statistiky
@@ -54,9 +54,11 @@ DRAWN = lot.DRAWN          # 35
 MULT = lot.MULT
 
 MENA = "Kč"
-VKLAD_MIN = 3
-VKLAD_MAX = 300
-VKLAD_DEFAULT = 10
+# Limity dle oficialniho Herniho planu Fortuna CR (cl. 6.2):
+#   min 20 Kč, max 500 Kč na jedno slosovani Lucky six online.
+VKLAD_MIN = 20
+VKLAD_MAX = 500
+VKLAD_DEFAULT = 20
 
 # 8 barevných skupin po 6 číslech (přesně dle nápovědy)
 BARVY = {
@@ -67,7 +69,7 @@ BARVY = {
     "Hnědá":    [5, 13, 21, 29, 37, 45],
     "Žlutá":    [6, 14, 22, 30, 38, 46],
     "Oranžová": [7, 15, 23, 31, 39, 47],
-    "Černá":    [8, 16, 24, 32, 40, 48],
+    "Šedá":     [8, 16, 24, 32, 40, 48],
 }
 
 # System Multiplier (z nápovědy) = 1 / počet kombinací
@@ -503,16 +505,17 @@ def menu_statistiky():
         hits = res["hits"]
         roi = (res["returned"] - res["staked"]) / res["staked"] * 100
         print(f"\n  Trefeno plný počet: {hits:,} ({100.0*hits/n:.4f} %)")
-        print(f"  {B}RTP simulace (základní sázka, bez bonusu): {100+roi:.2f} %{Z}")
-        print(f"  {D}Oficiální RTP v nápovědě je 85,87–99,63 % (bonusové kolo +")
-        print(f"  nastavitelná konfigurace; v základní tabulce není).{Z}\n")
+        print(f"  {B}RTP simulace: {100+roi:.2f} %{Z}")
+        print(f"  {D}Oficiální RTP dle Herního plánu Fortuna ČR (čl. 6.8) je 75,87 %{Z}\n")
     inquirer.text(message="Enter pro pokračování", default="").execute()
 
 
 # ---------------------------------------------------------------------------
 # 5) RYCHLÁ SIMULACE CELÉHO DNE
 # ---------------------------------------------------------------------------
-KOLO_MIN = 2.5   # jedno kolo = 2:30 min
+# Frekvence dle of. Herniho planu (cl. 6.3): Lucky six ONLINE se losuje
+# kazde 3,5 minuty -> 24 h = 411 kol.
+KOLO_MIN = 3.5   # jedno kolo = 3:30 min
 
 
 def menu_rychla_simulace():
