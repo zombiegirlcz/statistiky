@@ -95,3 +95,13 @@
 [14:49:47] Prevadim 1 zmenenych souboru do Markdownu...
 [14:50:00]   [markitdown] prevedeno: NHL_2026-2027.md
 [14:50:00] === HOTOVO: 1 souboru zmeneno ===
+
+--- 2026-10-03T09:01:03.998165 ---
+[09:00:03] === DENNI AKTUALIZACE (2026-10-03) ===
+[09:00:40] [fotbal] zadne nove zapasy, vse aktualni
+[09:00:43] [tenis] zadne nove zapasy, vse aktualni
+[09:00:43] [hokej] 2026-2027: 5 novych zapasu k dostazeni (z 21 celkem)
+[09:00:53] [hokej] 2026-2027: pridano 5 zapasu
+[09:00:53] Prevadim 1 zmenenych souboru do Markdownu...
+[09:01:03]   [markitdown] prevedeno: NHL_2026-2027.md
+[09:01:03] === HOTOVO: 1 souboru zmeneno ===
