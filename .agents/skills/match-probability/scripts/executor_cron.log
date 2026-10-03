@@ -1840,3 +1840,175 @@ Banka: 1089 mincí (start 1000), vázáno 110
 
 Nových builder tiketů: 0 (bez dat/trhu: 74, bez edge: 10)
 Banka: 1089 mincí, nevyřízeno 5 tiketů
+Spouštím aktivní agenty: 4
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 9 (z toho dvouhry: 0) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 2 - zjišťuji výsledky...
+
+  [čeká] Francisco Cerundolo vs Daniil Medvedev - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Sara Bejlek vs Naomi Osaka - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 88) [PRE-MATCH]
+Banka: 902 minci (start 1000), vazano 36
+
+
+Novych pre-match tiketu: 0 (bez dat: 48, bez SX.bet trhu: 21)
+Banka: 902 minci, nevyrizeno 2 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+  [čeká] Jaume Munar vs Kyrian Jacquet - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Qinwen Zheng vs Marie Bouzkova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Aryna Sabalenka vs Nikola Bartunkova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Alina Charaeva vs Sonay Kartal - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Coco Gauff vs Xinran Sun - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Belinda Bencic vs Ann Li - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Iva Jovic vs Kamilla Rakhimova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Carlos Alcaraz vs Denis Shapovalov - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Ekaterina Alexandrova vs Diana Shnaider - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Mirra Andreeva vs Polina Kudermetova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Karen Khachanov vs Hubert Hurkacz - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Andrey Rublev vs Alex De Minaur - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Zápasů: 109 (dvouhry: 88, z toho live 0, prematch 88) [MODEL-ONLY]
+Banka: 989 mincí (start 1000), vázáno 240
+
+      ! model favorit Linda Noskova (p=68%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Arthur Fils (p=60%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Jiri Lehecka (p=64%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Daniil Medvedev (p=79%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Novak Djokovic (p=67%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Naomi Osaka (p=90%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 99)
+
+Nových model-only tiketů: 0 (z toho underdog: 0, bez dat: 48, bez kurzu: 20)
+Banka: 989 mincí, nevyřízeno 12 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 5 - zjišťuji výsledky...
+
+  [čeká] Jaume Munar vs Kyrian Jacquet - builder ještě není rozhodnutý
+  [čeká] Dayana Yastremska vs Sinja Kraus - builder ještě není rozhodnutý
+  [čeká] Karen Khachanov vs Hubert Hurkacz - builder ještě není rozhodnutý
+  [čeká] Andrey Rublev vs Alex De Minaur - builder ještě není rozhodnutý
+  [čeká] Alexander Zverev vs Novak Djokovic - builder ještě není rozhodnutý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich dvouher: 88 [BET BUILDER]
+Banka: 1089 mincí (start 1000), vázáno 110
+
+
+Nových builder tiketů: 0 (bez dat/trhu: 73, bez edge: 10)
+Banka: 1089 mincí, nevyřízeno 5 tiketů
+Spouštím aktivní agenty: 4
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 8 (z toho dvouhry: 0) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 2 - zjišťuji výsledky...
+
+  [čeká] Francisco Cerundolo vs Daniil Medvedev - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Sara Bejlek vs Naomi Osaka - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 88) [PRE-MATCH]
+Banka: 902 minci (start 1000), vazano 36
+
+
+Novych pre-match tiketu: 0 (bez dat: 48, bez SX.bet trhu: 22)
+Banka: 902 minci, nevyrizeno 2 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+  [čeká] Jaume Munar vs Kyrian Jacquet - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Qinwen Zheng vs Marie Bouzkova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Aryna Sabalenka vs Nikola Bartunkova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Alina Charaeva vs Sonay Kartal - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Coco Gauff vs Xinran Sun - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Belinda Bencic vs Ann Li - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Iva Jovic vs Kamilla Rakhimova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Carlos Alcaraz vs Denis Shapovalov - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Ekaterina Alexandrova vs Diana Shnaider - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Mirra Andreeva vs Polina Kudermetova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Karen Khachanov vs Hubert Hurkacz - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Andrey Rublev vs Alex De Minaur - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Zápasů: 108 (dvouhry: 88, z toho live 0, prematch 88) [MODEL-ONLY]
+Banka: 989 mincí (start 1000), vázáno 240
+
+      ! model favorit Linda Noskova (p=68%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Arthur Fils (p=60%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Daniil Medvedev (p=79%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Jiri Lehecka (p=64%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Novak Djokovic (p=67%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 20)
+      ! model favorit Naomi Osaka (p=90%), ale tiket se nezakládá: na tiket by zbylo jen 7 mincí (potřeba 99)
+
+Nových model-only tiketů: 0 (z toho underdog: 0, bez dat: 48, bez kurzu: 20)
+Banka: 989 mincí, nevyřízeno 12 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 5 - zjišťuji výsledky...
+
+  [čeká] Jaume Munar vs Kyrian Jacquet - builder ještě není rozhodnutý
+  [čeká] Dayana Yastremska vs Sinja Kraus - builder ještě není rozhodnutý
+  [čeká] Karen Khachanov vs Hubert Hurkacz - builder ještě není rozhodnutý
+  [čeká] Andrey Rublev vs Alex De Minaur - builder ještě není rozhodnutý
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-04T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-04T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent bet-builder ukončen: 1)
+Spouštím aktivní agenty: 4
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-04T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-04T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent set-favorit ukončen: 1)
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 2 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-04T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-04T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent pre-match-favorit ukončen: 1)
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-04T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-04T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent model-only ukončen: 1)
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 5 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-04T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-04T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent bet-builder ukončen: 1)
