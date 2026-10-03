@@ -25,15 +25,16 @@ from collections import Counter
 from math import comb
 
 # Nasobek vkladu podle PORADI, ve kterem padne 6. spravne cislo.
-# Doslovne dle tabulky v loterie.md - pozice 19 a 20 jsou SPECIALNI
-# (8000x / 20000x), zbytek monotonne klesa.
+# Overeno z oficialni napovedy hry ("Lucky Six Napoveda.md", vyplatni
+# tabulka "Pocet zasahu -> Pomer"). Monotonne klesa - zadne specialni
+# skoky na 19./20. pozici (to byl artefakt OCR prepisu webu).
 MULT = {
-    6: 20000, 7: 8000, 8: 5500, 9: 2500, 10: 600,
-    11: 300, 12: 150, 13: 80, 14: 50, 15: 30,
-    16: 20, 17: 19, 18: 18, 19: 8000, 20: 20000,
-    21: 15, 22: 14, 23: 13, 24: 12, 25: 11,
-    26: 10, 27: 9, 28: 8, 29: 7, 30: 6,
-    31: 5, 32: 4, 33: 3, 34: 2, 35: 1,
+    6: 10000, 7: 5000, 8: 2000, 9: 1000, 10: 500,
+    11: 100, 12: 50, 13: 25, 14: 20, 15: 19,
+    16: 18, 17: 17, 18: 16, 19: 15, 20: 14,
+    21: 13, 22: 12, 23: 11, 24: 10, 25: 9,
+    26: 8, 27: 7, 28: 6, 29: 5, 30: 4,
+    31: 3, 32: 2.5, 33: 2, 34: 1.5, 35: 1,
 }
 
 TOTAL = 48        # z kolika cisel se losuje
