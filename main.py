@@ -509,6 +509,105 @@ def menu_statistiky():
 
 
 # ---------------------------------------------------------------------------
+# 5) RYCHLÁ SIMULACE CELÉHO DNE
+# ---------------------------------------------------------------------------
+KOLO_MIN = 2.5   # jedno kolo = 2:30 min
+
+
+def menu_rychla_simulace():
+    header()
+    print(f"  {B}RYCHLÁ SIMULACE — celý den{Z}\n")
+    print(f"  {D}Jedno kolo = {KOLO_MIN:g} min  →  24 h = {int(24*60/KOLO_MIN)} kol{Z}\n")
+
+    pocet = inquirer.select(
+        message="Kolik čísel budeš sázet?",
+        choices=[Choice(6, "Hlavní sázka (6 čísel)")] +
+                [Choice(n, f"Systém 6/{n} ({n} čísel, {len(kombinace(range(1, n+1)))} kombinací)")
+                 for n in (7, 8, 9, 10)] +
+                [Separator(), Choice("zpet", "←  Zpět")],
+        qmark="🎯").execute()
+    if pocet == "zpet":
+        return
+
+    moje = vyber_cisel(pocet, f"Tvých {pocet} čísel")
+    if not moje:
+        return
+
+    if pocet == 6:
+        vklad = _vklad("Vklad na kolo")
+        if not vklad:
+            return
+        vklad_kombo = vklad
+        celkovy = vklad
+    else:
+        vklad = _vklad("Celkový vklad na tiket (kolo)")
+        if not vklad:
+            return
+        vklad_kombo = vklad * SYSTEM_MULT[pocet]
+        celkovy = vklad
+
+    hodiny = inquirer.number(message="Kolik hodin simulovat?", default=24,
+                             min_allowed=1, max_allowed=72,
+                             float_allowed=True).execute()
+    hodiny = float(hodiny) if hodiny else 24.0
+    kola = int(hodiny * 60 / KOLO_MIN)
+
+    komba = kombinace(moje) if pocet > 6 else [tuple(sorted(moje))]
+
+    header()
+    print(f"  {B}SIMULACE {kola} kol ({hodiny:g} h){Z}   čísla: " +
+          " ".join(f"{B}{c}{Z}" for c in moje) +
+          f"   vklad/kolo {_eur(celkovy)}")
+    if pocet > 6:
+        print(f"  {D}vklad/kombinace {_eur(vklad_kombo)} · {len(komba)} kombinací{Z}")
+    print(f"  {D}formát: číslo(pořadí losování) — zeleně trefeno, šedě netrefeno;")
+    print(f"  pořadí 1 = první koule, {DRAWN} = poslední{Z}\n")
+
+    staked = 0.0
+    returned = 0.0
+    hits = 0
+    for k in range(1, kola + 1):
+        draw = losuj()
+        pos_map = {c: i for i, c in enumerate(draw, start=1)}
+
+        vyhra_kolo = 0.0
+        for kombo in komba:
+            pos6, _ = vyhodnot(kombo, draw)
+            if pos6 is not None:
+                vyhra_kolo += vklad_kombo * MULT[pos6]
+        staked += celkovy
+        returned += vyhra_kolo
+        if vyhra_kolo > 0:
+            hits += 1
+
+        casti = []
+        for c in moje:
+            p = pos_map.get(c)
+            if p is None:
+                casti.append(f"{D}{c}(–){Z}")
+            else:
+                casti.append(f"{G}{c}({p}){Z}")
+        radek = " ".join(casti)
+
+        if vyhra_kolo > 0:
+            vys = f"{G}✔{Z} {(vyhra_kolo - celkovy):+,.2f}"
+        else:
+            vys = f"{R}✘{Z} {-celkovy:+,.2f}"
+        print(f"  {k:>3}.  {radek}   {vys}")
+
+    zisk = returned - staked
+    print()
+    print(f"  {B}─── SOUHRN ZA {kola} KOL ({hodiny:g} h) ───{Z}")
+    print(f"  Vsazeno:        {_eur(staked)}")
+    print(f"  Vráceno:        {_eur(returned)}")
+    print(f"  Zisk:           {(G if zisk >= 0 else R)}{zisk:+,.2f} {MENA}{Z}")
+    print(f"  RTP:            {100*returned/staked:.2f} %   (100 % = návrat vkladu)")
+    print(f"  Výherních kol:  {hits}/{kola}  ({100*hits/kola:.2f} %)")
+    print()
+    inquirer.text(message="Enter pro pokračování", default="").execute()
+
+
+# ---------------------------------------------------------------------------
 # HLAVNÍ MENU
 # ---------------------------------------------------------------------------
 def hlavni_menu():
@@ -520,6 +619,7 @@ def hlavni_menu():
                 Choice("solo", "🎟  Hlavní sázka (6 čísel)"),
                 Choice("system", "🧩  Systémová sázka (6/7 – 6/10)"),
                 Choice("special", "🌈  Speciální sázky"),
+                Choice("rychla", "⚡  Rychlá simulace celého dne (24 h / 2:30)"),
                 Choice("stats", "📊  Statistiky & RTP"),
                 Separator(),
                 Choice("konec", "👋  Konec"),
@@ -531,6 +631,8 @@ def hlavni_menu():
             menu_system()
         elif volba == "special":
             menu_specialni()
+        elif volba == "rychla":
+            menu_rychla_simulace()
         elif volba == "stats":
             menu_statistiky()
         elif volba == "konec":
