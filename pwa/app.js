@@ -206,6 +206,8 @@ function screenMenu() {
       <button class="mbtn group">🍀  Maxa Šestka</button>
       <button class="mbtn" data-go="mx-solo"><span class="em">🍀</span><span>Simulace do hlavní výhry<span class="sub">1 z 13 983 816 · jackpot 5 000 000 Kč</span></span></button>
       <button class="mbtn" data-go="mx-stats"><span class="em">📊</span><span>Statistiky &amp; RTP</span></button>
+      <button class="mbtn group">📖  Vzdělávání</button>
+      <button class="mbtn" data-go="jakto"><span class="em">📖</span><span>Jak to funguje<span class="sub">RNG · RTP · volatilita · mýty · zákon</span></span></button>
     </div>
   </div>`);
   el.querySelectorAll('[data-go]').forEach((b) =>
@@ -933,6 +935,102 @@ function screenMxStats() {
 }
 
 /* =========================================================================
+ * 15b) JAK TO FUNGUJE — osvěta (RNG, RTP, volatilita, mýty, VLT)
+ * ========================================================================= */
+function screenJakToFunguje() {
+  setTitle('Jak to funguje'); showBack(true);
+  return h(`<div>
+    <div class="card">
+      <h2>🎰 Jak fungují automaty a loterie</h2>
+      <p class="dim small">Ověřeno z českých zdrojů (5win.cz, encyklopediehazardu.cz,
+      Wikipedie – Videoloterijní terminál). Platí pro automaty i pro Lucky Six / Maxu.</p>
+    </div>
+
+    <div class="card">
+      <h3>1 · Základ je RNG (generátor náhodných čísel)</h3>
+      <p>Generování čísel běží <b>neustále na pozadí</b>, i když se netočí.
+      Kliknutím se jen „zamkne“ ta kombinace, která v tu chvíli zrovna vyběhla.</p>
+      <p class="dim small">Kdybys klikl o setinu sekundy dřív nebo později, padne něco
+      úplně jiného. <b>Žádné načasování tedy nehraje roli</b> — je to čistá náhoda.</p>
+    </div>
+
+    <div class="card">
+      <h3>2 · RTP = dlouhodobá návratnost</h3>
+      <p>RTP je <b>nastavené výrobcem</b> a určuje, kolik % vkladů se hráčům vrátí
+      <b>z dlouhodobého hlediska</b> (počítá se z milionů zatočení).</p>
+      <p class="dim small">RTP 96 % <b>neznamená</b> 96% šanci na výhru. I automat s RTP 99 %
+      můžeš prohrát. Naše hry: Lucky Six 75,87 % · Maxa 59,57 %.</p>
+    </div>
+
+    <div class="card">
+      <h3>3 · Volatilita — co reálně „cítíš“</h3>
+      <table>
+        <thead><tr><th>Volatilita</th><th>Výhry</th></tr></thead>
+        <tbody>
+          <tr><td>Nízká</td><td>padají často, ale malé</td></tr>
+          <tr><td>Střední</td><td>rovnováha</td></tr>
+          <tr><td>Vysoká</td><td>vzácně, ale velké</td></tr>
+        </tbody>
+      </table>
+      <p class="dim small">Pocit „cyklu“ (dlouho nic a pak velká rána) je jen statistika
+      vzácných jevů — ne že by automat čekal na správný čas.</p>
+    </div>
+
+    <div class="card">
+      <h3>4 · Tři mýty, které neplatí</h3>
+      <p><b>❌ „Automat musí být nakrmený, aby vyplatil.“</b><br>
+      Ne. Automat <b>vůbec nevidí, kolik je v něm peněz.</b> Výsledky jsou čistě náhodné.</p>
+      <p><b>❌ „Po velké výhře dlouho nic nedá.“</b><br>
+      Ne. Díky RNG můžeš vyhrát <b>několik velkých výher za sebou.</b> Žádná kompenzace neexistuje.</p>
+      <p><b>❌ „Jackpot jen při vysoké sázce.“</b><br>
+      Ne (u VLT). Jackpot se losuje z ID čísla zatočení, které výši sázky nezná.
+      Pravděpodobnost je stejná při sázce 1 Kč i při maximu.</p>
+    </div>
+
+    <div class="card">
+      <h3>5 · Progresivní jackpoty</h3>
+      <p>Část každé sázky jde do společného fondu, který roste, dokud někdo netrefí jackpot.</p>
+      <p>Výhru určuje <b>náhodný spouštěč</b> — <b>neexistuje žádná strategie, vzor
+      ani systém sázení</b>, který by ovlivnil, kdy padne. <b>Výše sázky šanci nezvyšuje.</b></p>
+      <table>
+        <thead><tr><th>Typ</th><th>Růst</th><th>Frekvence</th></tr></thead>
+        <tbody>
+          <tr><td>Samostatný</td><td>jen tvůj automat</td><td>častější, menší</td></tr>
+          <tr><td>Síťový</td><td>mnoho her/kasin</td><td>vzácné, obří</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>6 · VLT a český zákon</h3>
+      <p>VLT = videoloterijní terminály, <b>propojené přes internet do sítě</b>
+      s centrálním dispečinkem → jackpoty napříč provozovnami.</p>
+      <p><b>Od 1. 1. 2017 (zákon o hazardních hrách) nelze na technické hře
+      vyhrát jednou hrou víc než 500 000 Kč.</b> Platí pro kamenná i online kasina.</p>
+      <p class="dim small">VLT reguluje Ministerstvo financí (obce je nemohly regulovat).</p>
+    </div>
+
+    <div class="card">
+      <h3>⚡ Rychlá odpověď</h3>
+      <table>
+        <thead><tr><th>Otázka</th><th>Odpověď</th></tr></thead>
+        <tbody>
+          <tr><td>Má automat cyklus / čas, kdy vyplatí?</td><td class="neg">Ne</td></tr>
+          <tr><td>Pomůže čekat na „správný okamžik“?</td><td class="neg">Ne</td></tr>
+          <tr><td>Záleží, jak dlouho hraju?</td><td class="neg">Ne</td></tr>
+          <tr><td>Záleží na výši sázky (jackpot)?</td><td class="neg">Ne</td></tr>
+          <tr><td>„Nakrmený“ automat vyplatí víc?</td><td class="neg">Ne</td></tr>
+          <tr><td>Po velké výhře dlouho nic?</td><td class="neg">Ne</td></tr>
+        </tbody>
+      </table>
+      <p class="dim small" style="margin-top:8px">Funguje to jako
+      <b>RTP (dlouhodobý průměr) + volatilita (četnost vs. výše) + čistá náhoda</b>.
+      Žádná strategie načasování neexistuje — každé kolo je nezávislé.</p>
+    </div>
+  </div>`);
+}
+
+/* =========================================================================
  * 16) POMOCNÉ
  * ========================================================================= */
 function toast(container, msg, cls) {
@@ -957,6 +1055,7 @@ const SCREENS = {
   'l6-stats': { name: 'l6-stats', fn: screenL6Stats },
   'mx-solo': { name: 'mx-solo', fn: screenMxSolo },
   'mx-stats': { name: 'mx-stats', fn: screenMxStats },
+  'jakto': { name: 'jakto', fn: screenJakToFunguje },
 };
 
 function render(screenName) {
