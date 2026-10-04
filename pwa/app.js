@@ -1063,11 +1063,9 @@ function aBuildStrip(weights, seed) {
   for (let i = s.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); const t = s[i]; s[i] = s[j]; s[j] = t; }
   return s;
 }
-const A_REELS = [
-  aBuildStrip(A_REEL_WEIGHTS[0], 1234),
-  aBuildStrip(A_REEL_WEIGHTS[1], 1234),
-  aBuildStrip(A_REEL_WEIGHTS[2], 1234),
-];
+// PEVNE PRUHY - stejne jako v automat.py (zamcene, stabilni RTP ~97 %).
+// Poradi symbolu na valci ovlivnuje vysledek, proto se negeneruji za behu.
+const A_REELS = [["diamond", "wild", "cherry", "lemon", "grape", "orange", "orange", "orange", "cherry", "cherry", "cherry", "lemon", "lemon", "grape", "cherry", "star", "scatter", "scatter", "orange", "grape", "cherry", "bell", "orange", "cherry", "lemon", "bell", "lemon", "bell", "star", "grape", "lemon", "seven"], ["lemon", "orange", "cherry", "bell", "cherry", "orange", "cherry", "orange", "seven", "bell", "lemon", "orange", "grape", "lemon", "lemon", "grape", "orange", "star", "wild", "lemon", "lemon", "scatter", "scatter", "bell", "grape", "cherry", "grape", "star", "cherry", "cherry", "cherry", "diamond"], ["cherry", "bell", "bell", "cherry", "orange", "scatter", "lemon", "orange", "cherry", "grape", "orange", "lemon", "grape", "wild", "orange", "cherry", "cherry", "star", "lemon", "lemon", "grape", "lemon", "cherry", "bell", "orange", "grape", "grape", "cherry", "orange", "seven", "scatter", "lemon", "bell", "star", "diamond", "cherry", "lemon"]];
 function aSpin() {
   const grid = [];
   for (const reel of A_REELS) {
