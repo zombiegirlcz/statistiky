@@ -2779,3 +2779,189 @@ Banka: 1358 mincí (start 1000), vázáno 270
 
 Nových builder tiketů: 0 (bez dat/trhu: 67, bez edge: 14)
 Banka: 1358 mincí, nevyřízeno 10 tiketů
+Spouštím aktivní agenty: 4
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 3 (z toho dvouhry: 3) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 1 - zjišťuji výsledky...
+
+  [čeká] Martin Damm vs Pavel Kotov - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 91) [PRE-MATCH]
+Banka: 916 minci (start 1000), vazano 18
+
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1029)>
+
+Novych pre-match tiketu: 0 (bez dat: 47, bez SX.bet trhu: 18)
+Banka: 916 minci, nevyrizeno 1 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+  [čeká] Qinwen Zheng vs Marie Bouzkova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Alina Charaeva vs Sonay Kartal - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Coco Gauff vs Xinran Sun - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Belinda Bencic vs Ann Li - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Iva Jovic vs Kamilla Rakhimova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Donna Vekic vs Iga Swiatek - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Roman Safiullin vs Alexis Galarneau - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Liam Draxl vs Hugo Gaston - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Taro Daniel vs Shintaro Mochizuki - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Nikoloz Basilashvili vs Andre Ilagan - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Stefanos Sakellaridis vs Timofey Skatov - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Federico Agustin Gomez vs Michael Zheng - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Zápasů: 103 (dvouhry: 94, z toho live 3, prematch 91) [MODEL-ONLY]
+Banka: 976 mincí (start 1000), vázáno 240
+
+      ! model favorit Bernard Tomic (p=75%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Martin Damm (p=93%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 98)
+      ! model favorit Hubert Hurkacz (p=79%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Billy Harris (p=57%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Carlos Alcaraz (p=74%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Alexander Shevchenko (p=77%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Alexandre Muller (p=73%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Elise Mertens (p=52%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Lloyd Harris (p=54%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Elina Svitolina (p=57%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Mattia Bellucci (p=68%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Nishesh Basavareddy (p=58%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Novak Djokovic (p=60%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+
+Nových model-only tiketů: 0 (z toho underdog: 0, bez dat: 48, bez kurzu: 18)
+Banka: 976 mincí, nevyřízeno 12 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 10 - zjišťuji výsledky...
+
+  [čeká] Taro Daniel vs Shintaro Mochizuki - builder ještě není rozhodnutý
+  [čeká] Qinwen Zheng vs Marie Bouzkova - builder ještě není rozhodnutý
+  [čeká] Stefanos Sakellaridis vs Timofey Skatov - builder ještě není rozhodnutý
+  [čeká] Nicolas Mejia vs Chun Hsin Tseng - builder ještě není rozhodnutý
+  [čeká] Terence Atmane vs Bernard Tomic - builder ještě není rozhodnutý
+  [čeká] Alexander Shevchenko vs Yoshihito Nishioka - builder ještě není rozhodnutý
+  [čeká] Hubert Hurkacz vs Alex De Minaur - builder ještě není rozhodnutý
+  [čeká] Billy Harris vs Dalibor Svrcina - builder ještě není rozhodnutý
+  [čeká] Martin Damm vs Pavel Kotov - builder ještě není rozhodnutý
+  [čeká] Belinda Bencic vs Ann Li - builder ještě není rozhodnutý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich dvouher: 91 [BET BUILDER]
+Banka: 1358 mincí (start 1000), vázáno 270
+
+
+Nových builder tiketů: 0 (bez dat/trhu: 67, bez edge: 14)
+Banka: 1358 mincí, nevyřízeno 10 tiketů
+Spouštím aktivní agenty: 4
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 2 (z toho dvouhry: 2) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 1 - zjišťuji výsledky...
+
+  [čeká] Martin Damm vs Pavel Kotov - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 91) [PRE-MATCH]
+Banka: 916 minci (start 1000), vazano 18
+
+
+Novych pre-match tiketu: 0 (bez dat: 48, bez SX.bet trhu: 18)
+Banka: 916 minci, nevyrizeno 1 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+  [čeká] Qinwen Zheng vs Marie Bouzkova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Alina Charaeva vs Sonay Kartal - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Coco Gauff vs Xinran Sun - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Belinda Bencic vs Ann Li - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Iva Jovic vs Kamilla Rakhimova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Donna Vekic vs Iga Swiatek - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Roman Safiullin vs Alexis Galarneau - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Liam Draxl vs Hugo Gaston - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Taro Daniel vs Shintaro Mochizuki - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Nikoloz Basilashvili vs Andre Ilagan - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Stefanos Sakellaridis vs Timofey Skatov - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Federico Agustin Gomez vs Michael Zheng - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Zápasů: 102 (dvouhry: 93, z toho live 2, prematch 91) [MODEL-ONLY]
+Banka: 976 mincí (start 1000), vázáno 240
+
+      ! model favorit Bernard Tomic (p=75%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Alexander Shevchenko (p=77%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Hubert Hurkacz (p=79%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Martin Damm (p=93%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 98)
+      ! model favorit Billy Harris (p=57%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Carlos Alcaraz (p=74%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Lloyd Harris (p=54%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Alexandre Muller (p=73%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Elise Mertens (p=52%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Mattia Bellucci (p=68%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Elina Svitolina (p=57%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+      ! model favorit Nishesh Basavareddy (p=58%), ale tiket se nezakládá: na tiket by zbylo jen 4 mincí (potřeba 20)
+
+Nových model-only tiketů: 0 (z toho underdog: 0, bez dat: 48, bez kurzu: 18)
+Banka: 976 mincí, nevyřízeno 12 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 10 - zjišťuji výsledky...
+
+  [čeká] Taro Daniel vs Shintaro Mochizuki - builder ještě není rozhodnutý
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-05T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-05T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent bet-builder ukončen: 1)
+Spouštím aktivní agenty: 4
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-05T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-05T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent set-favorit ukončen: 1)
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 1 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-05T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-05T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent pre-match-favorit ukončen: 1)
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-05T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-05T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent model-only ukončen: 1)
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 10 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-05T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-05T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent bet-builder ukončen: 1)
