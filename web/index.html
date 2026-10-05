@@ -86,8 +86,13 @@ pre.out{background:#08101f;border:1px solid var(--line);border-radius:12px;paddi
   </div>
 
   <div class="card">
-    <h2>🎯 Tiket od pi agenta</h2>
+    <h2>🎯 Tiket od pi agenta
+      <span id="agentDot" class="dim small" style="margin-left:auto;font-weight:400"></span>
+    </h2>
     <div id="ticketBox"><div class="dim small">Vyber zápas výše a klikni na „Sestavit tiket“.</div></div>
+    <div class="row" id="agentCtl" style="margin-top:10px;display:none">
+      <button class="btn" id="interrupt" style="flex:1;border-color:var(--rd);color:var(--rd)">⛔ Přerušit agenta</button>
+    </div>
   </div>
 
   <div class="card">
@@ -99,6 +104,22 @@ pre.out{background:#08101f;border:1px solid var(--line);border-radius:12px;paddi
     </div>
     <div id="tapeBox"><div class="dim small">Tréninkový přehled z veřejného tape SX.bet.</div></div>
     <div class="warn">Tape ukazuje, <b>kam teče money</b>, ne jestli ten sázkař vydělává. Je to kontext, ne signál ke kopírování.</div>
+  </div>
+
+  <div class="card">
+    <h2>📦 Archiv sázek (sběr z tape)</h2>
+    <div class="small dim" style="margin-bottom:10px">
+      Ukládá každou sázku z veřejného tape a přes <span class="mono">/markets/find</span> k ní dopočítá výsledek.
+      Cíl: zjistit, jestli <b>velké sázky vyhrávají častěji, než říká jejich kurz</b>.
+      Data se musí nasbírat — než bude &gt;200 vyhodnocených sázek, ber čísla jako orientační.
+    </div>
+    <div class="row" style="margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <button class="btn" id="archCollect">📥 Nasbírat (30 s)</button>
+      <button class="btn" id="archSettle">✅ Doplnit výsledky</button>
+      <button class="btn gr" id="archReport">📊 Report</button>
+    </div>
+    <div id="archBox"><div class="dim small">Klikni na „Report“ pro analýzu (vyžaduje nasbíraná data).</div></div>
+    <div class="warn">Archiv <b>nemá identitu hráče</b> — SX.bet ji veřejně nedá. Je to tok peněz + výsledek, ne „kdo sází“.</div>
   </div>
 
   <div class="card">
@@ -202,27 +223,76 @@ function sideBox(name, odds, p, liq, line){
   return s;
 }
 
+let AGENT_ABORT = null;
+
+function setAgentBusy(on, label){
+  $('#agentCtl').style.display = on ? 'flex' : 'none';
+  $('#agentDot').textContent = on ? '● běží' : '';
+  $('#agentDot').style.color = on ? 'var(--yl)' : '';
+  const ib=$('#interrupt'); if(on && label) ib.textContent=label;
+}
+
+async function interruptAgent(){
+  const ib=$('#interrupt');
+  ib.disabled=true; ib.innerHTML='<span class="spin"></span> Ruším…';
+  try{ await fetch('/api/interrupt',{method:'POST'}); }catch(e){}
+  // přeruš i čekající HTTP požadavek v prohlížeči
+  if(AGENT_ABORT){ try{ AGENT_ABORT.abort(); }catch(e){} }
+  ib.disabled=false; ib.textContent='⛔ Přerušit agenta';
+}
+
 async function buildTicket(m, btn){
   const box=$('#ticketBox');
   const old=btn.textContent; btn.disabled=true; btn.innerHTML='<span class="spin"></span> Agent pracuje…';
-  box.innerHTML='<div class="dim small"><span class="spin"></span> pi agent sestavuje tiket (může to trvat až minuty)…</div>';
+  setAgentBusy(true);
+  box.innerHTML='<div class="dim small"><span class="spin"></span> pi agent sestavuje tiket (může to trvat až minuty). Můžeš ho kdykoli přerušit tlačítkem níže.</div>';
   const poznamka = `Zaměř se na zápas ${m.strana1} vs ${m.strana2} (${m.liga||''}, typ trhu ${m.typ}, ${m.live?'LIVE':'pre-match'}). `
                  + `Trh: ${market}. Použij aktuální kurz ${num(m.kurz1,3)} / ${num(m.kurz2,3)} z SX.bet.`;
+  AGENT_ABORT = new AbortController();
+  const t0=Date.now();
   try{
     const r=await fetch('/api/tickets',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({sport, budget:1000, max_legs:3, poznamka, tape_sekundy:15})});
+      body:JSON.stringify({sport, budget:1000, max_legs:3, poznamka, tape_sekundy:15}),
+      signal:AGENT_ABORT.signal});
     const d=await r.json();
+    const secs=((Date.now()-t0)/1000).toFixed(0);
     box.innerHTML='';
     const tags=el('div'); tags.style.marginBottom='8px';
     tags.appendChild(el('span','tag', sport)); tags.appendChild(el('span','tag', market));
     tags.appendChild(el('span','tag', m.liga||'—'));
     if(m.live) tags.appendChild(el('span','tag','LIVE'));
+    tags.appendChild(el('span','tag', secs+' s'));
+    if(d.interrupted) tags.appendChild(el('span','tag','PŘERUŠENO'));
     box.appendChild(tags);
     const pre=el('pre','out', (d.stdout||'') + (d.stderr? '\n--- stderr ---\n'+d.stderr : ''));
     box.appendChild(pre);
-    if(!d.ok) box.appendChild(el('div','warn','Agent skončil s chybou (rc='+d.rc+').'));
-  }catch(e){ box.innerHTML=''; box.appendChild(el('div','dim small','Chyba sítě: '+e.message)); }
+    if(d.interrupted) box.appendChild(el('div','warn','Agenta jsi přerušil — výstup výše je jen to, co stihl do přerušení.'));
+    else if(!d.ok) box.appendChild(el('div','warn','Agent skončil s chybou (rc='+d.rc+').'));
+  }catch(e){
+    box.innerHTML='';
+    if(e.name==='AbortError') box.appendChild(el('div','warn','Přerušeno — požadavek na agenta byl zrušen.'));
+    else box.appendChild(el('div','dim small','Chyba sítě: '+e.message));
+  }
+  AGENT_ABORT=null;
+  setAgentBusy(false);
   btn.disabled=false; btn.textContent=old;
+}
+
+async function archRun(skript, label, args){
+  const box=$('#archBox');
+  const btns=['archCollect','archSettle','archReport'].map(id=>$('#'+id));
+  btns.forEach(b=>b.disabled=true);
+  box.innerHTML='<div class="dim small"><span class="spin"></span> '+label+'…</div>';
+  try{
+    const r=await fetch('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({skript, args:args||[], timeout:600})});
+    const d=await r.json();
+    box.innerHTML='';
+    const pre=el('pre','out', (d.vystup||'') + (d.stderr? '\n--- stderr ---\n'+d.stderr : ''));
+    box.appendChild(pre);
+    if(!d.ok) box.appendChild(el('div','warn','Skript skončil s chybou (rc='+d.rc+').'));
+  }catch(e){ box.innerHTML=''; box.appendChild(el('div','dim small','Chyba sítě: '+e.message)); }
+  btns.forEach(b=>b.disabled=false);
 }
 
 async function loadTape(){
@@ -263,6 +333,10 @@ async function loadTape(){
 renderSegs();
 $('#loadMatches').onclick=loadMatches;
 $('#loadTape').onclick=loadTape;
+$('#interrupt').onclick=interruptAgent;
+$('#archCollect').onclick=()=>archRun('tape-collect','Sbírám z tape',['--sekundy','30','--max','500']);
+$('#archSettle').onclick=()=>archRun('tape-settle','Doplňuji výsledky');
+$('#archReport').onclick=()=>archRun('tape-report','Sestavuji report');
 $('#reload').onclick=()=>{ loadMatches(); };
 loadMatches();
 </script>

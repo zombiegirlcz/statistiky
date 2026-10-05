@@ -40,7 +40,8 @@
       "/tmp/probe5.py",
       "/tmp/probe6.py",
       "/root/statistiky/.agents/skills/match-probability/scripts/sx_tape.py",
-      "/root/statistiky/.agents/skills/match-probability/scripts/market_probs.py"
+      "/root/statistiky/.agents/skills/match-probability/scripts/market_probs.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/tape_archiver.py"
     ],
     "redVerificationPending": false
   },

@@ -54,8 +54,10 @@ POST /api/agent         {"prompt":"..."}
 """
 import json
 import os
+import signal
 import subprocess
 import sys
+import threading
 import time
 
 from flask import Flask, jsonify, request, send_from_directory
@@ -114,6 +116,9 @@ BACKTEST_SCRIPTS = {
     "fav-prohra":        os.path.join("..", "backtest_fav_prohra.py"),
     "aggregate":         "aggregate_stats.py",
     "market-probs":      "market_probs.py",
+    "tape-collect":      "tape_archiver.py",
+    "tape-settle":       "tape_archiver.py",
+    "tape-report":       "tape_archiver.py",
     "player-profile":    "player_profile.py",
     "game-flow":         "game_flow.py",
     "odds-compare":      "odds_compare.py",
@@ -125,34 +130,101 @@ app = Flask(__name__)
 # ---------------------------------------------------------------------------
 # Pomocné funkce
 # ---------------------------------------------------------------------------
-def _run(cmd, timeout=120, cwd=SCRIPTS_DIR):
-    """Spustí příkaz a vrátí (rc, stdout, stderr). Nikdy nevyhazuje výjimku
-    kvůli nenulovému rc — chyby se posílají jako data v odpovědi."""
+# Registry běžícího pi agenta, aby ho šlo z jiného requestu přerušit.
+# Flask jede s threaded=True, takže /api/interrupt běží paralelně s během agenta.
+_PROC_LOCK = threading.Lock()
+_PROC = {"p": None}
+
+
+def _run(cmd, timeout=120, cwd=SCRIPTS_DIR, track=False):
+    """Spustí příkaz a vrátí (rc, stdout, stderr, interrupted).
+
+    Když `track=True`, proces se zaregistruje do globálního registru, aby ho
+    šlo přes /api/interrupt zabít (i s celou skupinou potomků, protože si pi
+    spouští vlastní podprocesy). Nikdy nevyhazuje výjimku kvůli rc.
+    """
     try:
-        p = subprocess.run(
-            cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout,
+        if not track:
+            p = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout)
+            return p.returncode, p.stdout, p.stderr, False
+
+        # Tracked varianta: start_new_session=True → vlastní procesní skupina,
+        # takže killpg zabije i děti (pi → bash → python skripty).
+        p = subprocess.Popen(
+            cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, start_new_session=True,
         )
-        return p.returncode, p.stdout, p.stderr
-    except subprocess.TimeoutExpired:
-        return 124, "", f"timeout po {timeout}s"
+        with _PROC_LOCK:
+            _PROC["p"] = p
+        try:
+            out, err = p.communicate(timeout=timeout)
+            return p.returncode, out, err, False
+        except subprocess.TimeoutExpired:
+            _kill_proc(p)
+            out, err = p.communicate()
+            return 124, out, (err or "") + f"\n[timeout po {timeout}s]", False
+        finally:
+            with _PROC_LOCK:
+                if _PROC["p"] is p:
+                    _PROC["p"] = None
     except FileNotFoundError as e:
-        return 127, "", f"příkaz nenalezen: {e}"
+        return 127, "", f"příkaz nenalezen: {e}", False
+
+
+def _kill_proc(p):
+    """Zabije proces i celou jeho skupinu (SIGKILL), potichu když už neběží."""
+    if p is None or p.poll() is not None:
+        return False
+    try:
+        os.killpg(os.getpgid(p.pid), signal.SIGKILL)
+    except (ProcessLookupError, PermissionError, OSError):
+        try:
+            p.kill()
+        except OSError:
+            pass
+    return True
+
+
+def interrupt_agent():
+    """Přeruší běžícího pi agenta. Vrací True, když něco běželo a bylo zabito."""
+    with _PROC_LOCK:
+        p = _PROC.get("p")
+    return _kill_proc(p)
+
+
+def agent_running():
+    with _PROC_LOCK:
+        p = _PROC.get("p")
+    return bool(p is not None and p.poll() is None)
 
 
 def run_pi(prompt, timeout=None):
-    """Spustí pi agenta non-interaktivně (`-p`) s povoleným bashem.
+    """Spustí pi agenta non-interaktivně (`-p`) s povolenými nástroji.
 
-    Formát volání je ověřený (viz deploy/tick.sh): `pi -p <prompt> --tools bash`.
-    Agent běží v adresáři scripts, takže vidí všechny sázející skripty a
-    automaticky dostane i skill match-probability (pokud je v dosahu).
+    Formát volání je ověřený (viz deploy/tick.sh): `pi -p <prompt> --tools ...`.
+    Agent běží v adresáři scripts, takže vidí všechny sázející skripty.
+
+    POZOR: `--tools bash` NESTAČÍ. Agent při stavbě tiketu potřebuje i `read`
+    (přečíst SKILL.md a references/metodika.md), případně `edit`/`write`.
+    S povoleným jen `bash` model napsal tool call jako TEXT místo aby ho
+    zavolal, a volání pak viselo (ověřeno živě 2026-10-05).
     """
     if not prompt or not prompt.strip():
         return {"ok": False, "error": "prázdný prompt"}
-    rc, out, err = _run(
-        [PI_BIN, "-p", prompt, "--tools", "bash"],
-        timeout=timeout or PI_TIMEOUT,
+    rc, out, err, _interrupted = _run(
+        [PI_BIN, "-p", prompt, "--tools", "bash,read,edit,write"],
+        timeout=timeout or PI_TIMEOUT, track=True,
     )
-    return {"ok": rc == 0, "rc": rc, "stdout": out, "stderr": err}
+    # rc < 0 = zabito signálem (SIGKILL = -9) → přerušeno uživatelem.
+    was_interrupted = rc is not None and rc < 0
+    return {
+        "ok": rc == 0,
+        "rc": rc,
+        "interrupted": was_interrupted,
+        "stdout": out,
+        "stderr": err,
+        "pozn": "Přerušeno uživatelem (proces zabit)." if was_interrupted else None,
+    }
 
 
 def _sport_key_for_football_league(code):
@@ -466,7 +538,7 @@ def probability():
     home = data.get("home")
     if home in ("A", "B"):
         cmd += ["--home", home]
-    rc, out, err = _run(cmd, timeout=180)
+    rc, out, err, _ = _run(cmd, timeout=180)
     return jsonify({"ok": rc == 0, "rc": rc, "vystup": out, "stderr": err})
 
 
@@ -538,6 +610,26 @@ def tickets():
 # ---------------------------------------------------------------------------
 # /api/agent — obecný dotaz na pi agenta
 # ---------------------------------------------------------------------------
+@app.post("/api/interrupt")
+def interrupt():
+    """Přeruší právě běžícího pi agenta (SIGKILL celé procesní skupiny).
+    UI tohle volá tlačítkem „Přerušit“. Když nic neběží, vrátí running=false."""
+    was_running = agent_running()
+    killed = interrupt_agent()
+    return jsonify({
+        "ok": True,
+        "was_running": was_running,
+        "killed": killed,
+        "pozn": "Agent přerušen." if killed else "Nic neběželo.",
+    })
+
+
+@app.get("/api/status")
+def status():
+    """Lehký dotaz pro UI — běží právě agent? Nestojí nic (jen RAM)."""
+    return jsonify({"ok": True, "agent_running": agent_running()})
+
+
 @app.post("/api/agent")
 def agent():
     data = request.get_json(silent=True) or {}
@@ -568,7 +660,10 @@ def run_script():
         timeout = int(data.get("timeout", 900))
     except (TypeError, ValueError):
         timeout = 900
-    rc, out, err = _run([sys.executable, BACKTEST_SCRIPTS[skript], *args], timeout=timeout)
+    # tape-* aliasy: archiver potřebuje podpříkaz jako první argument
+    _TAPE_SUB = {"tape-collect": "collect", "tape-settle": "settle", "tape-report": "report"}
+    extra = [_TAPE_SUB[skript]] if skript in _TAPE_SUB and (not args or args[0] not in ("collect", "settle", "report")) else []
+    rc, out, err, _ = _run([sys.executable, BACKTEST_SCRIPTS[skript], *extra, *args], timeout=timeout)
     return jsonify({"ok": rc == 0, "rc": rc, "skript": skript, "args": args,
                     "vystup": out[-40000:], "stderr": err[-8000:]})
 
