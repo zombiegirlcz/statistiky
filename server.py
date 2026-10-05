@@ -238,6 +238,13 @@ def _sport_key_for_football_league(code):
 # ---------------------------------------------------------------------------
 # SX.bet — primární zdroj kurzů (více trhů než The Odds API)
 # ---------------------------------------------------------------------------
+def _evid(m):
+    """ID eventu z SX.bet trhu. API pole se jmenuje `sportXeventId` (malé 'e'),
+    ale pro jistotu bereme i `sportXEventId` — historicky se to pletlo a kvůli
+    tomu vracelo /api/sx/odds i /api/sx/by-event prázdné výsledky."""
+    return m.get("sportXeventId") or m.get("sportXEventId")
+
+
 def _sx_group_types(sport, group):
     """Vrátí množinu typů trhů pro daný sport a skupinu (nebo všechny)."""
     groups = SX_MARKET_GROUPS.get(sport, {})
@@ -249,9 +256,40 @@ def _sx_group_types(sport, group):
     return groups.get(group, set())
 
 
-def _sx_market_dict(m, with_odds=True):
-    """Převede surový SX.bet trh na JSON-friendly dict (+ odmaržované probs)."""
+def _sx_odds_bulk(markets, max_workers=16):
+    """Paralelně dotáhne orderbook pro seznam trhů → {marketHash: odds}.
+
+    SX.bet umí orderbook jen po JEDNOM trhu (/orderbook-v3/snapshot), takže
+    150 trhů = 150 HTTP dotazů. Sekvenčně to trvá minuty (endpoint pak padá
+    na timeout), paralelně jen sekundy. Jeden vadný trh nesmí shodit celek.
+    """
+    from concurrent.futures import ThreadPoolExecutor
     import sxbet_client as sx
+
+    def one(m):
+        mh = m.get("marketHash")
+        if not mh:
+            return None, {}
+        try:
+            return mh, sx.market_odds(mh)
+        except Exception:  # noqa: BLE001
+            return mh, {}
+
+    out = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        for mh, odds in ex.map(one, markets):
+            if mh:
+                out[mh] = odds
+    return out
+
+
+def _sx_market_dict(m, with_odds=True, odds=None):
+    """Převede surový SX.bet trh na JSON-friendly dict (+ odmaržované probs).
+
+    `odds` lze předat předem stažený orderbook (viz `_sx_odds_bulk`) — jinak
+    se dotahuje zvlášť. Odmaržovaná pravděpodobnost se počítá z UŽ staženého
+    booku, takže se nedělá druhý HTTP dotaz na trh.
+    """
     d = {
         "marketHash": m.get("marketHash"),
         "typ": m.get("type"),
@@ -262,18 +300,28 @@ def _sx_market_dict(m, with_odds=True):
         "strana2": m.get("outcomeTwoName") or m.get("teamTwoName"),
         "line": m.get("line"),
     }
-    if with_odds:
-        odds = sx.market_odds(m["marketHash"])
-        if "outcomeOne" in odds and "outcomeTwo" in odds:
-            dev = sx.devigged_probs(m["marketHash"])
-            d["kurz1"] = round(odds["outcomeOne"][0], 3)
-            d["kurz2"] = round(odds["outcomeTwo"][0], 3)
-            d["p1"] = round(dev["outcomeOne"], 4) if dev else round(odds["outcomeOne"][1], 4)
-            d["p2"] = round(dev["outcomeTwo"], 4) if dev else round(odds["outcomeTwo"][1], 4)
-            d["likvidita1"] = round(odds["outcomeOne"][2], 2)
-            d["likvidita2"] = round(odds["outcomeTwo"][2], 2)
+    if not with_odds:
+        return d
+    if odds is None:
+        import sxbet_client as sx
+        try:
+            odds = sx.market_odds(m["marketHash"])
+        except Exception:  # noqa: BLE001
+            odds = {}
+    if "outcomeOne" in odds and "outcomeTwo" in odds:
+        o1, o2 = odds["outcomeOne"], odds["outcomeTwo"]
+        d["kurz1"] = round(o1[0], 3)
+        d["kurz2"] = round(o2[0], 3)
+        total = o1[1] + o2[1]
+        if total > 0:
+            d["p1"] = round(o1[1] / total, 4)
+            d["p2"] = round(o2[1] / total, 4)
         else:
-            d["kurz1"] = d["kurz2"] = None
+            d["p1"], d["p2"] = round(o1[1], 4), round(o2[1], 4)
+        d["likvidita1"] = round(o1[2], 2)
+        d["likvidita2"] = round(o2[2], 2)
+    else:
+        d["kurz1"] = d["kurz2"] = None
     return d
 
 
@@ -505,20 +553,95 @@ def sx_odds():
         t1, t2 = m.get("teamOneName", ""), m.get("teamTwoName", "")
         if ((sx._name_match(a, t1) and sx._name_match(b, t2)) or
                 (sx._name_match(a, t2) and sx._name_match(b, t1))):
-            event_ids.add(m.get("sportXEventId"))
+            event_ids.add(_evid(m))
             label = m.get("leagueLabel") or label
     if not event_ids:
         return jsonify({"ok": False, "error": "zápas na SX.bet nenalezen (jiná jména / není v nabídce)"}), 404
 
     out = []
     for m in allm:
-        if m.get("sportXEventId") not in event_ids or m.get("type") not in types:
+        if _evid(m) not in event_ids or m.get("type") not in types:
             continue
         out.append(_sx_market_dict(m))
     out.sort(key=lambda d: (d.get("typ") or 0, d.get("line") or 0))
     return jsonify({
         "ok": True, "zdroj": "sxbet", "zapas": f"{a} vs {b}", "liga": label,
         "skupina": group, "pocet_trhu": len(out), "trhy": out,
+    })
+
+
+# ---------------------------------------------------------------------------
+# /api/sx/by-event — zápasy se VŠEMI svými trhy (přehledné zobrazení v UI)
+# ---------------------------------------------------------------------------
+@app.get("/api/sx/by-event")
+def sx_by_event():
+    """Vrátí zápasy, kde každý má POD SEBOU všechny dostupné trhy (vítěz,
+    sety, gemy, góly, handicap, poločas, třetiny…) — místo aby se trhy
+    zobrazovaly odděleně podle skupiny.
+
+    Query: sport (tenis|fotbal|hokej), live=true|false (volitelně),
+           limit (max zápasů, default 20).
+    """
+    sport = (request.args.get("sport") or "").strip().lower()
+    if sport not in ALLOWED_SPORTS:
+        return jsonify({"ok": False, "error": f"sport musí být jeden z {ALLOWED_SPORTS}"}), 400
+    live = request.args.get("live")
+    live_only = None if live is None else live.lower() in ("1", "true", "yes")
+    try:
+        limit = min(int(request.args.get("limit", 20)), 60)
+    except ValueError:
+        limit = 20
+
+    import sxbet_client as sx
+    types = _sx_group_types(sport, "all")
+    try:
+        markets = sx.active_markets(sport_ids=[SX_SPORT_ID[sport]], live_only=live_only,
+                                    only_main_line=True, max_pages=10)
+    except RuntimeError as e:
+        return jsonify({"ok": False, "error": str(e)}), 502
+
+    # 1) seskup trhy podle eventu BEZ dotahování kurzů (orderbook je drahý)
+    events = {}
+    for m in markets:
+        evid = _evid(m)
+        if not evid or m.get("type") not in types:
+            continue
+        ev = events.setdefault(evid, {
+            "eventId": evid,
+            "liga": m.get("leagueLabel"),
+            "zacatek": m.get("gameTime"),
+            "live": bool(m.get("liveEnabled")),
+            "zapas": f"{m.get('teamOneName')} vs {m.get('teamTwoName')}",
+            "tym1": m.get("teamOneName"),
+            "tym2": m.get("teamTwoName"),
+            "_raw": [],
+        })
+        ev["_raw"].append(m)
+
+    # 2) vem jen `limit` nejbližších zápasů — teprve jim se stahují kurzy
+    vybrane = sorted(events.values(), key=lambda e: e.get("zacatek") or 0)[:limit]
+
+    # 3) kurzy pro všechny trhy vybraných zápasů PARALELNĚ
+    vsechny = [m for ev in vybrane for m in ev["_raw"]]
+    odds_map = _sx_odds_bulk(vsechny)
+
+    prio = {52: 0, 226: 1, 1: 2}
+    vysledek = []
+    for ev in vybrane:
+        ev["trhy"] = [
+            _sx_market_dict(m, odds=odds_map.get(m.get("marketHash")))
+            for m in ev["_raw"]
+        ]
+        ev["trhy"].sort(key=lambda d: (prio.get(d.get("typ"), 9), d.get("typ") or 0, d.get("line") or 0))
+        ev.pop("_raw", None)
+        if ev["trhy"]:
+            vysledek.append(ev)
+
+    return jsonify({
+        "ok": True, "zdroj": "sxbet", "sport": sport,
+        "pocet_zapasu": len(vysledek),
+        "zapasy": vysledek,
+        "pozn": "každý zápas obsahuje VŠECHNY dostupné trhy (kurz, odmaržovaná p, likvidita)",
     })
 
 
