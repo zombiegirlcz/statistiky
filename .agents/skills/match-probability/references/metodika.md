@@ -668,3 +668,33 @@ podle konkrétních kurzů, to vychází řádově v jednotkách až nízkých
 desítkách procent) - zbytek případů končí vynulováním. To je legitimní,
 uživatelem zvolený kompromis (vysoká odměna, vysoké riziko), ne chyba
 implementace.
+
+---
+
+## Trh-only favorit na antuce (5. 10. 2026) — model v této hře ŠKODÍ
+
+Sonda `scripts/_probe_market_fav.py` srovnala na datech WTA 2021–2025
+(7290 zápasů s reálnými kurzy) kandidátní strategie "favorit" hlavní
+metrikou projektu = P(banka po 50 tiketech > start):
+
+| Strategie | n | úspěšnost | ROI | P(růst) |
+|---|---|---|---|---|
+| ŽIVÁ: model≥0.75 & trh≥0.65, o≤1.60 | 177 | 72.9 % | −13.0 % | 3.6 % |
+| trh-only favorit, o≤1.20 | 1133 | 85.9 % | −2.4 % | 36.2 % |
+| trh-only favorit, o≤1.15 | 660 | 89.7 % | −0.8 % | 42.5 % |
+| **trh-only favorit, o≤1.20, ANTUKA** | **244** | **88.9 %** | **+0.9 %** | **58.0 %** |
+| trh-only favorit, o≤1.30, antuka | 460 | 83.7 % | −0.3 % | 49.6 % |
+| ŽIVÁ + antuka | 37 | 78.4 % | −4.4 % | 27.1 % |
+
+**Závěr:** dosavadní živá strategie (shoda modelu i trhu) má na datech
+NEJHORŠÍ výsledek — sází do pásma kurz 1.20–1.60, kde je ROI nejhorší
+(−4 až −5 %), a vybírá jiné zápasy než trh. Jediná kombinace s KLADNÝM
+ROI je prostý TRŽNÍ favorit s kurzem ≤1.20 na ANTuce, a to kladná v OBOU
+polovinách let zvlášť (+0.6 % / +1.0 %) → není to overfitting.
+
+**Zavedeno:** strategie `market_clay_fav` (`cmd_market_clay_watch()` v
+`live_tennis_simulator.py`), runner v `executor.py`, agent
+`trh-only-antuka-favorit`. Sází PŘED zápasem na tržního favorita
+(kurz ≤ `MARKET_FAV_MAX_ODDS`=1.20) na antuce, BEZ našeho modelu.
+Odpovídá zjištění z metodiky: "s tímhle modelem nelze porazit trh" —
+proto se tu model vůbec nepoužívá. Nezavádět combo sázky (0/40, ROI −100 %).

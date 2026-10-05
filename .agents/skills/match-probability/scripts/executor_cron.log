@@ -3980,3 +3980,159 @@ Nevyřízených tiketů: 10 - zjišťuji výsledky...
 CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-05T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-05T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
 
   (agent bet-builder ukončen: 1)
+Spouštím aktivní agenty: 4
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 14 (z toho dvouhry: 8) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 3)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 1 - zjišťuji výsledky...
+
+  [PROHRA] Martin Damm vs Pavel Kotov - tiket na Martin Damm @ 1.4760147601476015, vyhrál Pavel Kotov (-18 mincí)
+
+Vyhodnoceno nových tiketů: 1
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 74) [PRE-MATCH]
+Banka: 898 minci (start 1000), vazano 0
+
+
+Novych pre-match tiketu: 0 (bez dat: 36, bez SX.bet trhu: 29)
+Banka: 898 minci, nevyrizeno 0 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+  [VÝHRA ] Qinwen Zheng vs Marie Bouzkova - tiket na Qinwen Zheng @ 1.556420233463035, vyhrál Qinwen Zheng (+11 mincí)
+  [PROHRA] Alina Charaeva vs Sonay Kartal - tiket na Sonay Kartal @ 1.3513513513513513, vyhrál Alina Charaeva (-20 mincí)
+  [VÝHRA ] Coco Gauff vs Xinran Sun - tiket na Coco Gauff @ 1.06, vyhrál Coco Gauff (+1 mincí)
+  [PROHRA] Belinda Bencic vs Ann Li - tiket na Belinda Bencic @ 1.2987012987012987, vyhrál Ann Li (-20 mincí)
+  [VÝHRA ] Iva Jovic vs Kamilla Rakhimova - tiket na Iva Jovic @ 1.1611030478955007, vyhrál Iva Jovic (+3 mincí)
+  [VÝHRA ] Donna Vekic vs Iga Swiatek - tiket na Iga Swiatek @ 1.1173184357541899, vyhrál Iga Swiatek (+2 mincí)
+  [VÝHRA ] Roman Safiullin vs Alexis Galarneau - tiket na Roman Safiullin @ 1.1747430249632893, vyhrál Roman Safiullin (+3 mincí)
+  [PROHRA] Liam Draxl vs Hugo Gaston - tiket na Hugo Gaston @ 1.6985138004246285, vyhrál Liam Draxl (-20 mincí)
+  [PROHRA] Taro Daniel vs Shintaro Mochizuki - tiket na Taro Daniel @ 1.7543859649122808, vyhrál Shintaro Mochizuki (-20 mincí)
+  [VÝHRA ] Nikoloz Basilashvili vs Andre Ilagan - tiket na Nikoloz Basilashvili @ 1.4388489208633095, vyhrál Nikoloz Basilashvili (+9 mincí)
+  [PROHRA] Stefanos Sakellaridis vs Timofey Skatov - tiket na Stefanos Sakellaridis @ 1.574803149606299, vyhrál Timofey Skatov (-20 mincí)
+  [VÝHRA ] Federico Agustin Gomez vs Michael Zheng - tiket na Michael Zheng @ 1.1747430249632893, vyhrál Michael Zheng (+3 mincí)
+
+Vyhodnoceno nových tiketů: 12
+
+Zápasů: 112 (dvouhry: 79, z toho live 6, prematch 73) [MODEL-ONLY]
+Banka: 909 mincí (start 1000), vázáno 0
+
+      => MODEL-ONLY [favorit] TIKET na Mirra Andreeva (model 57%), kurz 1.1851851851851851, vklad 18 [Mirra Andreeva vs Daria Snigur]
+      => MODEL-ONLY [favorit] TIKET na Roman Safiullin (model 54%), kurz 1.21580547112462, vklad 18 [Roman Safiullin vs Shintaro Mochizuki]
+      => MODEL-ONLY [favorit] TIKET na Nikoloz Basilashvili (model 51%), kurz 1.7130620985010707, vklad 18 [Liam Draxl vs Nikoloz Basilashvili]
+      => MODEL-ONLY [UNDERDOG] TIKET na Timofey Skatov (model 71%), kurz 2.2099447513812156, vklad 18 [Timofey Skatov vs Bernard Tomic]
+      => MODEL-ONLY [favorit] TIKET na Linda Noskova (model 54%), kurz 1.3071895424836601, vklad 18 [Ekaterina Alexandrova vs Linda Noskova]
+      => MODEL-ONLY [UNDERDOG] TIKET na Nicolas Mejia (model 60%), kurz 4.938271604938271, vklad 18 [Nicolas Mejia vs Michael Zheng]
+      => MODEL-ONLY [UNDERDOG] TIKET na Rei Sakamoto (model 81%), kurz 2.2408963585434174, vklad 18 [Rei Sakamoto vs Kyrian Jacquet]
+      => MODEL-ONLY [favorit] TIKET na Dalibor Svrcina (model 58%), kurz 1.6326530612244896, vklad 18 [Dalibor Svrcina vs Yoshihito Nishioka]
+      => MODEL-ONLY [UNDERDOG] TIKET na Naomi Osaka (model 59%), kurz 2.26628895184136, vklad 18 [Karolina Muchova vs Naomi Osaka]
+
+Nových model-only tiketů: 9 (z toho underdog: 4, bez dat: 39, bez kurzu: 30)
+Banka: 909 mincí, nevyřízeno 9 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 10 - zjišťuji výsledky...
+
+  [PROHRA] Taro Daniel vs Shintaro Mochizuki - tiket na Taro Daniel @ 2.974, vyhrál Shintaro Mochizuki (-27 mincí)
+  [VÝHRA ] Qinwen Zheng vs Marie Bouzkova - tiket na Qinwen Zheng @ 3.012, vyhrál Qinwen Zheng (+54 mincí)
+  [PROHRA] Stefanos Sakellaridis vs Timofey Skatov - tiket na Stefanos Sakellaridis @ 2.495, vyhrál Timofey Skatov (-27 mincí)
+  [VÝHRA ] Nicolas Mejia vs Chun Hsin Tseng - tiket na Nicolas Mejia @ 5.177, vyhrál Nicolas Mejia (+113 mincí)
+  [VÝHRA ] Terence Atmane vs Bernard Tomic - tiket na Bernard Tomic @ 9.445, vyhrál Bernard Tomic (+228 mincí)
+  [PROHRA] Alexander Shevchenko vs Yoshihito Nishioka - tiket na Alexander Shevchenko @ 2.367, vyhrál Yoshihito Nishioka (-27 mincí)
+  [PROHRA] Hubert Hurkacz vs Alex De Minaur - tiket na Hubert Hurkacz @ 4.356, vyhrál Alex De Minaur (-27 mincí)
+  [PROHRA] Billy Harris vs Dalibor Svrcina - tiket na Billy Harris @ 8.248, vyhrál Dalibor Svrcina (-27 mincí)
+  [PROHRA] Martin Damm vs Pavel Kotov - tiket na Martin Damm @ 2.167, vyhrál Pavel Kotov (-27 mincí)
+  [PROHRA] Belinda Bencic vs Ann Li - tiket na Belinda Bencic @ 2.048, vyhrál Ann Li (-27 mincí)
+
+Vyhodnoceno nových tiketů: 10
+
+Nadchazejicich dvouher: 73 [BET BUILDER]
+Banka: 1564 mincí (start 1000), vázáno 0
+
+      => BUILDER TIKET: Timofey Skatov vyhraje zapas I 1. set @ 4.41 (2.21x2.00) | joint 57% vs trh 23% | edge +34%, vklad 31 [Timofey Skatov vs Bernard Tomic]
+      => BUILDER TIKET: Nicolas Mejia vyhraje zapas I 1. set @ 17.56 (4.94x3.56) | joint 46% vs trh 6% | edge +41%, vklad 31 [Nicolas Mejia vs Michael Zheng]
+      => BUILDER TIKET: Rei Sakamoto vyhraje zapas I 1. set @ 4.66 (2.24x2.08) | joint 66% vs trh 21% | edge +45%, vklad 31 [Rei Sakamoto vs Kyrian Jacquet]
+      => BUILDER TIKET: Dalibor Svrcina vyhraje zapas I 1. set @ 2.71 (1.63x1.66) | joint 44% vs trh 37% | edge +7%, vklad 31 [Dalibor Svrcina vs Yoshihito Nishioka]
+
+Nových builder tiketů: 4 (bez dat/trhu: 64, bez edge: 5)
+Banka: 1564 mincí, nevyřízeno 4 tiketů
+Spouštím aktivní agenty: 5
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 12 (z toho dvouhry: 5) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 4)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 74) [PRE-MATCH]
+Banka: 898 minci (start 1000), vazano 0
+
+
+Novych pre-match tiketu: 0 (bez dat: 37, bez SX.bet trhu: 28)
+Banka: 898 minci, nevyrizeno 0 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 9 - zjišťuji výsledky...
+
+  [čeká] Mirra Andreeva vs Daria Snigur - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Roman Safiullin vs Shintaro Mochizuki - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Liam Draxl vs Nikoloz Basilashvili - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Timofey Skatov vs Bernard Tomic - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Ekaterina Alexandrova vs Linda Noskova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Nicolas Mejia vs Michael Zheng - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Rei Sakamoto vs Kyrian Jacquet - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Dalibor Svrcina vs Yoshihito Nishioka - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Karolina Muchova vs Naomi Osaka - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Zápasů: 111 (dvouhry: 79, z toho live 5, prematch 74) [MODEL-ONLY]
+Banka: 909 mincí (start 1000), vázáno 162
+
+
+Nových model-only tiketů: 0 (z toho underdog: 0, bez dat: 38, bez kurzu: 31)
+Banka: 909 mincí, nevyřízeno 9 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 4 - zjišťuji výsledky...
+
+  [čeká] Timofey Skatov vs Bernard Tomic - builder ještě není rozhodnutý
+  [čeká] Nicolas Mejia vs Michael Zheng - builder ještě není rozhodnutý
+  [čeká] Rei Sakamoto vs Kyrian Jacquet - builder ještě není rozhodnutý
+  [čeká] Dalibor Svrcina vs Yoshihito Nishioka - builder ještě není rozhodnutý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich dvouher: 73 [BET BUILDER]
+Banka: 1564 mincí (start 1000), vázáno 124
+
+
+Nových builder tiketů: 0 (bez dat/trhu: 64, bez edge: 5)
+Banka: 1564 mincí, nevyřízeno 4 tiketů
+
+===== agent trh-only-antuka-favorit (market_clay_fav) banka 1000 log trh-only-antuka-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Nadcházejících zápasů: 100 (dvouhry: 72) [TRH-ONLY ANTUKA]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových antukových tiketů: 0 (neantuka: 65, bez SX.bet trhu: 7, kurz >1.2: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů

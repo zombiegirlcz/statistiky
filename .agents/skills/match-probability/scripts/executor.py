@@ -93,6 +93,18 @@ def _run_set_fav(a, cfg):
     base.cmd_set_watch()
 
 
+def _run_market_clay_fav(a, cfg):
+    base.LOG_PATH = reg.log_path(a)
+    base.STARTING_BANK = float(a["bank"])
+    base.STAKE_PCT = float(cfg["stake_pct"])
+    base.MIN_STAKE = float(cfg["min_stake"])
+    base.MAX_EXPOSURE_PCT = float(cfg["max_exposure_pct"])
+    base.MARKET_FAV_MAX_ODDS = float(cfg["market_fav_max_odds"])
+    import bet_evaluator as ev
+    ev.settle_pending()
+    base.cmd_market_clay_watch()
+
+
 def _run_gem(a, cfg):
     gem.LOG_PATH = reg.log_path(a)
     gem.STARTING_BANK = float(a["bank"])
@@ -121,6 +133,7 @@ _RUNNERY = {
     "model_only": _run_model_only,
     "prematch_fav": _run_prematch_fav,
     "set_fav": _run_set_fav,
+    "market_clay_fav": _run_market_clay_fav,
     "gem": _run_gem,
     "gem_aggr": _run_gem_aggr,
 }

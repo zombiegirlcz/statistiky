@@ -101,6 +101,21 @@ FAV_MODEL_MIN = 0.75     # náš model musí hráče vidět aspoň na 75 % šanc
 FAV_MARKET_MIN = 0.65    # a skutečný trh ho taky musí vidět jako jasného favorita
 FAV_MAX_ODDS = 1.60      # kurz nad tohle už není "bezpečný" favorit, nesázet
 
+# TRH-ONLY ANTUKA (experimentální, viz cmd_market_clay_watch). Sází na
+# TRŽNÍHO favorita na antuce s nízkým kurzem, BEZ našeho modelu.
+# Backtest (scripts/_probe_market_fav.py, WTA 2021-2025):
+#   trh-only favorit kurz<=1.20 na antuce: ROI +0.9 %, P(banka roste po 50
+#   tiketech)=58 % (v OBOU polovinách let kladné: +0.6 % / +1.0 %).
+#   Naproti tomu živá model&trh strategie (FAV_* výše) měla na stejných
+#   datech ROI -13 %, P(rost)=4 %. Náš model tedy spíš škodí - proto se tu
+#   vůbec nepoužívá.
+MARKET_FAV_MAX_ODDS = 1.20
+
+# Antukové vodítko ve jménu turnaje (když API nevrátí surface). Malá písmena.
+CLAY_NAME_HINTS = ("clay", "antuka", "terre battue", "arcilla", "roland",
+                   "saibro", "coto", "barro", "pablo", "rio", "buenos")
+
+
 # SET-level strategie (vítěz AKTUÁLNÍHO setu, SX.bet trhy 202/203/204).
 SET_FAV_MODEL_MIN = 0.62
 SET_FAV_MARKET_MIN = 0.55
@@ -809,6 +824,107 @@ def cmd_watch():
           f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů "
           f"({pending_exposure(log):.0f} mincí vázáno)")
     print("\nVyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot")
+
+
+def _is_clay(match):
+    """True, když je zápas (s vysokou jistotou) na antuce.
+
+    Primární vodítko = název turnaje (spolehlivé), fallback = pole 'surface'
+    z Live Tennis API. Když ani jedno neříká 'antuka', vrací False - radši
+    vynechat než sázet na neznámém povrchu (cíl je POUZE antuka, protože
+    jen tam vyšel backtest kladně).
+    """
+    t = (match.get("tournament") or "").lower()
+    if any(h in t for h in CLAY_NAME_HINTS):
+        return True
+    return (match.get("surface") or "").lower() == "clay"
+
+
+def cmd_market_clay_watch():
+    """TRH-ONLY ANTUKA: sází na TRŽNÍHO favorita na antuce, BEZ našeho modelu.
+
+    Proč bez modelu: backtest (_probe_market_fav.py) ukázal, že na datech
+    WTA 2021-2025 je náš model v této hře spíš na škodu. Kombinace
+    'model>=0.75 & trh>=0.65 & kurz<=1.60' měla ROI -13 % a P(rost)=4 %,
+    zatímco prostý tržní favorit s kurzem <=1.20 na ANTuce měl ROI kladné
+    na obou polovinách let a P(rost) ~58 %.
+
+    Sází se PŘED zápasem (nadcházející zápasy) - přesně jako v backtestu,
+    který používal předzápasové kurzy. Bez modelu tedy není potřeba číst
+    živé skóre a strategie je plně nezávislá na stávajících agentech.
+    Jen jedna strana může být tržní favorit (nižší kurz), takže žádná
+    deduplikace stran není potřeba.
+    """
+    log = load_log()
+    logged = {e["match_id"] for e in log}
+    matches = fetch_upcoming_matches()
+    singles = [m for m in matches
+               if not m.get("is_doubles") and m.get("draw") == "singles"]
+    print(f"Nadcházejících zápasů: {len(matches)} (dvouhry: {len(singles)}) "
+          f"[TRH-ONLY ANTUKA]")
+    print(f"Banka: {current_bank(log):.0f} mincí (start {STARTING_BANK:.0f}), "
+          f"vázáno {pending_exposure(log):.0f}\n")
+    ts = datetime.now(timezone.utc).isoformat()
+    n_bets = n_nonclay = n_nomkt = n_pricey = 0
+    for m in singles:
+        if m["id"] in logged:
+            continue
+        if not _is_clay(m):
+            n_nonclay += 1
+            continue
+        name1, name2 = m["players"]["p1"]["name"], m["players"]["p2"]["name"]
+        probs, best, sx_market, src = bm.get_market_info(name1, name2)
+        if not probs or probs.get(name1) is None or probs.get(name2) is None:
+            n_nomkt += 1
+            continue
+        # tržní favorit = nižší kurz (a tedy vyšší odmaržovaná pravděpodobnost)
+        if (best.get(name1) or 99) <= (best.get(name2) or 99):
+            pick_name, odds, p_mkt = name1, best.get(name1), probs.get(name1)
+        else:
+            pick_name, odds, p_mkt = name2, best.get(name2), probs.get(name2)
+        if odds is None or odds > MARKET_FAV_MAX_ODDS:
+            n_pricey += 1
+            continue
+        stake, reason = next_stake(log, model_p=None, market_p=p_mkt, odds=odds)
+        if stake is None:
+            print(f"      ! antukový favorit {pick_name} @ {odds}, ale tiket se "
+                  f"nezakládá: {reason}")
+            continue
+        entry = {
+            "match_id": m["id"], "market_kind": "match_market_clay_prematch",
+            "strategy": "market_clay_fav", "surface": "clay",
+            "logged_at": ts, "tournament": m.get("tournament"),
+            "scheduled_time": m.get("scheduled_time"),
+            "player1": name1, "player2": name2, "pick": pick_name, "odds": odds,
+            "model_p": None, "market_p": round(p_mkt, 4),
+            "score_at_bet": "pred zapasem (0:0) - trh-only, bez modelu",
+            "stake": stake, "status": "pending",
+            "odds_source": src, "bookmaker_mode": bm.mode(),
+        }
+        if sx_market:
+            entry["market_hash"] = sx_market.get("marketHash")
+            entry["outcome_side"] = bm.outcome_side_for(pick_name, sx_market)
+        if bm.is_real():
+            try:
+                res = bm.place_bet(name1, name2, pick=pick_name, odds=odds, stake=stake,
+                                   market=sx_market, outcome_side=entry.get("outcome_side"))
+                entry["real_bet"] = res
+                print(f"      => REALNA antukova sazka odeslana: {res}")
+            except Exception as ex:
+                print(f"      ! realna antukova sazka selhala: {ex}")
+                continue
+        append_log(entry)
+        log.append(entry)
+        n_bets += 1
+        print(f"      => ANTUKA TIKET na {pick_name} @ {odds} "
+              f"(trh {p_mkt:.0%}, bez modelu), vklad {stake:.0f} "
+              f"[{name1} vs {name2}, {m.get('tournament')}]")
+    print(f"\nNových antukových tiketů: {n_bets} "
+          f"(neantuka: {n_nonclay}, bez SX.bet trhu: {n_nomkt}, "
+          f"kurz >{MARKET_FAV_MAX_ODDS}: {n_pricey})")
+    log = load_log()
+    print(f"Banka: {current_bank(log):.0f} mincí, "
+          f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů")
 
 
 def cmd_set_watch():

@@ -136,6 +136,22 @@ STRATEGIE = {
             "fav_max_odds": ("Max. kurz", 1.01, 100.0, "nad tímhle se nesází"),
         },
     },
+    "market_clay_fav": {
+        "nazev": "Trh-only: tržní favorit na ANTuce, kurz<=1.20 (bez modelu)",
+        "log": "live_market_clay_bets_log.jsonl",
+        "mod": "live_tennis_simulator",
+        "tick": "market-clay-watch",
+        "defaults": {
+            "stake_pct": 0.02, "min_stake": 10.0, "max_exposure_pct": 0.25,
+            "market_fav_max_odds": 1.20,
+        },
+        "popisky": {
+            "stake_pct": ("Vklad jako podíl banky", 0.001, 1.0, "např. 0.02 = 2 %"),
+            "min_stake": ("Minimální vklad (mincí)", 1, 100000, ""),
+            "max_exposure_pct": ("Max. podíl banky v souběžných tiketech", 0.01, 1.0, ""),
+            "market_fav_max_odds": ("Max. kurz tržního favorita", 1.01, 5.0, "např. 1.20"),
+        },
+    },
     "set_fav": {
         "nazev": "Set-level: silný favorit na vítěze AKTUÁLNÍHO setu",
         "log": "live_set_bets_log.jsonl",

@@ -36,7 +36,12 @@
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_bank.py",
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_oos.py",
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_clay_robust.py",
-      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_clay_split.py"
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_clay_split.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_maxodds.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_market_fav.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/live_tennis_simulator.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/agents.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/executor.py"
     ],
     "redVerificationPending": false
   },
