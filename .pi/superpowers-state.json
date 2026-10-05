@@ -29,7 +29,19 @@
   "tdd": {
     "phase": "idle",
     "testFiles": [],
-    "sourceFiles": [],
+    "sourceFiles": [
+      "/root/statistiky/server.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/sx_learner.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/sxbet_client.py",
+      "/tmp/probe_trades.py",
+      "/tmp/probe2.py",
+      "/tmp/probe3.py",
+      "/tmp/probe4.py",
+      "/tmp/probe5.py",
+      "/tmp/probe6.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/sx_tape.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/market_probs.py"
+    ],
     "redVerificationPending": false
   },
   "debug": {

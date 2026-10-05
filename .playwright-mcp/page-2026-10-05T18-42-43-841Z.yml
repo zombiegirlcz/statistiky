@@ -1,0 +1,33 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]: π
+    - generic [ref=e4]: Tiket builder · pi agent · SX.bet
+    - button "↻" [ref=e5] [cursor=pointer]
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - heading "⚽ Zápasy a trhy" [level=2] [ref=e8]
+      - generic [ref=e9]:
+        - button "Tenis" [ref=e10] [cursor=pointer]
+        - button "Fotbal" [ref=e11] [cursor=pointer]
+        - button "Hokej" [ref=e12] [cursor=pointer]
+      - generic [ref=e13]:
+        - button "Vítěz" [ref=e14] [cursor=pointer]
+        - button "Sety" [ref=e15] [cursor=pointer]
+        - button "Gemy" [ref=e16] [cursor=pointer]
+        - button "Počet setů" [ref=e17] [cursor=pointer]
+      - button "Načíst zápasy" [ref=e19] [cursor=pointer]
+      - generic [ref=e20]: Načítám trhy ze SX.bet…
+    - generic [ref=e23]:
+      - heading "🎯 Tiket od pi agenta" [level=2] [ref=e24]
+      - generic [ref=e25]: Vyber zápas výše a klikni na „Sestavit tiket“.
+    - generic [ref=e27]:
+      - heading "📡 Živý tape (sázky ostatních)" [level=2] [ref=e28]
+      - generic [ref=e29]:
+        - spinbutton [ref=e30]: "20"
+        - generic [ref=e31]: sekund sběru
+        - button "Načíst tape" [ref=e32] [cursor=pointer]
+      - generic [ref=e33]: Tréninkový přehled z veřejného tape SX.bet.
+      - generic [ref=e35]: Tape ukazuje, kam teče money, ne jestli ten sázkař vydělává. Je to kontext, ne signál ke kopírování.
+    - generic [ref=e36]:
+      - heading "⚠️ Poctivé výhrady k modelu" [level=2] [ref=e37]
+      - generic [ref=e38]: "Model nemá prokázanou výhodu nad trhem (backtest: AKO 0/40, SÓLO ROI −14,8 %). U PIM (trestné minuty) model systematicky nadhodnocuje (48 % vs. empiricky 30 %) — brát s velkou rezervou. Karty mírně nadstřelené (82 % vs. 74 %). Góly, rohy, střely, SOG, esa naopak sedí dobře. Nic se nesází reálně."

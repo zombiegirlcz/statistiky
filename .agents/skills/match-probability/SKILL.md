@@ -88,6 +88,42 @@ Tohle vrátí implikovanou pravděpodobnost z průměru živých bookmakerských
 
 **Nepoužívej to automaticky u každého dotazu** - stojí to API kredity (u fotbalu/hokeje 1 kredit, u tenisu pár kreditů podle počtu právě běžících turnajů) a funguje to jen pro NADCHÁZEJÍCÍ zápasy, ne historické. Použij to, když o to uživatel výslovně požádá ("porovnej to s kurzy", "co na to sázkové kanceláře") nebo když chceš u důležité predikce druhou kontrolu. Pokud proměnná `ODDS_API_KEY` není nastavená, skript to rovnou řekne i s návodem na založení účtu - neřeš to jako chybu, je to čistě volitelný doplněk.
 
+## Volitelně: historické pravděpodobnosti pro VÍC trhů (rohy, karty, střely…)
+
+Když se uživatel ptá na pravděpodobnost jiného trhu než 1X2 / přesné skóre -
+rohy, karty, střely na branku, fauly, SOG, PIM, esa, počet gamů - použij:
+
+```bash
+python3 .agents/skills/match-probability/scripts/market_probs.py fotbal "Arsenal" "Chelsea"
+python3 .agents/skills/match-probability/scripts/market_probs.py hokej  "Toronto" "Edmonton"
+python3 .agents/skills/match-probability/scripts/market_probs.py tenis  "Jannik Sinner" "Carlos Alcaraz"
+```
+
+Počítá **čistě z historie, BEZ kurzů** (na rohy/karty historické kurzy nemáme):
+týmový průměr doma/venku + blend se vzájemnými zápasy (65/35) → Poissonovo
+rozdělení → pravděpodobnost přes/pod na několika lajnách. Ke každé lajně navíc
+hlásí **empirický podíl** z reálných zápasů obou týmů (kontrola modelu).
+
+### ⚠️ Výhrady k metodě - VŽDY je ber v potaz a řekni je uživateli
+
+Model je **Poisson na všechno**, ale ne každá statistika je Poissonovsky
+rozdělená. Z porovnání modelu vs. empirických dat (ověřeno živě na
+Arsenal–Chelsea a TOR–EDM):
+
+- **PIM (trestné minuty u hokeje) - NESEDÍ, ber s velkou rezervou.**
+  Model na lajně 18.5 dává „přes 48 %", empiricky je to jen **30 %**.
+  Trestné minuty jsou shlukované (pár vyloučení dělá velký skok), ne Poisson.
+  Čísla PIM uváděj, ale **nikdy je nepoužij jako spolehlivý podklad pro tiket**
+  bez explicitní výhrady uživateli.
+- **Karty - mírně nadstřelené.** Model na 2.5 dává „přes 82 %", empiricky 74 %.
+  Blíž než PIM, ale pořád systematicky posunuté nahoru - také s rezervou.
+- **Góly, rohy, střely, SOG, esa - sedí dobře** (model a empirický podíl se
+  shodují v jednotkách procent). Těm věřit můžeš.
+
+Pokud uživatel chce tiket na PIM nebo karty, řekni mu na rovinu, že tenhle
+model je tam systematicky mimo a že empirický sloupec v datech je spolehlivější
+než modelový odhad.
+
 ## Volitelně: stavba sázkových tiketů (SÓLO i AKO kombinace)
 
 Pokud uživatel chce rovnou TIKET (konkrétní sázku s vkladem, ne jen procenta) - "slož mi sázku", "jaký tiket na dnešek", "udělej kombinaci" - použij:
@@ -96,6 +132,11 @@ Pokud uživatel chce rovnou TIKET (konkrétní sázku s vkladem, ne jen procenta
 python3 .agents/skills/match-probability/scripts/ticket_builder.py den 2024-03-16   # historický den (má smysl jen na už odehraný den, kde známe i kurzy)
 python3 .agents/skills/match-probability/scripts/ticket_builder.py backtest 40       # 40 náhodných dní, změří úspěšnost
 ```
+
+**POZOR:** pokud tiket obsahuje nohu na trh, který `ticket_builder.py` sám
+nepočítá (rohy, karty, PIM, střely…), bereš ta čísla z `market_probs.py` -
+a tam PLATÍ VÝHRADY VÝŠE (PIM a karty jsou systematicky mimo, nepoužívej je
+jako rovnocenný podklad). U tiketů s PIM/kartami to uživateli vždy řekni.
 
 Funguje jen pro **fotbal** (jediný sport, kde máme v `fotbal/*.csv` i skutečné historické kurzy - sloupce `Avg*`, průměr víc sázkových kanceláří, NE přímo Fortuna). Hledá "hodnotové sázky" (edge mezi modelem a odvigovaným trhem) na obou stranách každého trhu (1X2, přes/pod 2.5 gólu, hendikep) - takže klidně navrhne i sázku na outsidera nebo hendikep na poraženého, ne jen na favorita. Staví SÓLO i AKO (kombinované) tikety podle pravidel Fortuny (AKO = kurzy se násobí, kombinuje se vždy jen přes různé zápasy).
 

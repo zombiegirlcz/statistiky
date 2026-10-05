@@ -27,6 +27,7 @@ stav je čtení kurzů.
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -57,10 +58,12 @@ USDC_DECIMALS = 6  # ověřeno z /metadata/obv3 (activeAsset.decimals = 6)
 # ---------------------------------------------------------------------------
 # Nízkofrovňový HTTP
 # ---------------------------------------------------------------------------
-def _get(path, params=None, timeout=15):
+def _get(path, params=None, timeout=15, headers=None):
     q = urllib.parse.urlencode(params or {}, doseq=True)
     url = f"{SX_API_BASE}{path}" + (f"?{q}" if q else "")
-    req = urllib.request.Request(url, headers={"User-Agent": "statistiky-sxbet/1.0"})
+    h = {"User-Agent": "statistiky-sxbet/1.0"}
+    h.update(headers or {})
+    req = urllib.request.Request(url, headers=h)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return json.loads(resp.read().decode("utf-8"))
@@ -144,6 +147,164 @@ def set_winner_markets(sport_id=SPORT_TENNIS, live_only=None, max_pages=12):
     """Jen trhy na vítěze JEDNOTLIVÉHO setu (type 202/203/204)."""
     ms = active_markets(sport_ids=[sport_id], live_only=live_only, max_pages=max_pages)
     return [m for m in ms if m.get("type") in MARKET_TYPE_SET_WINNER]
+
+
+def markets_by_hashes(hashes):
+    """Vrátí {marketHash: market} pro zadané hashe (max 30 na jedno volání)."""
+    out = {}
+    hashes = list(dict.fromkeys(h for h in hashes if h))
+    for i in range(0, len(hashes), 30):
+        chunk = hashes[i:i + 30]
+        d = _get("/markets/find", {"marketHashes": ",".join(chunk)})
+        for m in d.get("data") or []:
+            if m.get("marketHash"):
+                out[m["marketHash"]] = m
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Trades — historie sázek VŠECH hráčů na burze (pro učení se od ostatních)
+# ---------------------------------------------------------------------------
+def _sx_api_key():
+    """API klíč pro V3 endpointy. Hlavička je `x-sx-api-key` (V2 měla `X-Api-Key`)."""
+    return os.environ.get("SX_API_KEY") or None
+
+
+def _iso8601(v):
+    """Převede unix timestamp / datetime / string na ISO 8601, jak vyžaduje V3 API.
+
+    V3 `/trades-v3` odmítá unix timestamp (400 "startDate must be a valid ISO
+    8601 date string") — chce řetězec typu `2026-09-21T17:59:02.000Z`.
+    """
+    if v is None:
+        return None
+    if isinstance(v, str):
+        return v
+    if hasattr(v, "strftime"):
+        return v.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    return time.strftime("%Y-%m-%dT%H:%M:%S.000Z", time.gmtime(int(v)))
+
+
+# Realtime "public tape" — JEDINÝ veřejný zdroj sázek CIZÍCH hráčů.
+# (REST /trades-v3 vrací jen moje vlastní sázky, viz docstring trades().)
+PUBLIC_TAPE_CHANNEL = "recent_trades_v3:global"
+REALTIME_WS_URL = "wss://realtime.sx.bet/connection/websocket"
+REALTIME_TOKEN_URL = "/user/realtime-token-v3/api-key"
+
+
+def trades(start_date=None, end_date=None, bettor=None, settled=None,
+           market_hashes=None, maker=None, trade_status=None,
+           page_size=100, max_pages=10):
+    """Vrátí MOJE sázky z SX.bet `/trades-v3` (bet-grain).
+
+    !!! KLÍČOVÉ OMEZENÍ (oficiální dokumentace SX.bet, "Adjust query endpoints") !!!
+    Všechny V3 query endpointy (`/trades-v3`, `/fills-v3`, `/positions-v3`,
+    `/orders-v3`) jsou VÁZANÉ NA MŮJ API KLÍČ a vracejí POUZE MOJI VLASTNÍ
+    aktivitu. V2 query parametry `bettor=` a `maker=` byly zrušeny právě proto.
+    Sázky CIZÍCH hráčů přes tenhle endpoint nezískáš — SX.bet je veřejně
+    neposkytuje (ověřeno živě 2026-10-05: 200 + prázdný seznam i za 1000 dní).
+
+    Jediný veřejný zdroj cizích sázek je realtime "public tape" kanál
+    `recent_trades_v3:global` (PUBLIC_TAPE_CHANNEL) — anonymní, agregovaný,
+    bez identity hráče.
+
+    Hlavička: `x-sx-api-key` (V2 používala `X-Api-Key`, V3 ji přejmenovala).
+    Datum: ISO 8601 řetězec, ne unix timestamp.
+    Stránkování: `perPage` + `nextKey` (V2 měl `pageSize` + `paginationKey`).
+    """
+    key = _sx_api_key()
+    if not key:
+        raise RuntimeError(
+            "SX.bet /trades-v3 vyžaduje API klíč, ale SX_API_KEY není nastavený. "
+            "Vygeneruj ho na sx.bet (Account → Overview → API Credentials, "
+            "nutná Enhanced Verification) a přidej do ~/.env jako SX_API_KEY=..."
+        )
+    if start_date is None:
+        start_date = int(time.time()) - 30 * 86400
+    out, page_key, pages = [], None, 0
+    while pages < max_pages:
+        params = {"perPage": page_size, "startDate": _iso8601(start_date)}
+        if end_date is not None:
+            params["endDate"] = _iso8601(end_date)
+        if bettor:
+            params["bettor"] = bettor
+        if settled is not None:
+            params["settled"] = "true" if settled else "false"
+        if market_hashes:
+            params["marketHashes"] = ",".join(market_hashes)
+        if maker is not None:
+            params["maker"] = "true" if maker else "false"
+        if page_key:
+            params["paginationKey"] = page_key
+        d = _get("/trades-v3", params, headers={"x-sx-api-key": key})
+        data = d.get("data") or {}
+        ts = (data.get("trades") if isinstance(data, dict) else data) or []
+        if not ts:
+            break
+        out.extend(ts)
+        page_key = data.get("nextKey") if isinstance(data, dict) else None
+        pages += 1
+        if not page_key:
+            break
+    return out
+
+
+def trade_won(t):
+    """True/False/None (None = nevyhodnoceno / void / neznámý tvar) — vyhrál bet?
+
+    Podporuje V3 tvar (`status` = MATCHED/LOCKED/SETTLED/FAILED, výsledek
+    v `settlement`) i starý V2 tvar (`settled` + `outcome`).
+    """
+    status = str(t.get("status") or "").upper()
+    settlement = t.get("settlement")
+    outcome = settlement.get("outcome") if isinstance(settlement, dict) else None
+    if outcome is None:
+        outcome = t.get("outcome")
+    # V3: dokud není SETTLED, výsledek neznáme
+    if status in ("MATCHED", "LOCKED", "FAILED"):
+        return None
+    if status == "SETTLED" and outcome is None:
+        return None
+    if outcome in (None, 0):
+        return None  # void / vráceno / neznámo
+    one = t.get("bettingOutcomeOne")
+    if one is None:
+        one = t.get("isMakerBettingOutcomeOne")
+    if one is None:
+        return None
+    return (outcome == 1) == bool(one)
+
+
+def trade_decimal_odds(t):
+    """Desetinný kurz, který bettor dostal (z `odds` = implikovaná × 1e20)."""
+    try:
+        p = int(t["odds"]) / 1e20
+    except (KeyError, ValueError, TypeError):
+        return None
+    return 1.0 / p if p > 0 else None
+
+
+def trade_stake_nominal(t):
+    """Nominální vklad v USDC.
+
+    Zkouší postupně: `normalizedStake` (V3), `stake` (ethereum units / 10^6),
+    `totalBetSize` (V3 order units / 10^6). Pro poměrové metriky (ROI) stačí
+    konzistentní měřítko — absolutní velikost není kritická.
+    """
+    ns = t.get("normalizedStake")
+    if ns not in (None, ""):
+        try:
+            v = float(ns)
+            if 0 < v < 1e9:
+                return v
+        except (ValueError, TypeError):
+            pass
+    for field in ("stake", "totalBetSize"):
+        try:
+            return int(t[field]) / (10 ** USDC_DECIMALS)
+        except (KeyError, ValueError, TypeError):
+            continue
+    return None
 
 
 # ---------------------------------------------------------------------------

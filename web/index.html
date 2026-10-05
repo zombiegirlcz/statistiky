@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<title>Tiket builder — pi agent</title>
+<style>
+:root{
+  --bg:#0b1220; --bg2:#101a2e; --card:#141f36; --card2:#182647;
+  --line:#233457; --fg:#e8eefc; --dim:#8ea3c9; --dim2:#5f7398;
+  --cy:#22d3ee; --gr:#34d399; --rd:#fb7185; --yl:#fbbf24; --vi:#a78bfa;
+  --shadow:0 10px 30px rgba(0,0,0,.35); --r:16px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:radial-gradient(1200px 700px at 50% -10%, #16233f 0%, var(--bg) 60%);
+  color:var(--fg); font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased; padding-bottom:70px;
+}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+  padding:10px 14px;background:rgba(11,18,32,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.logo{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(145deg,var(--cy),#0ea5e9);color:#04202b;font-weight:800;font-size:13px;flex:none}
+.title{font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrap{padding:14px;max-width:860px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+h2{font-size:16px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.seg button{flex:1;min-width:88px;padding:9px 10px;border-radius:11px;border:1px solid var(--line);
+  background:var(--card2);color:var(--dim);font-size:13.5px;font-weight:600;cursor:pointer}
+.seg button.on{background:linear-gradient(180deg,#1d3a63,#16243f);color:var(--fg);border-color:#2f5a94}
+.row{display:flex;gap:8px;align-items:center}
+select,input{background:var(--bg2);border:1px solid var(--line);color:var(--fg);border-radius:10px;padding:9px 10px;font-size:14px;width:100%}
+.btn{appearance:none;border:1px solid var(--line);background:var(--card2);color:var(--fg);
+  padding:10px 14px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:linear-gradient(145deg,var(--cy),#0ea5e9);color:#04202b;border-color:transparent}
+.btn.gr{background:linear-gradient(145deg,var(--gr),#059669);color:#04241a;border-color:transparent}
+.btn:disabled{opacity:.5;cursor:default}
+.match{border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;background:linear-gradient(180deg,var(--card2),var(--card))}
+.mhead{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
+.liga{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.time{font-size:12px;color:var(--dim2);font-variant-numeric:tabular-nums}
+.sides{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.side{background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:10px}
+.side .nm{font-weight:700;font-size:14.5px;margin-bottom:6px}
+.side .odds{font-size:20px;font-weight:800;color:var(--cy);font-variant-numeric:tabular-nums}
+.side .pr{font-size:12.5px;color:var(--dim)}
+.side .liq{font-size:11px;color:var(--dim2);margin-top:4px}
+.liqbar{height:5px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:8px}
+.liqbar span{display:block;height:100%;background:linear-gradient(90deg,var(--gr),var(--cy))}
+.mfoot{display:flex;gap:8px;margin-top:10px;align-items:center}
+.mfoot .btn{flex:1}
+.live{font-size:10.5px;font-weight:800;color:#04241a;background:var(--gr);padding:2px 7px;border-radius:6px}
+pre.out{background:#08101f;border:1px solid var(--line);border-radius:12px;padding:12px;
+  font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;
+  max-height:60vh;overflow:auto;margin:0;color:#cfe0ff}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.25);
+  border-top-color:var(--cy);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.dim{color:var(--dim)}.small{font-size:12.5px}.mono{font-variant-numeric:tabular-nums;font-family:ui-monospace,Menlo,Consolas,monospace}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--dim);margin-right:5px}
+.warn{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);color:#fde68a;border-radius:11px;padding:9px 11px;font-size:12.5px;margin-top:8px}
+.note{font-size:12px;color:var(--dim2);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">π</div>
+  <div class="title">Tiket builder <span class="dim small">· pi agent · SX.bet</span></div>
+  <button class="btn" id="reload">↻</button>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <h2>⚽ Zápasy a trhy</h2>
+    <div class="seg" id="sportSeg"></div>
+    <div class="seg" id="marketSeg"></div>
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn" id="loadMatches">Načíst zápasy</button>
+      <span class="dim small" id="matchesInfo"></span>
+    </div>
+    <div id="matches"><div class="dim small">Klikni na „Načíst zápasy“.</div></div>
+  </div>
+
+  <div class="card">
+    <h2>🎯 Tiket od pi agenta</h2>
+    <div id="ticketBox"><div class="dim small">Vyber zápas výše a klikni na „Sestavit tiket“.</div></div>
+  </div>
+
+  <div class="card">
+    <h2>📡 Živý tape (sázky ostatních)</h2>
+    <div class="row" style="margin-bottom:10px">
+      <input id="tapeSec" type="number" value="20" min="5" max="120" style="max-width:110px">
+      <span class="dim small">sekund sběru</span>
+      <button class="btn" id="loadTape">Načíst tape</button>
+    </div>
+    <div id="tapeBox"><div class="dim small">Tréninkový přehled z veřejného tape SX.bet.</div></div>
+    <div class="warn">Tape ukazuje, <b>kam teče money</b>, ne jestli ten sázkař vydělává. Je to kontext, ne signál ke kopírování.</div>
+  </div>
+
+  <div class="card">
+    <h2>⚠️ Poctivé výhrady k modelu</h2>
+    <div class="small dim">
+      Model nemá prokázanou výhodu nad trhem (backtest: AKO 0/40, SÓLO ROI −14,8 %).
+      U <b>PIM (trestné minuty)</b> model systematicky nadhodnocuje (48 % vs. empiricky 30 %) —
+      brát s velkou rezervou. <b>Karty</b> mírně nadstřelené (82 % vs. 74 %).
+      Góly, rohy, střely, SOG, esa naopak sedí dobře. Nic se nesází reálně.
+    </div>
+  </div>
+</div>
+
+<script>
+const SPORTS = {tenis:'Tenis', fotbal:'Fotbal', hokej:'Hokej'};
+const MARKETS = {
+  tenis:  {vitez:'Vítěz', set:'Sety', gemy:'Gemy', sety:'Počet setů'},
+  fotbal: {vitez:'Vítěz', '1x2':'1X2', goly:'Góly', handicap:'Handicap', polocas:'Poločas'},
+  hokej:  {vitez:'Vítěz', goly:'Góly', handicap:'Handicap', tretiny:'Třetiny'},
+};
+let sport = 'tenis', market = 'vitez';
+
+const $ = s => document.querySelector(s);
+const el = (t,c,x) => { const e=document.createElement(t); if(c)e.className=c; if(x!==undefined)e.textContent=x; return e; };
+const pct = x => (x==null) ? '—' : (x*100).toFixed(1)+' %';
+const num = (x,d=2) => (x==null) ? '—' : Number(x).toFixed(d);
+function tsToLocal(ts){
+  if(!ts) return '';
+  try{ return new Date(ts*1000).toLocaleString('cs-CZ',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'}); }
+  catch(e){ return ''; }
+}
+
+function renderSegs(){
+  const ss=$('#sportSeg'); ss.innerHTML='';
+  for(const [k,v] of Object.entries(SPORTS)){
+    const b=el('button', k===sport?'on':'', v);
+    b.onclick=()=>{ sport=k; market=Object.keys(MARKETS[k])[0]; renderSegs(); };
+    ss.appendChild(b);
+  }
+  const ms=$('#marketSeg'); ms.innerHTML='';
+  for(const [k,v] of Object.entries(MARKETS[sport])){
+    const b=el('button', k===market?'on':'', v);
+    b.onclick=()=>{ market=k; renderSegs(); };
+    ms.appendChild(b);
+  }
+}
+
+async function loadMatches(){
+  const box=$('#matches'); const info=$('#matchesInfo');
+  box.innerHTML='<div class="dim small"><span class="spin"></span> Načítám trhy ze SX.bet…</div>';
+  info.textContent='';
+  try{
+    const r=await fetch(`/api/sx/markets?sport=${sport}&market=${market}&limit=25`);
+    const d=await r.json();
+    if(!d.ok){ box.innerHTML=''; box.appendChild(el('div','dim small','Chyba: '+(d.error||'?'))); return; }
+    info.textContent = `${d.pocet} trhů · ${d.skupina}`;
+    box.innerHTML='';
+    if(!d.trhy.length){ box.appendChild(el('div','dim small','Žádné trhy v této skupině.')); return; }
+    for(const m of d.trhy) box.appendChild(matchCard(m));
+  }catch(e){ box.innerHTML=''; box.appendChild(el('div','dim small','Chyba sítě: '+e.message)); }
+}
+
+function matchCard(m){
+  const c=el('div','match');
+  const head=el('div','mhead');
+  head.appendChild(el('div','liga', m.liga||'—'));
+  const right=el('div','row');
+  right.style.gap='6px';
+  if(m.live) right.appendChild(el('span','live','LIVE'));
+  right.appendChild(el('span','time', tsToLocal(m.zacatek)));
+  head.appendChild(right);
+  c.appendChild(head);
+
+  const sides=el('div','sides');
+  sides.appendChild(sideBox(m.strana1, m.kurz1, m.p1, m.likvidita1, m.line));
+  sides.appendChild(sideBox(m.strana2, m.kurz2, m.p2, m.likvidita2, m.line));
+  c.appendChild(sides);
+
+  const l1=m.likvidita1||0, l2=m.likvidita2||0, tot=l1+l2;
+  if(tot>0){
+    const bar=el('div','liqbar'); const sp=el('span'); sp.style.width=Math.round(100*l1/tot)+'%'; bar.appendChild(sp);
+    c.appendChild(bar);
+    c.appendChild(el('div','note', `Likvidita booku: ${num(l1,0)} / ${num(l2,0)} USDC → ${Math.round(100*l1/tot)} % na ${m.strana1||'stranu 1'}`));
+  }
+
+  const foot=el('div','mfoot');
+  const b=el('button','btn gr','🎯 Sestavit tiket');
+  b.onclick=()=>buildTicket(m, b);
+  foot.appendChild(b);
+  c.appendChild(foot);
+  return c;
+}
+
+function sideBox(name, odds, p, liq, line){
+  const s=el('div','side');
+  const nm=el('div','nm', (name||'—') + (line!=null && line!=='' ? ` (${line>0?'+':''}${line})` : ''));
+  s.appendChild(nm);
+  s.appendChild(el('div','odds mono', odds==null?'—':num(odds,3)));
+  s.appendChild(el('div','pr', 'trh: ' + pct(p)));
+  if(liq!=null) s.appendChild(el('div','liq','likvidita '+num(liq,0)+' USDC'));
+  return s;
+}
+
+async function buildTicket(m, btn){
+  const box=$('#ticketBox');
+  const old=btn.textContent; btn.disabled=true; btn.innerHTML='<span class="spin"></span> Agent pracuje…';
+  box.innerHTML='<div class="dim small"><span class="spin"></span> pi agent sestavuje tiket (může to trvat až minuty)…</div>';
+  const poznamka = `Zaměř se na zápas ${m.strana1} vs ${m.strana2} (${m.liga||''}, typ trhu ${m.typ}, ${m.live?'LIVE':'pre-match'}). `
+                 + `Trh: ${market}. Použij aktuální kurz ${num(m.kurz1,3)} / ${num(m.kurz2,3)} z SX.bet.`;
+  try{
+    const r=await fetch('/api/tickets',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sport, budget:1000, max_legs:3, poznamka, tape_sekundy:15})});
+    const d=await r.json();
+    box.innerHTML='';
+    const tags=el('div'); tags.style.marginBottom='8px';
+    tags.appendChild(el('span','tag', sport)); tags.appendChild(el('span','tag', market));
+    tags.appendChild(el('span','tag', m.liga||'—'));
+    if(m.live) tags.appendChild(el('span','tag','LIVE'));
+    box.appendChild(tags);
+    const pre=el('pre','out', (d.stdout||'') + (d.stderr? '\n--- stderr ---\n'+d.stderr : ''));
+    box.appendChild(pre);
+    if(!d.ok) box.appendChild(el('div','warn','Agent skončil s chybou (rc='+d.rc+').'));
+  }catch(e){ box.innerHTML=''; box.appendChild(el('div','dim small','Chyba sítě: '+e.message)); }
+  btn.disabled=false; btn.textContent=old;
+}
+
+async function loadTape(){
+  const box=$('#tapeBox');
+  const sec=Math.max(5, Math.min(120, parseInt($('#tapeSec').value||'20',10)));
+  box.innerHTML='<div class="dim small"><span class="spin"></span> Sbírám živý tape '+sec+' s…</div>';
+  try{
+    const r=await fetch('/api/tape/digest?sekundy='+sec+'&max_trades=400');
+    const d=await r.json();
+    box.innerHTML='';
+    if(!d.ok){ box.appendChild(el('div','dim small','Chyba: '+(d.error||'?'))); return; }
+    box.appendChild(el('div','small','', ''));
+    const head=el('div','row'); head.style.flexWrap='wrap'; head.style.gap='6px';
+    head.appendChild(el('span','tag', d.pocet_trades+' sázek'));
+    head.appendChild(el('span','tag', num(d.celkem_stake_usdc,0)+' USDC'));
+    if(d.podil_stake_strana1!=null) head.appendChild(el('span','tag','strana1 '+(d.podil_stake_strana1*100).toFixed(0)+' %'));
+    box.appendChild(head);
+    const table=(title, rows, key, val)=>{
+      if(!rows||!rows.length) return;
+      const h=el('div','small'); h.style.margin='10px 0 4px'; h.innerHTML='<b>'+title+'</b>';
+      box.appendChild(h);
+      for(const x of rows.slice(0,8)){
+        const line=el('div','small dim');
+        line.textContent = `• ${x[key]} — n=${x.n}, ${num(x.stake_usdc,0)} USDC` + (x.prum_kurz?` @ ${num(x.prum_kurz,2)}`:'');
+        box.appendChild(line);
+      }
+    };
+    table('Podle typu trhu', d.podle_typu_trhu, 'typ_trhu');
+    table('Podle ligy', d.podle_ligy, 'liga');
+    table('Podle výběru', d.podle_vyberu, 'vyber');
+    if(d.pouceni&&d.pouceni.length){
+      const h=el('div','small'); h.style.margin='10px 0 4px'; h.innerHTML='<b>Poučení</b>'; box.appendChild(h);
+      for(const p of d.pouceni){ box.appendChild(el('div','small dim','• '+p)); }
+    }
+  }catch(e){ box.innerHTML=''; box.appendChild(el('div','dim small','Chyba sítě: '+e.message)); }
+}
+
+renderSegs();
+$('#loadMatches').onclick=loadMatches;
+$('#loadTape').onclick=loadTape;
+$('#reload').onclick=()=>{ loadMatches(); };
+loadMatches();
+</script>
+</body>
+</html>
