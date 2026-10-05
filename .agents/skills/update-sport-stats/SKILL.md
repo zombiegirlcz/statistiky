@@ -5,6 +5,8 @@ description: Aktualizuje sportovní statistiky v /statistiky (fotbal, tenis, hok
 
 # Denní aktualizace sportovních statistik
 
+> **Pravidlo pro Git:** Vždy pracuj na větvi `master`.
+
 ## Co to dělá a proč
 
 `/statistiky` obsahuje historická data (fotbal, tenis, hokej) i skript `match-probability`, který z nich počítá pravděpodobnosti zápasů. Aby ty predikce zůstaly užitečné, potřebují čerstvá data - jinak by model o týden od teď furt počítal s formou týmů starou týden. Tenhle skill řeší přesně tohle: jedním spuštěním doplní, co od posledně přibylo, a nic víc.
@@ -16,7 +18,7 @@ Je to návazný nástroj na prvotní historický sběr (ten stáhl 5 kompletníc
 Spusť skript, nic jiného není potřeba řešit ručně:
 
 ```bash
-python3 /root/statistiky/.agents/skills/update-sport-stats/scripts/update_stats.py
+python3 .agents/skills/update-sport-stats/scripts/update_stats.py
 ```
 
 Skript sám:

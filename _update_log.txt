@@ -128,3 +128,10 @@
 [09:03:01]   [markitdown] prevedeno: 2026-27_SP2_Spanelsko_-_Segunda_Division.md
 [09:03:12]   [markitdown] prevedeno: NHL_2026-2027.md
 [09:03:12] === HOTOVO: 8 souboru zmeneno ===
+
+--- 2026-10-05T21:12:02.401314 ---
+[21:11:54] === DENNI AKTUALIZACE (2026-10-05) ===
+[21:12:01] [fotbal] zadne nove zapasy, vse aktualni
+[21:12:02] [tenis] zadne nove zapasy, vse aktualni
+[21:12:02] [hokej] 2026-2027: zadne nove zapasy (celkem 39, uz mame 39)
+[21:12:02] === HOTOVO: 0 souboru zmeneno ===
