@@ -128,3 +128,14 @@
 [09:03:01]   [markitdown] prevedeno: 2026-27_SP2_Spanelsko_-_Segunda_Division.md
 [09:03:12]   [markitdown] prevedeno: NHL_2026-2027.md
 [09:03:12] === HOTOVO: 8 souboru zmeneno ===
+
+--- 2026-10-06T09:00:53.950435 ---
+[09:00:02] === DENNI AKTUALIZACE (2026-10-06) ===
+[09:00:30]   [fotbal] Spanelsko - Segunda Division (2026-27): 88 -> 89 radku (+1)
+[09:00:36] [tenis] zadne nove zapasy, vse aktualni
+[09:00:37] [hokej] 2026-2027: 4 novych zapasu k dostazeni (z 43 celkem)
+[09:00:39] [hokej] 2026-2027: pridano 4 zapasu
+[09:00:39] Prevadim 2 zmenenych souboru do Markdownu...
+[09:00:49]   [markitdown] prevedeno: 2026-27_SP2_Spanelsko_-_Segunda_Division.md
+[09:00:53]   [markitdown] prevedeno: NHL_2026-2027.md
+[09:00:53] === HOTOVO: 2 souboru zmeneno ===
