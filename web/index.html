@@ -51,6 +51,7 @@ select,input{background:var(--bg2);border:1px solid var(--line);color:var(--fg);
 
 /* seznam trhů pod zápasem */
 .markets{padding:0 12px 12px}
+.mbar{display:flex;align-items:center;gap:8px;padding:0 12px 8px;flex-wrap:wrap}
 .mrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
 .mname{flex:none;width:118px;font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.3px;font-weight:700}
 .mvals{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:0}
@@ -225,6 +226,19 @@ function matchCard(ev){
   head.appendChild(right);
   c.appendChild(head);
 
+  // lišta: akce nad CELÝM zápasem
+  const bar=el('div','mbar');
+  const bMatch=el('button','btn sm primary','🎯 Celý zápas');
+  bMatch.title='Agent projde všechny trhy tohoto zápasu a navrhne nejlepší výběr';
+  bMatch.onclick=()=>buildTicket(ev, 'match');
+  bar.appendChild(bMatch);
+  const bBB=el('button','btn sm gr','🧩 Bet builder');
+  bBB.title='Jeden kombinovaný tiket z více trhů tohoto zápasu (pozor na korelaci!)';
+  bBB.onclick=()=>buildTicket(ev, 'betbuilder');
+  bar.appendChild(bBB);
+  bar.appendChild(el('span','dim small', (ev.trhy?.length||0)+' trhů'));
+  c.appendChild(bar);
+
   // seznam všech trhů pod zápasem
   const mk=el('div','markets');
   for(const m of ev.trhy) mk.appendChild(marketRow(ev, m));
@@ -256,7 +270,7 @@ function offerBox(ev, m, name, odds, p, liq, side){
     // klikatelný výběr → sestavit tiket na tuhle konkrétní nohu
     o.style.cursor='pointer';
     o.title='Sestavit tiket na tento výběr';
-    o.onclick=()=>buildTicket(ev, m, name, odds, p, side, o);
+    o.onclick=()=>buildTicket(ev, 'match', m, name, odds, p, side, o);
   }
   return o;
 }
@@ -278,24 +292,33 @@ async function interruptAgent(){
   ib.disabled=false; ib.textContent='⛔ Přerušit agenta';
 }
 
-async function buildTicket(ev, m, pickName, pickOdds, pickP, side, boxEl){
+async function buildTicket(ev, mode, m, pickName, pickOdds, pickP, side, boxEl){
   const box=$('#ticketBox');
+  mode = mode || 'match';
   // vizuální označení vybrané nohy
   document.querySelectorAll('.offer.pick').forEach(x=>x.classList.remove('pick'));
   if(boxEl) boxEl.classList.add('pick');
   setAgentBusy(true);
-  box.innerHTML='<div class="dim small"><span class="spin"></span> pi agent sestavuje tiket (může to trvat až minuty). Můžeš ho kdykoli přerušit tlačítkem níže.</div>';
+  const popis = mode==='betbuilder' ? 'bet builder (kombinace trhů)' : 'tiket';
+  box.innerHTML='<div class="dim small"><span class="spin"></span> pi agent sestavuje '+popis+' (může to trvat až minuty). Můžeš ho kdykoli přerušit tlačítkem níže.</div>';
 
-  const trh = typLabel(m.typ) + lineTxt(m.typ, m.line);
-  const poznamka = `Zaměř se na zápas ${ev.tym1||''} vs ${ev.tym2||''} (${ev.liga||''}, ${ev.live?'LIVE':'pre-match'}). `
-    + `Konkrétní trh: ${trh} (typ ${m.typ}). Vybraná strana: ${pickName} @ ${num(pickOdds,3)} (trh ${pct(pickP)}). `
-    + `Zohledni tento konkrétní výběr jako hlavní nohu tiketu.`;
+  const zapas = `${ev.tym1||''} vs ${ev.tym2||''}`;
+  let poznamka = `Zápas: ${zapas} (${ev.liga||''}, ${ev.live?'LIVE':'pre-match'}). `;
+  let trh = mode==='betbuilder' ? 'BET BUILDER' : 'celý zápas';
+  if(m){
+    trh = typLabel(m.typ) + lineTxt(m.typ, m.line);
+    poznamka += `Předvybraný trh: ${trh} (typ ${m.typ}), strana ${pickName} @ ${num(pickOdds,3)} `
+      + `(trh ${pct(pickP)}). Můžeš ho použít jako hlavní nohu, ale zvaž i ostatní trhy. `;
+  }
+  poznamka += `Všechny dostupné trhy tohoto zápasu máš v sekci „KONKRÉTNÍ ZÁPAS A JEHO TRHY“ — `
+    + `použij ty kurzy, nechoď znovu obcházet orderbook.`;
 
   AGENT_ABORT = new AbortController();
   const t0=Date.now();
   try{
     const r=await fetch('/api/tickets',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({sport, budget:1000, max_legs:3, poznamka, tape_sekundy:15}),
+      body:JSON.stringify({sport, mod:mode, budget:1000, max_legs:3, poznamka,
+        trhy: ev.trhy||[], tape_sekundy:15}),
       signal:AGENT_ABORT.signal});
     const d=await r.json();
     const secs=((Date.now()-t0)/1000).toFixed(0);
@@ -303,7 +326,7 @@ async function buildTicket(ev, m, pickName, pickOdds, pickP, side, boxEl){
     const tags=el('div'); tags.style.marginBottom='8px';
     tags.appendChild(el('span','tag', sport));
     tags.appendChild(el('span','tag', trh));
-    tags.appendChild(el('span','tag', pickName+' @ '+num(pickOdds,3)));
+    if(m) tags.appendChild(el('span','tag', pickName+' @ '+num(pickOdds,3)));
     tags.appendChild(el('span','tag', ev.liga||'—'));
     if(ev.live) tags.appendChild(el('span','tag','LIVE'));
     tags.appendChild(el('span','tag', secs+' s'));
@@ -311,6 +334,8 @@ async function buildTicket(ev, m, pickName, pickOdds, pickP, side, boxEl){
     box.appendChild(tags);
     const pre=el('pre','out', (d.stdout||'') + (d.stderr? '\n--- stderr ---\n'+d.stderr : ''));
     box.appendChild(pre);
+    if(mode==='betbuilder')
+      box.appendChild(el('div','warn','Bet builder kombinuje trhy JEDNOHO zápasu — jsou korelované, takže skutečná šance je NIŽŠÍ než součin kurzů.'));
     if(d.interrupted) box.appendChild(el('div','warn','Agenta jsi přerušil — výstup výše je jen to, co stihl do přerušení.'));
     else if(!d.ok) box.appendChild(el('div','warn','Agent skončil s chybou (rc='+d.rc+').'));
   }catch(e){

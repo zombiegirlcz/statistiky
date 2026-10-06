@@ -325,6 +325,38 @@ def _sx_market_dict(m, with_odds=True, odds=None):
     return d
 
 
+def _trhy_do_textu(trhy):
+    """Z výpisu trhů (z /api/sx/by-event) udělá text pro prompt agenta.
+
+    Posílá se reálný snapshot kurzů, aby agent nemusel sám znovu obcházet
+    celý orderbook (což je pomalé a náchylné na chyby) — dostane přesně to,
+    co vidí uživatel v UI.
+    """
+    if not isinstance(trhy, list) or not trhy:
+        return ""
+
+    def _f(v, dec=3):
+        return "—" if v is None else f"{v:.{dec}f}"
+
+    def _p(v):
+        return "—" if v is None else f"{v * 100:.1f}%"
+
+    radky = []
+    for t in trhy[:40]:
+        if not isinstance(t, dict):
+            continue
+        line = t.get("line")
+        lt = f" (lajna {line})" if line not in (None, "") else ""
+        radky.append(
+            f"  trh {t.get('typ')}{lt}: "
+            f"{t.get('strana1')} kurz {_f(t.get('kurz1'))} "
+            f"(trh {_p(t.get('p1'))}, likvidita {_f(t.get('likvidita1'), 0)} USDC)"
+            f" | {t.get('strana2')} kurz {_f(t.get('kurz2'))} "
+            f"(trh {_p(t.get('p2'))}, likvidita {_f(t.get('likvidita2'), 0)} USDC)"
+        )
+    return "\n".join(radky)
+
+
 def _digest_do_textu(d):
     """Převede digest z veřejného SX.bet tape (sx_tape.digest) na text pro prompt."""
     if not d:
@@ -675,6 +707,8 @@ def tickets():
     budget = data.get("budget", 1000)
     max_legs = data.get("max_legs", 3)
     poznamka = (data.get("poznamka") or "").strip()
+    mod = (data.get("mod") or "").strip().lower()
+    trhy_txt = _trhy_do_textu(data.get("trhy") or [])
 
     # --- "trénink" před stavbou: živý tape SX.bet (sázky cizích hráčů) ---
     digest_txt = ""
@@ -722,6 +756,31 @@ def tickets():
             + digest_txt
             + "\n--- konec tréninku. Použij jako kontext (kam teče money), "
               "nepřebírej slepě. ---"
+        )
+    if trhy_txt:
+        prompt += (
+            "\n\n--- KONKRÉTNÍ ZÁPAS A JEHO TRHY (reálné kurzy ze SX.bet) ---\n"
+            + trhy_txt
+            + "\n--- konec seznamu trhů. Toto jsou skutečné kurzy; použij je "
+              "jako vstup pro model a stavbu tiketu. ---"
+        )
+    if mod == "betbuilder":
+        prompt += (
+            "\n\nMÓD: BET BUILDER. Poskládej JEDEN kombinovaný tiket z VÍCE trhů "
+            "TOHOTO JEDNOHO zápasu (např. vítěz + přes/pod + handicap + vítěz setu). "
+            "Vybírej nohy tak, aby měly podporu v datech. KRITICKY DŮLEŽITÉ: nohy "
+            "ze STEJNÉHO zápasu jsou KORELOVANÉ (favorit na vítězství a přes/pod se "
+            "navzájem ovlivňují), takže prostý součin kurzů NADHODNOCUJE skutečnou "
+            "šanci. Řekni to uživateli na rovinu a uveď i poctivý komentář, že "
+            "skutečná společná pravděpodobnost je nižší než součin jednotlivých noh. "
+            "U každé nohy uveď modelové % z našich dat vs. tržní %."
+        )
+    elif mod == "match":
+        prompt += (
+            "\n\nMÓD: CELÝ ZÁPAS. Projdi VŠECHNY trhy tohoto zápasu (viz seznam výše) "
+            "a navrhni nejlepší jednotlivý výběr (SÓLO) i případnou kombinaci. "
+            "U každého výběru uveď modelové % z našich dat vs. tržní % a poctivě "
+            "řekni, kde edge není ověřený (hokej, sety, přes/pod gamů, rohy, karty)."
         )
     if poznamka:
         prompt += f" Doplňující požadavek uživatele: {poznamka}"
