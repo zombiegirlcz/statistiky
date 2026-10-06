@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<title>Simulátor zápasů</title>
+<style>
+:root{
+  --bg:#0b1220; --bg2:#101a2e; --card:#141f36; --card2:#182647;
+  --line:#233457; --fg:#e8eefc; --dim:#8ea3c9; --dim2:#5f7398;
+  --cy:#22d3ee; --gr:#34d399; --rd:#fb7185; --yl:#fbbf24; --vi:#a78bfa;
+  --shadow:0 10px 30px rgba(0,0,0,.35); --r:16px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:radial-gradient(1200px 700px at 50% -10%, #16233f 0%, var(--bg) 60%);
+  color:var(--fg); font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased; padding-bottom:70px;
+}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+  padding:10px 14px;background:rgba(11,18,32,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.logo{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(145deg,var(--vi),#7c3aed);color:#160e2b;font-weight:800;font-size:15px;flex:none}
+.title{font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrap{padding:14px;max-width:900px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+h2{font-size:16px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.seg button{flex:1;min-width:88px;padding:9px 10px;border-radius:11px;border:1px solid var(--line);
+  background:var(--card2);color:var(--dim);font-size:13.5px;font-weight:600;cursor:pointer}
+.seg button.on{background:linear-gradient(180deg,#1d3a63,#16243f);color:var(--fg);border-color:#2f5a94}
+.row{display:flex;gap:8px;align-items:center}
+.btn{appearance:none;border:1px solid var(--line);background:var(--card2);color:var(--fg);
+  padding:10px 14px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:linear-gradient(145deg,var(--cy),#0ea5e9);color:#04202b;border-color:transparent}
+.btn.gr{background:linear-gradient(145deg,var(--gr),#059669);color:#04241a;border-color:transparent}
+.btn.vi{background:linear-gradient(145deg,var(--vi),#7c3aed);color:#160e2b;border-color:transparent}
+.btn.sm{padding:7px 11px;font-size:12.5px;border-radius:10px}
+.btn:disabled{opacity:.5;cursor:default}
+
+.match{border:1px solid var(--line);border-radius:14px;margin-bottom:12px;background:linear-gradient(180deg,var(--card2),var(--card));overflow:hidden}
+.mhead{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:12px;cursor:pointer}
+.mhead:active{opacity:.85}
+.mtitle{font-weight:800;font-size:15.5px;line-height:1.25}
+.liga{font-size:11.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:3px}
+.time{font-size:12px;color:var(--dim2);font-variant-numeric:tabular-nums;text-align:right}
+.live{font-size:10.5px;font-weight:800;color:#04241a;background:var(--gr);padding:2px 7px;border-radius:6px}
+.chev{color:var(--dim2);font-size:13px;transition:transform .15s}
+.match.open .chev{transform:rotate(90deg)}
+
+.detail{display:none;border-top:1px solid var(--line);padding:12px}
+.match.open .detail{display:block}
+.sec{margin-bottom:14px}
+.sec h3{font-size:13px;margin:0 0 8px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:8px}
+
+.bars{display:flex;flex-direction:column;gap:6px}
+.barrow{display:flex;align-items:center;gap:8px}
+.barlbl{width:84px;flex:none;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.bartrack{flex:1;height:18px;border-radius:6px;background:var(--bg2);overflow:hidden;position:relative}
+.barfill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--cy),#0ea5e9)}
+.barfill.draw{background:linear-gradient(90deg,var(--yl),#f59e0b)}
+.barfill.away{background:linear-gradient(90deg,var(--vi),#7c3aed)}
+.barpct{width:52px;flex:none;text-align:right;font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--dim)}
+
+.score-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.score-item{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center}
+.score-item .sc{font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
+.score-item .pc{font-size:12.5px;color:var(--dim)}
+.score-item.top1{border-color:#2f5a94;background:linear-gradient(180deg,#16243f,#101a2e)}
+
+.mrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.mrow:first-child{border-top:none}
+.mname{flex:none;width:118px;font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.3px;font-weight:700}
+.mvals{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:0}
+.offer{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:7px 9px;min-width:0}
+.offer .nm{font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.offer .line2{display:flex;align-items:baseline;gap:8px;margin-top:3px}
+.offer .odds{font-size:17px;font-weight:800;color:var(--cy);font-variant-numeric:tabular-nums}
+.offer .pr{font-size:11.5px;color:var(--dim)}
+.offer.nobook{opacity:.55}
+
+pre.out{background:#08101f;border:1px solid var(--line);border-radius:12px;padding:12px;
+  font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;
+  max-height:60vh;overflow:auto;margin:0;color:#cfe0ff}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.25);
+  border-top-color:var(--cy);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.dim{color:var(--dim)}.small{font-size:12.5px}.mono{font-variant-numeric:tabular-nums;font-family:ui-monospace,Menlo,Consolas,monospace}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--dim);margin-right:5px}
+.warn{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);color:#fde68a;border-radius:11px;padding:9px 11px;font-size:12.5px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">🎲</div>
+  <div class="title">Simulátor zápasů <span class="dim small">· Monte Carlo · kurzy · AI tiket</span></div>
+  <button class="btn" id="reload" title="Obnovit">↻</button>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <h2>⚽ Vyber zápas</h2>
+    <div class="seg" id="sportSeg"></div>
+    <div class="row" style="margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <button class="btn primary" id="loadMatches">Načíst zápasy</button>
+      <label class="dim small" style="display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="onlyLive" style="width:auto"> jen LIVE
+      </label>
+      <span class="dim small" id="matchesInfo"></span>
+    </div>
+    <div id="matches"><div class="dim small">Klikni na „Načíst zápasy“, potom rozklikni konkrétní zápas — zobrazí se Monte Carlo simulace, kurzy i AI tiket na jednom místě.</div></div>
+  </div>
+</div>
+
+<script>
+const SPORTS = {fotbal:'Fotbal', hokej:'Hokej', tenis:'Tenis'};
+const SIM_SPORTS = new Set(['fotbal','hokej']); // tenis ma jiny format skore (sety) - simulator ho nepocita
+const MARKET_LABEL = {
+  52:'Vítěz zápasu', 226:'Vítěz (vč. prodl.)', 1:'1X2',
+  202:'1. set / třetina', 203:'2. set / třetina', 204:'3. set / třetina', 205:'4. perioda',
+  201:'AH na gemy', 166:'Přes/pod gamů', 165:'Přes/pod setů', 866:'Set spread',
+  2:'Přes/pod', 28:'Přes/pod (vč. prodl.)', 835:'Asijské přes/pod', 29:'Přes/pod kol',
+  3:'Asijský handicap', 342:'AH (vč. prodl.)',
+  63:'Poločas — vítěz', 77:'Přes/pod poločas', 53:'AH poločas',
+  64:'AH 1. třetina', 65:'AH 2. třetina', 66:'AH 3. třetina',
+  21:'Přes/pod 1. třetina', 45:'Přes/pod 2. třetina', 46:'Přes/pod 3. třetina',
+};
+let sport = 'fotbal';
+
+const $ = s => document.querySelector(s);
+const el = (t,c,x) => { const e=document.createElement(t); if(c)e.className=c; if(x!==undefined)e.textContent=x; return e; };
+const pct = x => (x==null) ? '—' : (x*100).toFixed(1)+' %';
+const num = (x,d=2) => (x==null) ? '—' : Number(x).toFixed(d);
+const typLabel = t => MARKET_LABEL[t] || ('trh ' + t);
+const LINE_SIGN = new Set([3, 342, 201, 866, 53, 64, 65, 66]);
+const lineTxt = (t, line) => {
+  if(line==null || line==='') return '';
+  const n = Number(line);
+  if(!Number.isFinite(n)) return ' ' + line;
+  return LINE_SIGN.has(t) ? ` ${n>0?'+':''}${n}` : ` ${n}`;
+};
+function tsToLocal(ts){
+  if(!ts) return '';
+  try{ return new Date(ts*1000).toLocaleString('cs-CZ',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'}); }
+  catch(e){ return ''; }
+}
+
+function renderSegs(){
+  const ss=$('#sportSeg'); ss.innerHTML='';
+  for(const [k,v] of Object.entries(SPORTS)){
+    const b=el('button', k===sport?'on':'', v);
+    b.onclick=()=>{ sport=k; renderSegs(); loadMatches(); };
+    ss.appendChild(b);
+  }
+}
+
+async function loadMatches(){
+  const box=$('#matches'); const info=$('#matchesInfo');
+  const live=$('#onlyLive').checked ? '&live=true' : '';
+  box.innerHTML='<div class="dim small"><span class="spin"></span> Načítám zápasy ze SX.bet…</div>';
+  info.textContent='';
+  try{
+    const r=await fetch(`/api/sx/by-event?sport=${sport}&limit=25${live}`);
+    const d=await r.json();
+    if(!d.ok){ box.innerHTML=''; box.appendChild(el('div','dim small','Chyba: '+(d.error||'?'))); return; }
+    info.textContent = `${d.pocet_zapasu} zápasů`;
+    box.innerHTML='';
+    if(!d.zapasy.length){ box.appendChild(el('div','dim small','Žádné zápasy v této skupině.')); return; }
+    for(const ev of d.zapasy) box.appendChild(matchCard(ev));
+  }catch(e){ box.innerHTML=''; box.appendChild(el('div','dim small','Chyba sítě: '+e.message)); }
+}
+
+function matchCard(ev){
+  const c=el('div','match');
+  const head=el('div','mhead');
+  const left=el('div');
+  left.appendChild(el('div','liga', ev.liga||'—'));
+  left.appendChild(el('div','mtitle', ev.tym1 ? `${ev.tym1} vs ${ev.tym2}` : ev.zapas));
+  head.appendChild(left);
+  const right=el('div');
+  right.style.textAlign='right';
+  right.style.display='flex'; right.style.alignItems='center'; right.style.gap='8px';
+  if(ev.live) right.appendChild(el('span','live','LIVE'));
+  const timeWrap = el('div');
+  timeWrap.appendChild(el('div','time', tsToLocal(ev.zacatek)));
+  right.appendChild(timeWrap);
+  right.appendChild(el('span','chev','▸'));
+  head.appendChild(right);
+  c.appendChild(head);
+
+  const detail = el('div','detail');
+  let built = false;
+  head.onclick = () => {
+    c.classList.toggle('open');
+    if(c.classList.contains('open') && !built){
+      built = true;
+      buildDetail(ev, detail);
+    }
+  };
+  c.appendChild(detail);
+  return c;
+}
+
+function buildDetail(ev, detail){
+  detail.innerHTML='';
+
+  // --- 1) Monte Carlo simulace ---
+  const simSec = el('div','sec');
+  simSec.appendChild(el('h3',null,'🎲 Monte Carlo simulace'));
+  if(SIM_SPORTS.has(sport)){
+    const simBtn = el('button','btn sm vi','Spustit simulaci (20 000×)');
+    const simBox = el('div'); simBox.style.marginTop='8px';
+    simBtn.onclick = () => runSimulation(ev, simBox, simBtn);
+    simSec.appendChild(simBtn);
+    simSec.appendChild(simBox);
+  } else {
+    simSec.appendChild(el('div','dim small','Tenis se počítá po setech/gamech, ne po gólech — Monte Carlo skórovací simulace zatím podporuje jen fotbal a hokej.'));
+  }
+  detail.appendChild(simSec);
+
+  // --- 2) Kurzy ---
+  const oddsSec = el('div','sec');
+  oddsSec.appendChild(el('h3',null,'💰 Kurzy (SX.bet)'));
+  const mk = el('div');
+  if(ev.trhy && ev.trhy.length){
+    for(const m of ev.trhy) mk.appendChild(marketRow(ev, m));
+  } else {
+    mk.appendChild(el('div','dim small','Žádné trhy k tomuto zápasu.'));
+  }
+  oddsSec.appendChild(mk);
+  detail.appendChild(oddsSec);
+
+  // --- 3) AI tiket ---
+  const aiSec = el('div','sec');
+  aiSec.appendChild(el('h3',null,'🎯 AI tiket'));
+  const row = el('div','row');
+  const bMatch=el('button','btn sm primary','Sestavit tiket (celý zápas)');
+  bMatch.onclick=()=>buildTicket(ev, 'match', ticketBox);
+  const bBB=el('button','btn sm gr','Bet builder');
+  bBB.onclick=()=>buildTicket(ev, 'betbuilder', ticketBox);
+  row.appendChild(bMatch); row.appendChild(bBB);
+  aiSec.appendChild(row);
+  var ticketBox = el('div'); ticketBox.style.marginTop='8px';
+  aiSec.appendChild(ticketBox);
+  detail.appendChild(aiSec);
+}
+
+async function runSimulation(ev, box, btn){
+  btn.disabled = true;
+  box.innerHTML = '<div class="dim small"><span class="spin"></span> Simuluji 20 000 odehraných verzí zápasu…</div>';
+  try{
+    const r = await fetch('/api/simulate', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({sport, a: ev.tym1, b: ev.tym2, home:'A', n: 20000})});
+    const d = await r.json();
+    box.innerHTML = '';
+    if(!d.ok){ box.appendChild(el('div','warn','Simulace selhala: '+(d.error||'?'))); btn.disabled=false; return; }
+
+    const info = el('div','small dim');
+    info.textContent = `${d.home_team} vs ${d.away_team} — očekávané góly: ${d.lam_home} / ${d.lam_away} `
+      + `(historie: ${d.n_matches_a} + ${d.n_matches_b} zápasů, ${d.n_h2h}× vzájemně)`;
+    box.appendChild(info);
+
+    const bars = el('div','bars'); bars.style.marginTop='10px';
+    const op = d.outcome_pct;
+    bars.appendChild(barRow(d.home_team, op.home, ''));
+    if(op.draw != null) bars.appendChild(barRow('Remíza', op.draw, 'draw'));
+    bars.appendChild(barRow(d.away_team, op.away, 'away'));
+    box.appendChild(bars);
+
+    const scoreHead = el('div','small dim'); scoreHead.style.marginTop='12px'; scoreHead.style.marginBottom='6px';
+    scoreHead.textContent = `Nejčastější skóre ze ${d.n.toLocaleString('cs-CZ')} simulací:`;
+    box.appendChild(scoreHead);
+
+    const grid = el('div','score-grid');
+    d.top_scores.forEach((s, i) => {
+      const item = el('div','score-item' + (i===0?' top1':''));
+      item.appendChild(el('span','sc', `${s.home_goals}:${s.away_goals}`));
+      item.appendChild(el('span','pc', `${s.pct}%`));
+      grid.appendChild(item);
+    });
+    box.appendChild(grid);
+
+    box.appendChild(el('div','warn',
+      `Nejčastější jednotlivé skóre ve simulaci: ${d.nejcastejsi_vysledek} — ale i to vyšlo jen z `
+      + `${d.top_scores[0].pct}% běhů. Je to nejpravděpodobnější JEDNA možnost z desítek, ne predikce s jistotou.`));
+  }catch(e){
+    box.innerHTML=''; box.appendChild(el('div','dim small','Chyba sítě: '+e.message));
+  }
+  btn.disabled = false;
+}
+
+function barRow(label, value, cls){
+  const row = el('div','barrow');
+  row.appendChild(el('div','barlbl', label));
+  const track = el('div','bartrack');
+  const fill = el('div','barfill'+(cls?' '+cls:''));
+  fill.style.width = Math.max(value||0,1)+'%';
+  track.appendChild(fill);
+  row.appendChild(track);
+  row.appendChild(el('div','barpct', (value==null?'—':value+'%')));
+  return row;
+}
+
+function marketRow(ev, m){
+  const r=el('div','mrow');
+  const name=el('div','mname', typLabel(m.typ) + lineTxt(m.typ, m.line));
+  r.appendChild(name);
+  const vals=el('div','mvals');
+  vals.appendChild(offerBox(m.strana1, m.kurz1, m.p1, m.likvidita1));
+  vals.appendChild(offerBox(m.strana2, m.kurz2, m.p2, m.likvidita2));
+  r.appendChild(vals);
+  return r;
+}
+
+function offerBox(name, odds, p, liq){
+  const o=el('div','offer' + (odds==null ? ' nobook' : ''));
+  o.appendChild(el('div','nm', name||'—'));
+  const l2=el('div','line2');
+  l2.appendChild(el('span','odds mono', odds==null?'—':num(odds,3)));
+  l2.appendChild(el('span','pr', odds==null?'bez knihy':('trh '+pct(p))));
+  o.appendChild(l2);
+  if(liq!=null) o.appendChild(el('div','liq small dim', num(liq,0)+' USDC'));
+  return o;
+}
+
+async function buildTicket(ev, mode, box){
+  box.innerHTML='<div class="dim small"><span class="spin"></span> pi agent sestavuje tiket (může to trvat až minuty)…</div>';
+  const zapas = `${ev.tym1||''} vs ${ev.tym2||''}`;
+  const poznamka = `Zápas: ${zapas} (${ev.liga||''}, ${ev.live?'LIVE':'pre-match'}). `
+    + `Všechny dostupné trhy tohoto zápasu máš v sekci „KONKRÉTNÍ ZÁPAS A JEHO TRHY“ — použij ty kurzy, nechoď znovu obcházet orderbook.`;
+  const t0=Date.now();
+  try{
+    const r=await fetch('/api/tickets',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sport, mod:mode, budget:1000, max_legs:3, poznamka, trhy: ev.trhy||[], tape_sekundy:15})});
+    const d=await r.json();
+    const secs=((Date.now()-t0)/1000).toFixed(0);
+    box.innerHTML='';
+    const tags=el('div'); tags.style.marginBottom='8px';
+    tags.appendChild(el('span','tag', sport));
+    tags.appendChild(el('span','tag', mode==='betbuilder'?'bet builder':'celý zápas'));
+    tags.appendChild(el('span','tag', secs+' s'));
+    box.appendChild(tags);
+    box.appendChild(el('pre','out', (d.stdout||'') + (d.stderr? '\n--- stderr ---\n'+d.stderr : '')));
+    if(mode==='betbuilder')
+      box.appendChild(el('div','warn','Bet builder kombinuje trhy JEDNOHO zápasu — jsou korelované, takže skutečná šance je NIŽŠÍ než součin kurzů.'));
+    if(!d.ok) box.appendChild(el('div','warn','Agent skončil s chybou (rc='+d.rc+').'));
+  }catch(e){
+    box.innerHTML=''; box.appendChild(el('div','dim small','Chyba sítě: '+e.message));
+  }
+}
+
+renderSegs();
+$('#loadMatches').onclick = loadMatches;
+$('#onlyLive').onchange = loadMatches;
+$('#reload').onclick = loadMatches;
+</script>
+</body>
+</html>

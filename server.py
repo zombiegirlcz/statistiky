@@ -48,6 +48,7 @@ GET  /api/odds?sport=...&a=...&b=...
 GET  /api/sx/trades?dny=14&limit=100
 GET  /api/learner/digest?sekundy=25
 POST /api/probability   {"sport":"fotbal","a":"Arsenal","b":"Chelsea","home":"A"}
+POST /api/simulate      {"sport":"fotbal|hokej","a":"Arsenal","b":"Chelsea","home":"A","n":20000} — Monte Carlo (match_simulator.py)
 POST /api/run           {"skript":"replay","args":["--rok","2024"],"timeout":900}
 POST /api/tickets       {"sport":"tenis","budget":1000,"max_legs":3,"trenink":true,"poznamka":"..."}
 POST /api/agent         {"prompt":"..."}
@@ -390,6 +391,13 @@ def index():
     return send_from_directory(WEB_DIR, "index.html")
 
 
+@app.get("/simulator")
+def simulator_page():
+    if not os.path.exists(os.path.join(WEB_DIR, "simulator.html")):
+        return jsonify({"ok": False, "error": "web/simulator.html nenalezen"}), 404
+    return send_from_directory(WEB_DIR, "simulator.html")
+
+
 # ---------------------------------------------------------------------------
 # /health
 # ---------------------------------------------------------------------------
@@ -695,6 +703,37 @@ def probability():
         cmd += ["--home", home]
     rc, out, err, _ = _run(cmd, timeout=180)
     return jsonify({"ok": rc == 0, "rc": rc, "vystup": out, "stderr": err})
+
+
+# ---------------------------------------------------------------------------
+# /api/simulate — Monte Carlo simulace zápasu (match_simulator.py)
+# ---------------------------------------------------------------------------
+@app.post("/api/simulate")
+def simulate():
+    data = request.get_json(silent=True) or {}
+    sport = (data.get("sport") or "").strip().lower()
+    a = (data.get("a") or "").strip()
+    b = (data.get("b") or "").strip()
+    if sport not in ("fotbal", "hokej") or not a or not b:
+        return jsonify({"ok": False, "error": "potřeba sport (fotbal|hokej), a, b"}), 400
+
+    try:
+        n = min(max(int(data.get("n", 20000)), 1000), 50000)
+    except (TypeError, ValueError):
+        n = 20000
+
+    cmd = [sys.executable, "match_simulator.py", sport, a, b, "--n", str(n), "--json"]
+    home = data.get("home")
+    if home in ("A", "B"):
+        cmd += ["--home", home]
+    rc, out, err, _ = _run(cmd, timeout=60)
+    if rc != 0:
+        return jsonify({"ok": False, "error": err or "simulace selhala"}), 502
+    try:
+        result = json.loads(out)
+    except json.JSONDecodeError:
+        return jsonify({"ok": False, "error": f"neplatný výstup simulátoru: {out[:300]}"}), 502
+    return jsonify(result)
 
 
 # ---------------------------------------------------------------------------
