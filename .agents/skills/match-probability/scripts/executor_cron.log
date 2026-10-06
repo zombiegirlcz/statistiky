@@ -5737,3 +5737,153 @@ CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for
 CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-06T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-06T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
 
   (agent trh-only-antuka-favorit ukončen: 1)
+Spouštím aktivní agenty: 5
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 23 (z toho dvouhry: 13) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 4)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 79) [PRE-MATCH]
+Banka: 898 minci (start 1000), vazano 0
+
+      => PRE-MATCH TIKET na Miomir Kecmanovic @ 1.4414414414414416 (model 82%, trh 68%), vklad 18 [Miomir Kecmanovic vs Sho Shimabukuro, 2026-10-07T04:00:00Z]
+
+Novych pre-match tiketu: 1 (bez dat: 51, bez SX.bet trhu: 21)
+Banka: 898 minci, nevyrizeno 1 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 9 - zjišťuji výsledky...
+
+  [VÝHRA ] Mirra Andreeva vs Daria Snigur - tiket na Mirra Andreeva @ 1.1851851851851851, vyhrál Mirra Andreeva (+3 mincí)
+  [VÝHRA ] Roman Safiullin vs Shintaro Mochizuki - tiket na Roman Safiullin @ 1.21580547112462, vyhrál Roman Safiullin (+4 mincí)
+  [VÝHRA ] Liam Draxl vs Nikoloz Basilashvili - tiket na Nikoloz Basilashvili @ 1.7130620985010707, vyhrál Nikoloz Basilashvili (+13 mincí)
+  [PROHRA] Timofey Skatov vs Bernard Tomic - tiket na Timofey Skatov @ 2.2099447513812156, vyhrál Bernard Tomic (-18 mincí)
+  [PROHRA] Ekaterina Alexandrova vs Linda Noskova - tiket na Linda Noskova @ 1.3071895424836601, vyhrál Ekaterina Alexandrova (-18 mincí)
+  [VÝHRA ] Nicolas Mejia vs Michael Zheng - tiket na Nicolas Mejia @ 4.938271604938271, vyhrál Nicolas Mejia (+71 mincí)
+  [VÝHRA ] Rei Sakamoto vs Kyrian Jacquet - tiket na Rei Sakamoto @ 2.2408963585434174, vyhrál Rei Sakamoto (+22 mincí)
+  [VÝHRA ] Dalibor Svrcina vs Yoshihito Nishioka - tiket na Dalibor Svrcina @ 1.6326530612244896, vyhrál Dalibor Svrcina (+11 mincí)
+  [PROHRA] Karolina Muchova vs Naomi Osaka - tiket na Naomi Osaka @ 2.26628895184136, vyhrál Karolina Muchova (-18 mincí)
+
+Vyhodnoceno nových tiketů: 9
+
+Zápasů: 122 (dvouhry: 89, z toho live 11, prematch 78) [MODEL-ONLY]
+Banka: 980 mincí (start 1000), vázáno 0
+
+      => MODEL-ONLY [favorit] TIKET na Matteo Berrettini (model 51%), kurz 1.5267175572519083, vklad 20 [Matteo Berrettini vs Aleksandar Kovacevic]
+      => MODEL-ONLY [favorit] TIKET na Miomir Kecmanovic (model 82%), kurz 1.4414414414414416, vklad 20 [Miomir Kecmanovic vs Sho Shimabukuro]
+      => MODEL-ONLY [favorit] TIKET na Arthur Gea (model 68%), kurz 1.6096579476861168, vklad 20 [Jaime Faria vs Arthur Gea]
+      => MODEL-ONLY [favorit] TIKET na Iga Swiatek (model 70%), kurz 1.5037593984962405, vklad 20 [Iva Jovic vs Iga Swiatek]
+      => MODEL-ONLY [UNDERDOG] TIKET na Adrian Mannarino (model 57%), kurz 2.06, vklad 20 [Nikoloz Basilashvili vs Adrian Mannarino]
+      => MODEL-ONLY [favorit] TIKET na Tomas Machac (model 50%), kurz 1.465201465201465, vklad 20 [Zhizhen Zhang vs Tomas Machac]
+      => MODEL-ONLY [favorit] TIKET na Kamil Majchrzak (model 81%), kurz 1.5779092702169624, vklad 20 [Kamil Majchrzak vs Yannick Hanfmann]
+
+Nových model-only tiketů: 7 (z toho underdog: 1, bez dat: 54, bez kurzu: 24)
+Banka: 980 mincí, nevyřízeno 7 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 4 - zjišťuji výsledky...
+
+  [PROHRA] Timofey Skatov vs Bernard Tomic - tiket na Timofey Skatov @ 4.409, vyhrál Bernard Tomic (-31 mincí)
+  [VÝHRA ] Nicolas Mejia vs Michael Zheng - tiket na Nicolas Mejia @ 17.558, vyhrál Nicolas Mejia (+513 mincí)
+  [VÝHRA ] Rei Sakamoto vs Kyrian Jacquet - tiket na Rei Sakamoto @ 4.656, vyhrál Rei Sakamoto (+113 mincí)
+  [čeká] Dalibor Svrcina vs Yoshihito Nishioka - builder ještě není rozhodnutý
+
+Vyhodnoceno nových tiketů: 3
+
+Nadchazejicich dvouher: 78 [BET BUILDER]
+Banka: 2160 mincí (start 1000), vázáno 31
+
+      => BUILDER TIKET: Kamil Majchrzak vyhraje zapas I 1. set @ 2.43 (1.58x1.54) | joint 66% vs trh 41% | edge +25%, vklad 43 [Kamil Majchrzak vs Yannick Hanfmann]
+
+Nových builder tiketů: 1 (bez dat/trhu: 76, bez edge: 1)
+Banka: 2160 mincí, nevyřízeno 2 tiketů
+
+===== agent trh-only-antuka-favorit (market_clay_fav) banka 1000 log trh-only-antuka-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Nadcházejících zápasů: 100 (dvouhry: 78) [TRH-ONLY ANTUKA]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových antukových tiketů: 0 (neantuka: 77, bez SX.bet trhu: 1, kurz >1.2: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+Spouštím aktivní agenty: 5
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 17 (z toho dvouhry: 8) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 3)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 1 - zjišťuji výsledky...
+
+  [čeká] Miomir Kecmanovic vs Sho Shimabukuro - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 77) [PRE-MATCH]
+Banka: 898 minci (start 1000), vazano 18
+
+
+Novych pre-match tiketu: 0 (bez dat: 51, bez SX.bet trhu: 18)
+Banka: 898 minci, nevyrizeno 1 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 7 - zjišťuji výsledky...
+
+  [čeká] Matteo Berrettini vs Aleksandar Kovacevic - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Miomir Kecmanovic vs Sho Shimabukuro - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Jaime Faria vs Arthur Gea - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Iva Jovic vs Iga Swiatek - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Nikoloz Basilashvili vs Adrian Mannarino - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Zhizhen Zhang vs Tomas Machac - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Kamil Majchrzak vs Yannick Hanfmann - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Zápasů: 116 (dvouhry: 84, z toho live 7, prematch 77) [MODEL-ONLY]
+Banka: 980 mincí (start 1000), vázáno 140
+
+      => MODEL-ONLY [favorit] TIKET na Coco Gauff (model 67%), kurz 1.2738853503184713, vklad 20 [Coco Gauff vs Elise Mertens]
+
+Nových model-only tiketů: 1 (z toho underdog: 0, bez dat: 53, bez kurzu: 22)
+Banka: 980 mincí, nevyřízeno 8 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 2 - zjišťuji výsledky...
+
+  [čeká] Dalibor Svrcina vs Yoshihito Nishioka - builder ještě není rozhodnutý
+  [čeká] Kamil Majchrzak vs Yannick Hanfmann - builder ještě není rozhodnutý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich dvouher: 77 [BET BUILDER]
+Banka: 2160 mincí (start 1000), vázáno 74
+
+
+Nových builder tiketů: 0 (bez dat/trhu: 75, bez edge: 1)
+Banka: 2160 mincí, nevyřízeno 2 tiketů
+
+===== agent trh-only-antuka-favorit (market_clay_fav) banka 1000 log trh-only-antuka-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Nadcházejících zápasů: 100 (dvouhry: 77) [TRH-ONLY ANTUKA]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových antukových tiketů: 0 (neantuka: 76, bez SX.bet trhu: 1, kurz >1.2: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů

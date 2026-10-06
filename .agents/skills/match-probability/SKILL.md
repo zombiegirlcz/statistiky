@@ -124,6 +124,20 @@ Pokud uživatel chce tiket na PIM nebo karty, řekni mu na rovinu, že tenhle
 model je tam systematicky mimo a že empirický sloupec v datech je spolehlivější
 než modelový odhad.
 
+## Volitelně: pravděpodobnost, že KONKRÉTNÍ HRÁČ dá gól (trh "střelec gólu")
+
+Pokud se uživatel zeptá na pravděpodobnost, že konkrétní hráč vstřelí gól (fotbal i hokej, včetně "hráč dá gól včetně prodloužení" u hokeje) - trh, který `aggregate_stats.py`/`market_probs.py` nepočítají (ty řeší výsledek/skóre ZÁPASU, ne jednotlivého hráče) - použij:
+
+```bash
+python3 .agents/skills/match-probability/scripts/goalscorer_prob.py fotbal "Erling Haaland"
+python3 .agents/skills/match-probability/scripts/goalscorer_prob.py hokej "William Nylander"
+python3 .agents/skills/match-probability/scripts/goalscorer_prob.py hokej "Nylander William"   # funguje i v pořadí příjmení jméno, jak to dává tiket
+```
+
+Počítá Poissonův odhad `P(≥1 gól) = 1 - e^(-λ)` z hráčovy **vlastní** sezonní střelecké frekvence (góly/zápasy), váženě přes poslední 1-2 sezony (aktuální 70 %, předchozí 30 %). U hokeje se playoff řádky ze vzorku vyřazují, aby se nemíchaly jiné podmínky do jedné váhy.
+
+**Zásadní omezení - vždy řekni uživateli:** model **nezohledňuje soupeře** (sílu obrany, brankáře, pravděpodobnou sestavu) - je to hrubý odhad z vlastní formy hráče, ne tržní cena. Při málo odehraných zápasech (`< 10`) skript sám vypíše varování o nízké spolehlivosti. Pro tiket s víc nohama na tomhle trhu (typicky AKO) platí stejný nález jako jinde v tomhle skillu - víc nezávislých noh kombinovaných dohromady dramaticky snižuje šanci na proplacení celého tiketu (kurzy se násobí, pravděpodobnosti taky), i když každá noha samotná je rozumná sázka.
+
 ## Volitelně: stavba sázkových tiketů (SÓLO i AKO kombinace)
 
 Pokud uživatel chce rovnou TIKET (konkrétní sázku s vkladem, ne jen procenta) - "slož mi sázku", "jaký tiket na dnešek", "udělej kombinaci" - použij:
