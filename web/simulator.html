@@ -91,12 +91,14 @@ pre.out{background:#08101f;border:1px solid var(--line);border-radius:12px;paddi
 .dim{color:var(--dim)}.small{font-size:12.5px}.mono{font-variant-numeric:tabular-nums;font-family:ui-monospace,Menlo,Consolas,monospace}
 .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--dim);margin-right:5px}
 .warn{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);color:#fde68a;border-radius:11px;padding:9px 11px;font-size:12.5px;margin-top:8px}
+.modesw{display:flex;gap:2px;margin-left:auto;margin-right:8px;background:#0b1220;border:1px solid #243049;border-radius:10px;padding:2px}.modesw a{padding:5px 10px;border-radius:8px;font-size:12.5px;font-weight:700;color:#8fa3c0;text-decoration:none}.modesw a.on{background:#1d3a63;color:#e6edf7}
 </style>
 </head>
 <body>
 <div class="topbar">
   <div class="logo">🎲</div>
   <div class="title">Simulátor zápasů <span class="dim small">· Monte Carlo · kurzy · AI tiket</span></div>
+  <nav class="modesw" aria-label="Přepínač sekce"><a href="/" class="on">Sport</a><a href="/loterie/">Loterie</a></nav>
   <button class="btn" id="reload" title="Obnovit">↻</button>
 </div>
 

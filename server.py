@@ -68,13 +68,14 @@ import sys
 import threading
 import time
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, redirect, request, send_from_directory
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS_DIR = os.path.join(BASE_DIR, ".agents", "skills", "match-probability", "scripts")
 sys.path.insert(0, SCRIPTS_DIR)
 
 WEB_DIR = os.path.join(BASE_DIR, "web")
+PWA_DIR = os.path.join(BASE_DIR, "pwa")
 
 # pi binárka — výchozí 'pi' ze systémového PATH (nebo PI_BIN z ~/.env)
 PI_BIN = os.environ.get("PI_BIN", "pi")
@@ -403,6 +404,23 @@ def simulator_page():
     if not os.path.exists(os.path.join(WEB_DIR, "simulator.html")):
         return jsonify({"ok": False, "error": "web/simulator.html nenalezen"}), 404
     return send_from_directory(WEB_DIR, "simulator.html")
+
+
+# ---------------------------------------------------------------------------
+# /loterie/ — PWA Loterie (Lucky Six + Maxa Šestka), statické soubory z pwa/
+# Relativní cesty v pwa/ (manifest, sw.js, app.js) fungují jen s koncovým lomítkem.
+# ---------------------------------------------------------------------------
+@app.get("/loterie")
+def loterie_redirect():
+    return redirect("/loterie/", code=301)
+
+
+@app.get("/loterie/")
+@app.get("/loterie/<path:fname>")
+def loterie(fname="index.html"):
+    if not os.path.isdir(PWA_DIR):
+        return jsonify({"ok": False, "error": "pwa/ nenalezeno"}), 404
+    return send_from_directory(PWA_DIR, fname)
 
 
 # ---------------------------------------------------------------------------
