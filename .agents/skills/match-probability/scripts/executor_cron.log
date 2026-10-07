@@ -7552,3 +7552,165 @@ CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for
 CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-07T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-07T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
 
   (agent trh-only-antuka-favorit ukončen: 1)
+Spouštím aktivní agenty: 5
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 15 (z toho dvouhry: 6) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 4)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 1 - zjišťuji výsledky...
+
+  [VÝHRA ] Miomir Kecmanovic vs Sho Shimabukuro - tiket na Miomir Kecmanovic @ 1.4414414414414416, vyhrál Miomir Kecmanovic (+8 mincí)
+
+Vyhodnoceno nových tiketů: 1
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 70) [PRE-MATCH]
+Banka: 906 minci (start 1000), vazano 0
+
+      => PRE-MATCH TIKET na Tallon Griekspoor @ 1.5037593984962405 (model 85%, trh 66%), vklad 18 [Tallon Griekspoor vs Pavel Kotov, 2026-10-08T04:00:00Z]
+      => PRE-MATCH TIKET na Hubert Hurkacz @ 1.415929203539823 (model 78%, trh 70%), vklad 18 [James Duckworth vs Hubert Hurkacz, 2026-10-08T05:30:00Z]
+
+Novych pre-match tiketu: 2 (bez dat: 37, bez SX.bet trhu: 22)
+Banka: 906 minci, nevyrizeno 2 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 8 - zjišťuji výsledky...
+
+  [VÝHRA ] Matteo Berrettini vs Aleksandar Kovacevic - tiket na Matteo Berrettini @ 1.5267175572519083, vyhrál Matteo Berrettini (+11 mincí)
+  [VÝHRA ] Miomir Kecmanovic vs Sho Shimabukuro - tiket na Miomir Kecmanovic @ 1.4414414414414416, vyhrál Miomir Kecmanovic (+9 mincí)
+  [VÝHRA ] Jaime Faria vs Arthur Gea - tiket na Arthur Gea @ 1.6096579476861168, vyhrál Arthur Gea (+12 mincí)
+  [VÝHRA ] Iva Jovic vs Iga Swiatek - tiket na Iga Swiatek @ 1.5037593984962405, vyhrál Iga Swiatek (+10 mincí)
+  [VÝHRA ] Nikoloz Basilashvili vs Adrian Mannarino - tiket na Adrian Mannarino @ 2.06, vyhrál Adrian Mannarino (+21 mincí)
+  [VÝHRA ] Zhizhen Zhang vs Tomas Machac - tiket na Tomas Machac @ 1.465201465201465, vyhrál Tomas Machac (+9 mincí)
+  [PROHRA] Kamil Majchrzak vs Yannick Hanfmann - tiket na Kamil Majchrzak @ 1.5779092702169624, vyhrál Yannick Hanfmann (-20 mincí)
+  [PROHRA] Coco Gauff vs Elise Mertens - tiket na Coco Gauff @ 1.2738853503184713, vyhrál Elise Mertens (-20 mincí)
+
+Vyhodnoceno nových tiketů: 8
+
+Zápasů: 111 (dvouhry: 75, z toho live 4, prematch 71) [MODEL-ONLY]
+Banka: 1012 mincí (start 1000), vázáno 0
+
+      => MODEL-ONLY [favorit] TIKET na Tallon Griekspoor (model 85%), kurz 1.5037593984962405, vklad 101 [Tallon Griekspoor vs Pavel Kotov]
+      => MODEL-ONLY [favorit] TIKET na Stefanos Tsitsipas (model 60%), kurz 1.1157601115760112, vklad 20 [Stefanos Tsitsipas vs Kimmer Coppejans]
+      => MODEL-ONLY [UNDERDOG] TIKET na Valentin Royer (model 66%), kurz 2.1563342318059298, vklad 20 [Daniel Adolfo Vallejo vs Valentin Royer]
+      => MODEL-ONLY [UNDERDOG] TIKET na Pablo Carreno-Busta (model 79%), kurz 2.359882005899705, vklad 20 [Pablo Carreno-Busta vs Mariano Navone]
+      => MODEL-ONLY [favorit] TIKET na Hubert Hurkacz (model 78%), kurz 1.415929203539823, vklad 20 [James Duckworth vs Hubert Hurkacz]
+      => MODEL-ONLY [UNDERDOG] TIKET na Bernard Tomic (model 56%), kurz 2.9962546816479403, vklad 20 [Matteo Arnaldi vs Bernard Tomic]
+      => MODEL-ONLY [favorit] TIKET na Jan-Lennard Struff (model 65%), kurz 1.9559902200488999, vklad 20 [Martin Landaluce vs Jan-Lennard Struff]
+      => MODEL-ONLY [favorit] TIKET na Fabian Marozsan (model 65%), kurz 1.7738359201773837, vklad 20 [Zachary Svajda vs Fabian Marozsan]
+
+Nových model-only tiketů: 8 (z toho underdog: 3, bez dat: 39, bez kurzu: 24)
+Banka: 1012 mincí, nevyřízeno 8 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 2 - zjišťuji výsledky...
+
+  [čeká] Dalibor Svrcina vs Yoshihito Nishioka - builder ještě není rozhodnutý
+  [PROHRA] Kamil Majchrzak vs Yannick Hanfmann - tiket na Kamil Majchrzak @ 2.428, vyhrál Yannick Hanfmann (-43 mincí)
+
+Vyhodnoceno nových tiketů: 1
+
+Nadchazejicich dvouher: 71 [BET BUILDER]
+Banka: 2117 mincí (start 1000), vázáno 31
+
+      => BUILDER TIKET: Facundo Diaz Acosta vyhraje zapas I 1. set @ 11.68 (3.88x3.01) | joint 40% vs trh 9% | edge +32%, vklad 42 [Facundo Diaz Acosta vs Nuno Borges]
+      => BUILDER TIKET: Tallon Griekspoor vyhraje zapas I 1. set @ 2.20 (1.50x1.46) | joint 71% vs trh 45% | edge +26%, vklad 42 [Tallon Griekspoor vs Pavel Kotov]
+      => BUILDER TIKET: Jenson Brooksby vyhraje zapas I 1. set @ 6.41 (2.75x2.33) | joint 38% vs trh 16% | edge +22%, vklad 42 [Jenson Brooksby vs Jaume Munar]
+      => BUILDER TIKET: Pablo Carreno-Busta vyhraje zapas I 1. set @ 4.90 (2.36x2.08) | joint 64% vs trh 20% | edge +44%, vklad 42 [Pablo Carreno-Busta vs Mariano Navone]
+
+Nových builder tiketů: 4 (bez dat/trhu: 61, bez edge: 6)
+Banka: 2117 mincí, nevyřízeno 5 tiketů
+
+===== agent trh-only-antuka-favorit (market_clay_fav) banka 1000 log trh-only-antuka-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Nadcházejících zápasů: 100 (dvouhry: 72) [TRH-ONLY ANTUKA]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových antukových tiketů: 0 (neantuka: 68, bez SX.bet trhu: 4, kurz >1.2: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+Spouštím aktivní agenty: 5
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 10 (z toho dvouhry: 2) [SET-level]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 2 - zjišťuji výsledky...
+
+  [čeká] Tallon Griekspoor vs Pavel Kotov - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] James Duckworth vs Hubert Hurkacz - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 72) [PRE-MATCH]
+Banka: 906 minci (start 1000), vazano 36
+
+
+Novych pre-match tiketu: 0 (bez dat: 40, bez SX.bet trhu: 21)
+Banka: 906 minci, nevyrizeno 2 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 8 - zjišťuji výsledky...
+
+  [čeká] Tallon Griekspoor vs Pavel Kotov - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Stefanos Tsitsipas vs Kimmer Coppejans - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Daniel Adolfo Vallejo vs Valentin Royer - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Pablo Carreno-Busta vs Mariano Navone - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] James Duckworth vs Hubert Hurkacz - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Matteo Arnaldi vs Bernard Tomic - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Martin Landaluce vs Jan-Lennard Struff - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Zachary Svajda vs Fabian Marozsan - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Zápasů: 110 (dvouhry: 75, z toho live 2, prematch 73) [MODEL-ONLY]
+Banka: 1012 mincí (start 1000), vázáno 241
+
+      ! model favorit Karolina Muchova (p=61%), ale tiket se nezakládá: na tiket by zbylo jen 12 mincí (potřeba 20)
+
+Nových model-only tiketů: 0 (z toho underdog: 0, bez dat: 39, bez kurzu: 22)
+Banka: 1012 mincí, nevyřízeno 8 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 5 - zjišťuji výsledky...
+
+  [čeká] Dalibor Svrcina vs Yoshihito Nishioka - builder ještě není rozhodnutý
+  [čeká] Facundo Diaz Acosta vs Nuno Borges - builder ještě není rozhodnutý
+  [čeká] Tallon Griekspoor vs Pavel Kotov - builder ještě není rozhodnutý
+  [čeká] Jenson Brooksby vs Jaume Munar - builder ještě není rozhodnutý
+  [čeká] Pablo Carreno-Busta vs Mariano Navone - builder ještě není rozhodnutý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich dvouher: 74 [BET BUILDER]
+Banka: 2117 mincí (start 1000), vázáno 199
+
+      => BUILDER TIKET: Marcos Giron vyhraje zapas I 1. set @ 4.15 (2.12x1.96) | joint 38% vs trh 24% | edge +13%, vklad 42 [Marcos Giron vs Sebastián Báez]
+
+Nových builder tiketů: 1 (bez dat/trhu: 63, bez edge: 6)
+Banka: 2117 mincí, nevyřízeno 6 tiketů
+
+===== agent trh-only-antuka-favorit (market_clay_fav) banka 1000 log trh-only-antuka-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Nadcházejících zápasů: 100 (dvouhry: 74) [TRH-ONLY ANTUKA]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových antukových tiketů: 0 (neantuka: 68, bez SX.bet trhu: 6, kurz >1.2: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
