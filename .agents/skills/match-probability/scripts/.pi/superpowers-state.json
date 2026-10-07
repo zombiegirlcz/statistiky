@@ -42,7 +42,9 @@
       "/root/statistiky/.agents/skills/match-probability/scripts/live_tennis_simulator.py",
       "/root/statistiky/.agents/skills/match-probability/scripts/agents.py",
       "/root/statistiky/.agents/skills/match-probability/scripts/executor.py",
-      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round_market.py"
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round_market.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_oos.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_signif.py"
     ],
     "redVerificationPending": false
   },

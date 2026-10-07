@@ -144,8 +144,12 @@ def compose_notification(goal):
     prompt = (
         "Z techto faktu o hokejovem golu uprav JEDNU kratkou cesky vetu (max 15 slov) "
         "pro push notifikaci na telefon - strucne, vecne, bez emoji, bez uvozovek. "
+        "Vypis VYHRADNE tu jednu finalni vetu a nic jineho - zadne uvahy, poznamky, "
+        "pochybnosti ani vysvetlovani postupu. Pokud si nejsi jisty detailem, "
+        "vynech ho a drz se jen zadanych faktu. "
         f"Fakta: {fact}"
     )
+    surname = goal["scorer"].split()[-1].lower()
     try:
         result = subprocess.run(
             ["pi", "-p", prompt, "--provider", "deepseek-free", "--model", "deepseek-chat", "--no-session"],
@@ -155,7 +159,18 @@ def compose_notification(goal):
         # pi vypisuje i startup hlasky na stdout - vezmi posledni neprazdnou radku, co nezacina [ nebo Warning
         candidates = [l.strip() for l in text if l.strip() and not l.strip().startswith(("[", "Warning"))]
         if candidates:
-            return candidates[-1]
+            answer = candidates[-1]
+            # pojistka proti modelu, ktery do odpovedi vmicha vlastni uvahu/pochybnosti
+            # (napr. "Ale rozpor: ..."): overime, ze je to jedna krátka vazna veta
+            # obsahujici prijmeni strelce, jinak neduverujeme a padneme na sablonu.
+            looks_sane = (
+                len(answer) <= 160
+                and surname in answer.lower()
+                and answer.count(".") <= 2
+            )
+            if looks_sane:
+                return answer
+            print(f"  (odpoved AI vypadala podezrele, pouzivam sablonu: {answer!r})")
     except (subprocess.SubprocessError, OSError, FileNotFoundError) as e:
         print(f"  (pi -p selhalo, pouzivam sablonu: {e})")
     return fact

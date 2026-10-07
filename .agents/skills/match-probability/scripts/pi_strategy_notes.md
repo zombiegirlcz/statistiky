@@ -58,3 +58,57 @@ strategie běží vedle nich jako experiment.
    antuky; na antuce bylo ≤1.20 lepší).
 4. Prověřit, zda antukový filtr (`_is_clay`) správně chytá i turnaje bez
    slova „clay" v názvu (používá i `surface` z API).
+
+## 2026-10-07 — 2. KOLO je silnější filtr než antuka (a proč to zatím NEJDE nasadit)
+
+**Co jsem zkoumal.** Navázal jsem na nález z 2026-10-06 (2. kolo vypadalo
+lépe než antuka). Napsal jsem dvě nové sondy:
+- `scripts/_probe_round2_oos.py` — robustnost 2. kola: rok po roku, OOS split,
+  citlivost na kurzový cap, 2nd x povrch, koncentrace podle turnaje.
+- `scripts/_probe_round2_signif.py` — je to statisticky reálné, nebo jen
+  nejlepší z mnoha testovaných řezů? (bootstrap CI, permutační p-hodnota,
+  kontrola mnohonásobného srovnání.)
+
+**Výsledky (WTA 2021–2025, reálné kurzy, trh-only favorit):**
+
+| řez | n | úspěšnost | ROI | P(růst50) |
+|---|---|---|---|---|
+| 2nd round, cap≤1.20 | 619 | 89.3 % | +1.3 % | 61 % |
+| **2nd round, cap≤1.15** | **370** | **93.8 %** | **+3.6 %** | **80 %** |
+| 1st round, cap≤1.20 | 870 | 87.5 % | −1.1 % | 43 % |
+| 3rd/4th, cap≤1.20 | 229 | 80.8 % | −8.4 % | 8 % |
+| celek (pool cap≤1.20) | 1908 | — | −1.56 % | — |
+
+2. kolo drží: rok po roku +2.9/−0.1/+2.7/−2.6/+2.8 % (4 z 5 kladné),
+OOS prvni +1.6 % / druha +1.1 %, a na OBOU površích (clay +2.2 %,
+ne-clay +1.0 %, hard +0.0 %, grass +6.2 %). → **řidič je KOLO, ne antuka.**
+
+**Statistická významnost (cap≤1.15):** ROI +3.56 %, bootstrap 95% CI
+**[+0.68 %, +6.13 %]** (celé nad nulou), permutační p = **0.003**.
+Kontrola mnohonásobného srovnání: jen 3.3 % náhodných řezů stejné velikosti
+má ROI ≥ pozorované. → Není to artefakt mnoha testů.
+
+**Co jsem změnil: NIC (záměrně).** Přestože strategie v backtestu poráží
+baseline, **NEŠLA by nasadit živě**: historický zdroj (tennis-data.co.uk) má
+sekvenční kola („2nd Round"), ale živé Live Tennis API vrací **zlomek pavouka**
+(`round_code` = R16 / R32 / R64…), ne pořadí kola. „R16" je 2. kolo pro
+32-pavouk, ale 4. kolo pro 128-pavouk (Slam). Abych to namapoval, potřebuju
+velikost pavouka — tu API neposkytuje (`/tournaments/{id}` vrací tier, ale
+žádný draw size; 22/100 zápasů má navíc `tier=None`). Zaregistrovat strategii
+s odhadnutým/špatným mapováním by znamenalo sázet na špatné zápasy a zkazit
+papírové výsledky — proto jsem agents.json needitoval.
+
+**Co zkusit příště (priorita 1).** Sestavit tabulku `tier → velikost pavouka`
+(grand_slam=128, wta_1000≈56, wta_500≈32–56, wta_250=32, wta_125=32) a
+z `round_code` dopočítat pořadí kola (pořadí = log2(pavouk) − log2(round_code)).
+Pak namapovat na „2nd round" a **ověřit na živých datech**, že výběr sedí,
+než strategii zaregistruju. Alternativa: odvodit velikost pavouka z množiny
+`round_code` viditelných v turnaji.
+
+**Co zkusit příště (priorita 2).** Prověřit mechanismus: je 2. kolo bezpečnější
+proto, že tam vstupují nasazené hráčky s bye (čerstvé + silnější)? Pokud ano,
+dalo by se to aproximovat živě i bez přesného kola (např. favorit s bye).
+
+**Co zkusit příště (priorita 3).** Zvážit, zda stávající `market_clay_fav`
+(ROI +0.9 %, slabé OOS) nenahradit touto strategií — ale až po vyřešení
+mapování kola.
