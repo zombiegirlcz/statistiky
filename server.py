@@ -52,6 +52,13 @@ POST /api/simulate      {"sport":"fotbal|hokej","a":"Arsenal","b":"Chelsea","hom
 POST /api/run           {"skript":"replay","args":["--rok","2024"],"timeout":900}
 POST /api/tickets       {"sport":"tenis","budget":1000,"max_legs":3,"trenink":true,"poznamka":"..."}
 POST /api/agent         {"prompt":"..."}
+
+GET  /api/goalscorer?sport=hokej|fotbal&jmeno=...[&live=true]   — P(hráč dá gól), hokej umí --live (aktuální NHL game-log)
+GET  /api/goalwatch/status                                       — stav live_goal_watcher.py (poslední góly, běží/neběží)
+POST /api/goalwatch/start   {"games":"2026020044,2026020045",...,"interval":45}  — spustí watcher na pozadí
+POST /api/goalwatch/stop                                         — zastaví běžící watcher
+GET  /api/tiket-historie                                         — seznam uložených tiketů (tiket_historie.py)
+POST /api/tiket-historie    {"typ":"Maxikombi","kurz":78.44,"vklad":200,"skupiny":{"A":"..."},"vysledek":"4/7"}
 """
 import json
 import os
@@ -943,6 +950,158 @@ def learner_digest():
 @app.get("/api/tape/digest")
 def tape_digest():
     return learner_digest()
+
+
+# ---------------------------------------------------------------------------
+# /api/goalscorer — P(hráč dá gól), viz goalscorer_prob.py
+# ---------------------------------------------------------------------------
+@app.get("/api/goalscorer")
+def goalscorer():
+    sport = (request.args.get("sport") or "").strip().lower()
+    jmeno = (request.args.get("jmeno") or "").strip()
+    live = (request.args.get("live") or "").lower() in ("1", "true", "yes")
+    if sport not in ("hokej", "fotbal") or not jmeno:
+        return jsonify({"ok": False, "error": "potřeba sport (hokej|fotbal) a jmeno"}), 400
+
+    import math
+    import goalscorer_prob as gp
+
+    if sport == "hokej":
+        r = gp.hockey_lambda(jmeno, live=live)
+        if r is None:
+            return jsonify({"ok": False, "error": f"hráč '{jmeno}' nenalezen v hokejových datech (NHL)"}), 404
+        if r["lam"] is None:
+            return jsonify({"ok": False, "error": f"'{r['display_name']}': chybí historická i živá data"}), 404
+        prob = 1 - math.exp(-r["lam"])
+        return jsonify({
+            "ok": True, "sport": sport, "hrac": r["display_name"],
+            "lambda_golu_na_zapas": round(r["lam"], 3),
+            "p_da_gol": round(prob, 4),
+            "sezony": [{"sezona": s, "goly": g, "zapasy": n} for s, g, n in r["seasons"][-3:]],
+            "zive": ({"goly": r["live_goals"], "zapasy": r["live_games"]} if live else None),
+            "pozn": "model NEZOHLEDŇUJE soupeře (obranu/brankáře), jen vlastní formu hráče — hrubý odhad, ne tržní cena.",
+        })
+    else:
+        result = gp.football_lambda(jmeno)
+        match, lam, games_used = result[0], result[1], result[2]
+        if match is None:
+            return jsonify({"ok": False, "error": f"hráč '{jmeno}' nenalezen ve fotbalových datech (jen 11 nejvyšších evropských lig)"}), 404
+        if lam is None:
+            return jsonify({"ok": False, "error": f"'{match}' nalezen, ale nemá žádné sezónní staty"}), 404
+        seasons = result[3]
+        prob = 1 - math.exp(-lam)
+        return jsonify({
+            "ok": True, "sport": sport, "hrac": match,
+            "lambda_golu_na_zapas": round(lam, 3),
+            "p_da_gol": round(prob, 4),
+            "sezony": [{"sezona": s, "goly": g, "starty": a} for s, g, a in seasons[-3:]],
+            "pozn": "model NEZOHLEDŇUJE soupeře, jen vlastní formu hráče — hrubý odhad, ne tržní cena.",
+        })
+
+
+# ---------------------------------------------------------------------------
+# /api/goalwatch — sledování živých NHL gólů (live_goal_watcher.py) na pozadí
+# ---------------------------------------------------------------------------
+_GOALWATCH_LOCK = threading.Lock()
+_GOALWATCH = {"p": None, "games": None, "interval": None}
+
+
+@app.get("/api/goalwatch/status")
+def goalwatch_status():
+    import live_goal_watcher as gw
+    with _GOALWATCH_LOCK:
+        p = _GOALWATCH["p"]
+        running = bool(p is not None and p.poll() is None)
+        games = _GOALWATCH["games"]
+        interval = _GOALWATCH["interval"]
+
+    seen = []
+    if os.path.exists(gw.SEEN_LOG):
+        with open(gw.SEEN_LOG, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    seen.append(json.loads(line))
+    posledni = seen[-15:]
+    return jsonify({
+        "ok": True, "bezi": running, "sledovane_zapasy": games, "interval_s": interval,
+        "celkem_udalosti": len(seen), "posledni_udalosti": posledni,
+    })
+
+
+@app.post("/api/goalwatch/start")
+def goalwatch_start():
+    data = request.get_json(silent=True) or {}
+    games = (data.get("games") or "").strip()
+    try:
+        interval = max(15, min(int(data.get("interval", 45)), 600))
+    except (TypeError, ValueError):
+        interval = 45
+
+    with _GOALWATCH_LOCK:
+        p = _GOALWATCH["p"]
+        if p is not None and p.poll() is None:
+            return jsonify({"ok": False, "error": "watcher už běží, nejdřív zavolej /api/goalwatch/stop"}), 409
+
+        cmd = [sys.executable, "-u", "live_goal_watcher.py", "watch", "--interval", str(interval)]
+        if games:
+            cmd += ["--games", games]
+        log_path = os.path.join(SCRIPTS_DIR, "live_goal_watcher.log")
+        log_f = open(log_path, "a", encoding="utf-8")
+        p = subprocess.Popen(cmd, cwd=SCRIPTS_DIR, stdout=log_f, stderr=subprocess.STDOUT,
+                             start_new_session=True)
+        _GOALWATCH["p"] = p
+        _GOALWATCH["games"] = games or "všechny živé"
+        _GOALWATCH["interval"] = interval
+
+    return jsonify({"ok": True, "pid": p.pid, "sledovane_zapasy": _GOALWATCH["games"],
+                    "interval_s": interval, "log": log_path})
+
+
+@app.post("/api/goalwatch/stop")
+def goalwatch_stop():
+    with _GOALWATCH_LOCK:
+        p = _GOALWATCH["p"]
+        killed = _kill_proc(p)
+        _GOALWATCH["p"] = None
+    return jsonify({"ok": True, "killed": killed, "pozn": "Watcher zastaven." if killed else "Nic neběželo."})
+
+
+# ---------------------------------------------------------------------------
+# /api/tiket-historie — ulozene sazkove tikety (tiket_historie.py)
+# ---------------------------------------------------------------------------
+@app.get("/api/tiket-historie")
+def tiket_historie_list():
+    import tiket_historie as th
+    return jsonify({"ok": True, "pocet": len(th.load_all()), "tikety": th.load_all()})
+
+
+@app.post("/api/tiket-historie")
+def tiket_historie_add():
+    import time as _time
+    import uuid as _uuid
+
+    import tiket_historie as th
+
+    data = request.get_json(silent=True) or {}
+    for req_field in ("kurz", "vklad"):
+        if req_field not in data:
+            return jsonify({"ok": False, "error": f"chybí povinné pole '{req_field}'"}), 400
+
+    entry = {
+        "id": str(_uuid.uuid4())[:8],
+        "ts": _time.time(),
+        "datum": _time.strftime("%Y-%m-%d %H:%M"),
+        "typ": data.get("typ", "Maxikombi"),
+        "kurz": data.get("kurz"),
+        "vklad": data.get("vklad"),
+        "skupiny": data.get("skupiny") or {},
+        "vysledek": data.get("vysledek", ""),
+        "screenshot": data.get("screenshot", ""),
+        "poznamka": data.get("poznamka", ""),
+    }
+    th.append(entry)
+    return jsonify({"ok": True, "tiket": entry})
 
 
 def main():

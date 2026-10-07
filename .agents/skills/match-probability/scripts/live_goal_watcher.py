@@ -131,7 +131,19 @@ def check_game(game_id, seen):
         }
         new_goals.append(goal_info)
 
-    return new_goals
+    end_info = None
+    end_key = f"{game_id}:FINAL"
+    if data.get("gameState") in ("FINAL", "OFF") and end_key not in seen:
+        end_info = {
+            "game_id": game_id,
+            "away": away,
+            "home": home,
+            "away_score": data["awayTeam"].get("score"),
+            "home_score": data["homeTeam"].get("score"),
+            "key": end_key,
+        }
+
+    return new_goals, end_info
 
 
 def compose_notification(goal):
@@ -176,6 +188,15 @@ def compose_notification(goal):
     return fact
 
 
+def compose_end_notification(end_info):
+    """Text pro konec zapasu - zadny pi -p (zbytecne, je to jen suche skore),
+    rovnou hotova sablona."""
+    return (
+        f"Konec zapasu: {end_info['away']} {end_info['away_score']}:"
+        f"{end_info['home_score']} {end_info['home']}."
+    )
+
+
 def send_notification(title, content):
     # `nh` po vypsani potvrzeni zustava viset (interni fork na Android broadcast
     # service, ktery nikdy nezavre stdout pipe) - notifikace uz je v tu chvili
@@ -202,15 +223,21 @@ def tick(game_ids=None):
     seen = load_seen()
     total_new = 0
     for gid in game_ids:
-        new_goals = check_game(gid, seen)
+        new_goals, end_info = check_game(gid, seen)
         for goal in new_goals:
             msg = compose_notification(goal)
             print(f"  NOVY GOL [{gid}]: {msg}")
             send_notification("Gol!", msg)
             mark_seen(goal["key"], goal)
             total_new += 1
+        if end_info is not None:
+            msg = compose_end_notification(end_info)
+            print(f"  KONEC ZAPASU [{gid}]: {msg}")
+            send_notification("Konec zapasu", msg)
+            mark_seen(end_info["key"], end_info)
+            total_new += 1
     if total_new == 0:
-        print("  zadne nove goly od posledni kontroly.")
+        print("  zadne nove goly ani konce zapasu od posledni kontroly.")
     else:
         print(f"  odeslano {total_new} notifikaci.")
 

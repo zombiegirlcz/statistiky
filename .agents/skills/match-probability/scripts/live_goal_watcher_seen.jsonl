@@ -44,3 +44,4 @@
 {"key": "2026020045:1083", "ts": 1791337629.7061465, "game_id": 2026020045, "event_id": 1083, "scorer": "Juraj Slafkovský", "away": "CAR", "home": "MTL", "away_score": 5, "home_score": 4, "period": "3. tretina", "clock": "16:56"}
 {"key": "2026020047:1077", "ts": 1791337659.6778386, "game_id": 2026020047, "event_id": 1077, "scorer": "Nick Schmaltz", "away": "UTA", "home": "NJD", "away_score": 5, "home_score": 3, "period": "3. tretina", "clock": "16:52"}
 {"key": "2026020045:1105", "ts": 1791337930.3344915, "game_id": 2026020045, "event_id": 1105, "scorer": "Andrei Svechnikov", "away": "CAR", "home": "MTL", "away_score": 6, "home_score": 4, "period": "3. tretina", "clock": "18:44"}
+{"key": "2026020044:FINAL", "ts": 1791338876.3132145, "game_id": 2026020044, "away": "NSH", "home": "TOR", "away_score": 4, "home_score": 5}
