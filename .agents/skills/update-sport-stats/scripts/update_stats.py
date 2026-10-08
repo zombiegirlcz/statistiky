@@ -14,6 +14,7 @@ Pouziti:
 import csv
 import glob
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -21,13 +22,14 @@ from datetime import date, datetime
 
 import requests
 
-BASE = "/root/statistiky"
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+BASE = "/root/statistiky" if os.path.exists("/root/statistiky") else REPO_ROOT
 UA = "Mozilla/5.0 (StatistikyBot update tool)"
 S = requests.Session()
 S.headers.update({"User-Agent": UA})
 LOG_PATH = os.path.join(BASE, "_update_log.txt")
-MARKITDOWN = "/root/markitdown/.venv/bin/markitdown"
-MARKITDOWN_PY = "/root/markitdown/.venv/bin/python3"
+MARKITDOWN = "/root/markitdown/.venv/bin/markitdown" if os.path.exists("/root/markitdown/.venv/bin/markitdown") else (shutil.which("markitdown") or "markitdown")
+MARKITDOWN_PY = "/root/markitdown/.venv/bin/python3" if os.path.exists("/root/markitdown/.venv/bin/python3") else sys.executable
 
 _log_lines = []
 

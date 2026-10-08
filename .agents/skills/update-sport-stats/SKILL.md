@@ -5,6 +5,8 @@ description: Aktualizuje sportovní statistiky v /statistiky (fotbal, tenis, hok
 
 # Denní aktualizace sportovních statistik
 
+> **Důležité pravidlo:** Při provádění změn nebo spouštění této úlohy vždy pracuj přímo na větvi `master`.
+
 ## Co to dělá a proč
 
 `/statistiky` obsahuje historická data (fotbal, tenis, hokej) i skript `match-probability`, který z nich počítá pravděpodobnosti zápasů. Aby ty predikce zůstaly užitečné, potřebují čerstvá data - jinak by model o týden od teď furt počítal s formou týmů starou týden. Tenhle skill řeší přesně tohle: jedním spuštěním doplní, co od posledně přibylo, a nic víc.
