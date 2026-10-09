@@ -9623,3 +9623,78 @@ Banka: 1000 mincí (start 1000), vázáno 0
 
 Nových antukových tiketů: 0 (neantuka: 38, bez SX.bet trhu: 18, kurz >1.2: 0)
 Banka: 1000 mincí, nevyřízeno 0 tiketů
+Spouštím aktivní agenty: 5
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 33 (z toho dvouhry: 17) [SET-level]
+Banka: 980 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 4)
+Banka: 980 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 1 - zjišťuji výsledky...
+
+  [čeká] Felix Auger-Aliassime vs Camilo Ugo Carabelli - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 60) [PRE-MATCH]
+Banka: 895 minci (start 1000), vazano 18
+
+CHYBA API (401): {"message":"Usage quota has been reached. See usage plans at https://the-odds-api.com","error_code":"OUT_OF_USAGE_CREDITS","details_url":"https://the-odds-api.com/liveapi/guides/v4/api-error-codes.html#out-of-usage-credits"}
+
+CHYBA API (401): {"message":"Usage quota has been reached. See usage plans at https://the-odds-api.com","error_code":"OUT_OF_USAGE_CREDITS","details_url":"https://the-odds-api.com/liveapi/guides/v4/api-error-codes.html#out-of-usage-credits"}
+
+      => PRE-MATCH TIKET na Taylor Fritz @ 1.2678288431061808 (model 79%, trh 78%), vklad 18 [Taylor Fritz vs Matteo Arnaldi, 2026-10-10T05:30:00Z]
+
+Novych pre-match tiketu: 1 (bez dat: 27, bez SX.bet trhu: 28)
+Banka: 895 minci, nevyrizeno 2 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 5 - zjišťuji výsledky...
+
+  [PROHRA] Elise Mertens vs Iga Swiatek - tiket na Iga Swiatek @ 1.2269938650306749, vyhrál Elise Mertens (-18 mincí)
+  [čeká] Tomas Machac vs Alexander Bublik - zápas je ve stavu 'live', vítěz ještě není známý
+  [čeká] Jiri Lehecka vs Nuno Borges - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Felix Auger-Aliassime vs Camilo Ugo Carabelli - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Thiago Agustin Tirante vs Rafael Jodar - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 1
+
+Zápasů: 135 (dvouhry: 76, z toho live 17, prematch 59) [MODEL-ONLY]
+Banka: 910 mincí (start 1000), vázáno 75
+
+      => MODEL-ONLY [favorit] TIKET na Daniil Medvedev (model 60%), kurz 1.171303074670571, vklad 18 [Daniil Medvedev vs Jan-Lennard Struff]
+
+Nových model-only tiketů: 1 (z toho underdog: 0, bez dat: 37, bez kurzu: 32)
+Banka: 910 mincí, nevyřízeno 5 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 1 - zjišťuji výsledky...
+
+  [čeká] Dalibor Svrcina vs Yoshihito Nishioka - builder ještě není rozhodnutý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich dvouher: 60 [BET BUILDER]
+Banka: 2176 mincí (start 1000), vázáno 31
+
+      => BUILDER TIKET: Tomas Martin Etcheverry vyhraje zapas I 1. set @ 2.97 (1.76x1.69) | joint 49% vs trh 34% | edge +15%, vklad 44 [Tomas Martin Etcheverry vs Dalibor Svrcina]
+
+Nových builder tiketů: 1 (bez dat/trhu: 54, bez edge: 5)
+Banka: 2176 mincí, nevyřízeno 2 tiketů
+
+===== agent trh-only-antuka-favorit (market_clay_fav) banka 1000 log trh-only-antuka-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Nadcházejících zápasů: 100 (dvouhry: 63) [TRH-ONLY ANTUKA]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+  [bookmaker] SX.bet chyba: The read operation timed out
+
+Nových antukových tiketů: 0 (neantuka: 46, bez SX.bet trhu: 17, kurz >1.2: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
