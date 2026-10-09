@@ -13,10 +13,12 @@ Je to návazný nástroj na prvotní historický sběr (ten stáhl 5 kompletníc
 
 ## Jak na to
 
+Před spuštěním skriptu i jakýmikoliv úpravami se ujisti, že pracuješ přímo na větvi `master` (`git checkout master`).
+
 Spusť skript, nic jiného není potřeba řešit ručně:
 
 ```bash
-python3 /root/statistiky/.agents/skills/update-sport-stats/scripts/update_stats.py
+python3 .agents/skills/update-sport-stats/scripts/update_stats.py
 ```
 
 Skript sám:
