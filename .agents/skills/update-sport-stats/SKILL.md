@@ -1,9 +1,11 @@
 ---
 name: update-sport-stats
-description: Aktualizuje sportovní statistiky v /statistiky (fotbal, tenis, hokej) o nově odehrané zápasy od posledního spuštění. Použij tento skill, když tě někdo požádá o aktualizaci, obnovení, doplnění nebo synchronizaci sportovních dat ("doplň nové zápasy", "aktualizuj statistiky", "stáhni poslední výsledky"), nebo když běžíš jako naplánovaná denní údržbová úloha pro tento projekt. Na rozdíl od prvotního jednorázového sběru dat tenhle skript stahuje jen přírůstek - historické uzavřené sezóny nechává být a sahá jen na aktuální sezónu/rok u každého sportu, včetně automatického rozpoznání přechodu na novou sezónu.
+description: Aktualizuje sportovní statistiky v /statistiky (fotbal, tenis, hokej) o nově odehrané zápasy od posledního spuštění. Použij tento skill, když tě někdo požádá o aktualizaci, obnovení, doplnění nebo synchronizaci sportovních dat ("doplň nové zápasy", "aktualizuj statistiky", "stáhni poslední výsledky"), nebo když běžíš jako naplánovaná denní údržbová úloha pro tento projekt. Na rozdíl od prvotního jednorázového sběru dat tenhle skript stahuje jen přírůstek - historické uzavřené sezóny nechává být a sahá jen na aktuální sezónu/rok u každého sportu, včetně automatického rozpoznání přechodu na novou sezónu. Vždy pracuj přímo na git větví master.
 ---
 
 # Denní aktualizace sportovních statistik
+
+> **Pravidlo pro Git:** Při práci s tímto skillem a úpravách/aktualizacích dat **vždy pracuj přímo na větví `master`** (`git checkout master`).
 
 ## Co to dělá a proč
 
