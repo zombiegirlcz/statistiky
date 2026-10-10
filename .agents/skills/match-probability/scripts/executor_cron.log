@@ -11186,3 +11186,180 @@ CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for
 CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-10T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-10T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
 
   (agent trh-only-antuka-favorit ukončen: 1)
+Spouštím aktivní agenty: 5
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 2 (z toho dvouhry: 1) [SET-level]
+Banka: 980 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 0)
+Banka: 980 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 3 - zjišťuji výsledky...
+
+  [VÝHRA ] Felix Auger-Aliassime vs Camilo Ugo Carabelli - tiket na Felix Auger-Aliassime @ 1.0526315789473684, vyhrál Felix Auger-Aliassime (+1 mincí)
+  [VÝHRA ] Taylor Fritz vs Matteo Arnaldi - tiket na Taylor Fritz @ 1.2678288431061808, vyhrál Taylor Fritz (+5 mincí)
+  [VÝHRA ] Arthur Fils vs Pavel Kotov - tiket na Arthur Fils @ 1.1157601115760112, vyhrál Arthur Fils (+2 mincí)
+
+Vyhodnoceno nových tiketů: 3
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 87) [PRE-MATCH]
+Banka: 903 minci (start 1000), vazano 0
+
+CHYBA API (401): {"message":"Usage quota has been reached. See usage plans at https://the-odds-api.com","error_code":"OUT_OF_USAGE_CREDITS","details_url":"https://the-odds-api.com/liveapi/guides/v4/api-error-codes.html#out-of-usage-credits"}
+
+CHYBA API (401): {"message":"Usage quota has been reached. See usage plans at https://the-odds-api.com","error_code":"OUT_OF_USAGE_CREDITS","details_url":"https://the-odds-api.com/liveapi/guides/v4/api-error-codes.html#out-of-usage-credits"}
+
+
+Novych pre-match tiketu: 0 (bez dat: 54, bez SX.bet trhu: 21)
+Banka: 903 minci, nevyrizeno 0 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+  [VÝHRA ] Jiri Lehecka vs Nuno Borges - tiket na Jiri Lehecka @ 1.3675213675213675, vyhrál Jiri Lehecka (+7 mincí)
+  [VÝHRA ] Felix Auger-Aliassime vs Camilo Ugo Carabelli - tiket na Felix Auger-Aliassime @ 1.0526315789473684, vyhrál Felix Auger-Aliassime (+1 mincí)
+  [VÝHRA ] Thiago Agustin Tirante vs Rafael Jodar - tiket na Rafael Jodar @ 1.4109347442680775, vyhrál Rafael Jodar (+8 mincí)
+  [VÝHRA ] Daniil Medvedev vs Jan-Lennard Struff - tiket na Daniil Medvedev @ 1.171303074670571, vyhrál Daniil Medvedev (+3 mincí)
+  [VÝHRA ] Taylor Fritz vs Matteo Arnaldi - tiket na Taylor Fritz @ 1.2698412698412698, vyhrál Taylor Fritz (+5 mincí)
+  [PROHRA] Tomas Martin Etcheverry vs Dalibor Svrcina - tiket na Tomas Martin Etcheverry @ 1.7582417582417582, vyhrál Dalibor Svrcina (-18 mincí)
+  [VÝHRA ] Mirra Andreeva vs Nikola Bartunkova - tiket na Mirra Andreeva @ 1.4571948998178506, vyhrál Mirra Andreeva (+8 mincí)
+  [VÝHRA ] Arthur Fils vs Pavel Kotov - tiket na Arthur Fils @ 1.1267605633802817, vyhrál Arthur Fils (+2 mincí)
+  [VÝHRA ] Zachary Svajda vs Learner Tien - tiket na Learner Tien @ 1.3513513513513513, vyhrál Learner Tien (+6 mincí)
+  [VÝHRA ] Stefanos Tsitsipas vs Luciano Darderi - tiket na Stefanos Tsitsipas @ 1.4545454545454546, vyhrál Stefanos Tsitsipas (+8 mincí)
+  [VÝHRA ] Tommy Paul vs Daniel Adolfo Vallejo - tiket na Tommy Paul @ 1.5296367112810707, vyhrál Tommy Paul (+10 mincí)
+  [PROHRA] Alex Michelsen vs Botic Van De Zandschulp - tiket na Alex Michelsen @ 1.5625, vyhrál Botic Van De Zandschulp (-18 mincí)
+
+Vyhodnoceno nových tiketů: 12
+
+Zápasů: 103 (dvouhry: 89, z toho live 0, prematch 89) [MODEL-ONLY]
+Banka: 942 mincí (start 1000), vázáno 0
+
+      => MODEL-ONLY [favorit] TIKET na Ashlyn Krueger (model 63%), kurz 1.9704433497536948, vklad 19 [Ashlyn Krueger vs Yulia Putintseva]
+      => MODEL-ONLY [UNDERDOG] TIKET na Sinja Kraus (model 74%), kurz 2.4615384615384617, vklad 19 [Sinja Kraus vs Zeynep Sonmez]
+      => MODEL-ONLY [favorit] TIKET na Magdalena Frech (model 66%), kurz 1.3289036544850499, vklad 19 [Magdalena Frech vs Aoi Ito]
+      => MODEL-ONLY [favorit] TIKET na Karen Khachanov (model 65%), kurz 1.3377926421404682, vklad 19 [Karen Khachanov vs Adrian Mannarino]
+      => MODEL-ONLY [favorit] TIKET na Ben Shelton (model 50%), kurz 1.3888888888888888, vklad 19 [Ben Shelton vs Arthur Gea]
+      => MODEL-ONLY [UNDERDOG] TIKET na Lanlana Tararudee (model 59%), kurz 2.13903743315508, vklad 19 [Caty McNally vs Lanlana Tararudee]
+      => MODEL-ONLY [UNDERDOG] TIKET na Rei Sakamoto (model 72%), kurz 3.3472803347280333, vklad 19 [Rei Sakamoto vs Alex De Minaur]
+      => MODEL-ONLY [favorit] TIKET na Jakub Menšik (model 78%), kurz 1.7057569296375266, vklad 19 [Francisco Cerundolo vs Jakub Menšik]
+      => MODEL-ONLY [favorit] TIKET na Brandon Nakashima (model 51%), kurz 1.8957345971563981, vklad 19 [Brandon Nakashima vs Alexander Bublik]
+      => MODEL-ONLY [favorit] TIKET na Alexander Zverev (model 53%), kurz 1.1594202898550725, vklad 19 [Alexander Zverev vs Quentin Halys]
+
+Nových model-only tiketů: 10 (z toho underdog: 3, bez dat: 56, bez kurzu: 21)
+Banka: 942 mincí, nevyřízeno 10 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 6 - zjišťuji výsledky...
+
+  [čeká] Dalibor Svrcina vs Yoshihito Nishioka - builder ještě není rozhodnutý
+  [PROHRA] Tomas Martin Etcheverry vs Dalibor Svrcina - tiket na Tomas Martin Etcheverry @ 2.967, vyhrál Dalibor Svrcina (-44 mincí)
+  [VÝHRA ] Taylor Fritz vs Matteo Arnaldi - tiket na Taylor Fritz @ 1.723, vyhrál Taylor Fritz (+32 mincí)
+  [PROHRA] Ignacio Buse vs Zizou Bergs - tiket na Ignacio Buse @ 5.628, vyhrál Zizou Bergs (-44 mincí)
+  [VÝHRA ] Stefanos Tsitsipas vs Luciano Darderi - tiket na Stefanos Tsitsipas @ 2.163, vyhrál Stefanos Tsitsipas (+51 mincí)
+  [VÝHRA ] Tommy Paul vs Daniel Adolfo Vallejo - tiket na Tommy Paul @ 2.353, vyhrál Tommy Paul (+60 mincí)
+
+Vyhodnoceno nových tiketů: 5
+
+Nadchazejicich dvouher: 89 [BET BUILDER]
+Banka: 2230 mincí (start 1000), vázáno 31
+
+      => BUILDER TIKET: Ashlyn Krueger vyhraje zapas I 1. set @ 3.53 (1.97x1.79) | joint 48% vs trh 28% | edge +20%, vklad 45 [Ashlyn Krueger vs Yulia Putintseva]
+      => BUILDER TIKET: Sinja Kraus vyhraje zapas I 1. set @ 5.37 (2.46x2.18) | joint 59% vs trh 19% | edge +41%, vklad 45 [Sinja Kraus vs Zeynep Sonmez]
+      => BUILDER TIKET: Camila Osorio vyhraje zapas I 1. set @ 4.79 (2.35x2.04) | joint 41% vs trh 21% | edge +20%, vklad 45 [Camila Osorio vs Katie Volynets]
+      => BUILDER TIKET: Rei Sakamoto vyhraje zapas I 1. set @ 8.84 (3.35x2.64) | joint 58% vs trh 11% | edge +46%, vklad 45 [Rei Sakamoto vs Alex De Minaur]
+      => BUILDER TIKET: Brandon Nakashima vyhraje zapas I 1. set @ 3.39 (1.89x1.79) | joint 39% vs trh 29% | edge +9%, vklad 45 [Brandon Nakashima vs Alexander Bublik]
+
+Nových builder tiketů: 5 (bez dat/trhu: 77, bez edge: 7)
+Banka: 2230 mincí, nevyřízeno 6 tiketů
+
+===== agent trh-only-antuka-favorit (market_clay_fav) banka 1000 log trh-only-antuka-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Nadcházejících zápasů: 100 (dvouhry: 89) [TRH-ONLY ANTUKA]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových antukových tiketů: 0 (neantuka: 68, bez SX.bet trhu: 21, kurz >1.2: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+Spouštím aktivní agenty: 5
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 3 (z toho dvouhry: 0) [SET-level]
+Banka: 980 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 0)
+Banka: 980 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 89) [PRE-MATCH]
+Banka: 903 minci (start 1000), vazano 0
+
+CHYBA API (401): {"message":"Usage quota has been reached. See usage plans at https://the-odds-api.com","error_code":"OUT_OF_USAGE_CREDITS","details_url":"https://the-odds-api.com/liveapi/guides/v4/api-error-codes.html#out-of-usage-credits"}
+
+CHYBA API (401): {"message":"Usage quota has been reached. See usage plans at https://the-odds-api.com","error_code":"OUT_OF_USAGE_CREDITS","details_url":"https://the-odds-api.com/liveapi/guides/v4/api-error-codes.html#out-of-usage-credits"}
+
+
+Novych pre-match tiketu: 0 (bez dat: 56, bez SX.bet trhu: 21)
+Banka: 903 minci, nevyrizeno 0 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 10 - zjišťuji výsledky...
+
+  [čeká] Ashlyn Krueger vs Yulia Putintseva - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Sinja Kraus vs Zeynep Sonmez - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Magdalena Frech vs Aoi Ito - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Karen Khachanov vs Adrian Mannarino - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Ben Shelton vs Arthur Gea - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Caty McNally vs Lanlana Tararudee - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Rei Sakamoto vs Alex De Minaur - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Francisco Cerundolo vs Jakub Menšik - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Brandon Nakashima vs Alexander Bublik - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Alexander Zverev vs Quentin Halys - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Zápasů: 103 (dvouhry: 89, z toho live 0, prematch 89) [MODEL-ONLY]
+Banka: 942 mincí (start 1000), vázáno 190
+
+
+Nových model-only tiketů: 0 (z toho underdog: 0, bez dat: 56, bez kurzu: 21)
+Banka: 942 mincí, nevyřízeno 10 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 6 - zjišťuji výsledky...
+
+  [čeká] Dalibor Svrcina vs Yoshihito Nishioka - builder ještě není rozhodnutý
+  [čeká] Ashlyn Krueger vs Yulia Putintseva - builder ještě není rozhodnutý
+  [čeká] Sinja Kraus vs Zeynep Sonmez - builder ještě není rozhodnutý
+  [čeká] Camila Osorio vs Katie Volynets - builder ještě není rozhodnutý
+  [čeká] Rei Sakamoto vs Alex De Minaur - builder ještě není rozhodnutý
+  [čeká] Brandon Nakashima vs Alexander Bublik - builder ještě není rozhodnutý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich dvouher: 89 [BET BUILDER]
+Banka: 2230 mincí (start 1000), vázáno 256
+
+
+Nových builder tiketů: 0 (bez dat/trhu: 77, bez edge: 7)
+Banka: 2230 mincí, nevyřízeno 6 tiketů
+
+===== agent trh-only-antuka-favorit (market_clay_fav) banka 1000 log trh-only-antuka-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Nadcházejících zápasů: 100 (dvouhry: 89) [TRH-ONLY ANTUKA]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+
+Nových antukových tiketů: 0 (neantuka: 68, bez SX.bet trhu: 21, kurz >1.2: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
