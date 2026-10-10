@@ -10121,3 +10121,250 @@ CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for
 CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-09T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-09T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
 
   (agent trh-only-antuka-favorit ukončen: 1)
+Spouštím aktivní agenty: 5
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 2 (z toho dvouhry: 1) [SET-level]
+Banka: 980 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 0)
+Banka: 980 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 3 - zjišťuji výsledky...
+
+  [čeká] Felix Auger-Aliassime vs Camilo Ugo Carabelli - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Taylor Fritz vs Matteo Arnaldi - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Arthur Fils vs Pavel Kotov - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 76) [PRE-MATCH]
+Banka: 895 minci (start 1000), vazano 54
+
+CHYBA API (401): {"message":"Usage quota has been reached. See usage plans at https://the-odds-api.com","error_code":"OUT_OF_USAGE_CREDITS","details_url":"https://the-odds-api.com/liveapi/guides/v4/api-error-codes.html#out-of-usage-credits"}
+
+CHYBA API (401): {"message":"Usage quota has been reached. See usage plans at https://the-odds-api.com","error_code":"OUT_OF_USAGE_CREDITS","details_url":"https://the-odds-api.com/liveapi/guides/v4/api-error-codes.html#out-of-usage-credits"}
+
+
+Novych pre-match tiketu: 0 (bez dat: 30, bez SX.bet trhu: 32)
+Banka: 895 minci, nevyrizeno 3 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 7 - zjišťuji výsledky...
+
+  [VÝHRA ] Tomas Machac vs Alexander Bublik - tiket na Alexander Bublik @ 1.5238095238095237, vyhrál Alexander Bublik (+9 mincí)
+  [čeká] Jiri Lehecka vs Nuno Borges - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Felix Auger-Aliassime vs Camilo Ugo Carabelli - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Thiago Agustin Tirante vs Rafael Jodar - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Daniil Medvedev vs Jan-Lennard Struff - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Taylor Fritz vs Matteo Arnaldi - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Tomas Martin Etcheverry vs Dalibor Svrcina - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 1
+
+Zápasů: 104 (dvouhry: 77, z toho live 2, prematch 75) [MODEL-ONLY]
+Banka: 920 mincí (start 1000), vázáno 111
+
+      => MODEL-ONLY [favorit] TIKET na Mirra Andreeva (model 59%), kurz 1.4571948998178506, vklad 18 [Mirra Andreeva vs Nikola Bartunkova]
+      => MODEL-ONLY [favorit] TIKET na Arthur Fils (model 85%), kurz 1.1267605633802817, vklad 18 [Arthur Fils vs Pavel Kotov]
+      => MODEL-ONLY [favorit] TIKET na Learner Tien (model 68%), kurz 1.3513513513513513, vklad 18 [Zachary Svajda vs Learner Tien]
+      => MODEL-ONLY [favorit] TIKET na Stefanos Tsitsipas (model 74%), kurz 1.4545454545454546, vklad 18 [Stefanos Tsitsipas vs Luciano Darderi]
+      => MODEL-ONLY [favorit] TIKET na Tommy Paul (model 65%), kurz 1.5296367112810707, vklad 18 [Tommy Paul vs Daniel Adolfo Vallejo]
+      => MODEL-ONLY [favorit] TIKET na Alex Michelsen (model 53%), kurz 1.5625, vklad 18 [Alex Michelsen vs Botic Van De Zandschulp]
+      ! model favorit Carlos Alcaraz (p=81%), ale tiket se nezakládá: na tiket by zbylo jen 11 mincí (potřeba 18)
+
+Nových model-only tiketů: 6 (z toho underdog: 0, bez dat: 30, bez kurzu: 31)
+Banka: 920 mincí, nevyřízeno 12 tiketů
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 2 - zjišťuji výsledky...
+
+  [čeká] Dalibor Svrcina vs Yoshihito Nishioka - builder ještě není rozhodnutý
+  [čeká] Tomas Martin Etcheverry vs Dalibor Svrcina - builder ještě není rozhodnutý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich dvouher: 74 [BET BUILDER]
+Banka: 2176 mincí (start 1000), vázáno 75
+
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet set chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet set chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet set chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet set chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet set chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet set chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet set chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet set chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet set chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet set chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet set chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+      => BUILDER TIKET: Taylor Fritz vyhraje zapas I 1. set @ 1.72 (1.29x1.33) | joint 64% vs trh 58% | edge +6%, vklad 44 [Taylor Fritz vs Matteo Arnaldi]
+      => BUILDER TIKET: Ignacio Buse vyhraje zapas I 1. set @ 5.63 (2.54x2.22) | joint 38% vs trh 18% | edge +20%, vklad 44 [Ignacio Buse vs Zizou Bergs]
+      => BUILDER TIKET: Stefanos Tsitsipas vyhraje zapas I 1. set @ 2.16 (1.45x1.49) | joint 59% vs trh 46% | edge +13%, vklad 44 [Stefanos Tsitsipas vs Luciano Darderi]
+      => BUILDER TIKET: Tommy Paul vyhraje zapas I 1. set @ 2.35 (1.53x1.54) | joint 50% vs trh 42% | edge +8%, vklad 44 [Tommy Paul vs Daniel Adolfo Vallejo]
+
+Nových builder tiketů: 4 (bez dat/trhu: 63, bez edge: 6)
+Banka: 2176 mincí, nevyřízeno 6 tiketů
+
+===== agent trh-only-antuka-favorit (market_clay_fav) banka 1000 log trh-only-antuka-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Nadcházejících zápasů: 100 (dvouhry: 73) [TRH-ONLY ANTUKA]
+Banka: 1000 mincí (start 1000), vázáno 0
+
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+
+Nových antukových tiketů: 0 (neantuka: 55, bez SX.bet trhu: 18, kurz >1.2: 0)
+Banka: 1000 mincí, nevyřízeno 0 tiketů
+Spouštím aktivní agenty: 5
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+Živých zápasů: 6 (z toho dvouhry: 5) [SET-level]
+Banka: 980 mincí (start 1000), vázáno 0
+
+
+Nových set tiketů: 0 (bez set kurzu: 2)
+Banka: 980 mincí, nevyřízeno 0 tiketů
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 3 - zjišťuji výsledky...
+
+  [čeká] Felix Auger-Aliassime vs Camilo Ugo Carabelli - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Taylor Fritz vs Matteo Arnaldi - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Arthur Fils vs Pavel Kotov - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+Nadchazejicich zapasu: 100 (z toho dvouhry: 73) [PRE-MATCH]
+Banka: 895 minci (start 1000), vazano 54
+
+CHYBA API (401): {"message":"Usage quota has been reached. See usage plans at https://the-odds-api.com","error_code":"OUT_OF_USAGE_CREDITS","details_url":"https://the-odds-api.com/liveapi/guides/v4/api-error-codes.html#out-of-usage-credits"}
+
+CHYBA API (401): {"message":"Usage quota has been reached. See usage plans at https://the-odds-api.com","error_code":"OUT_OF_USAGE_CREDITS","details_url":"https://the-odds-api.com/liveapi/guides/v4/api-error-codes.html#out-of-usage-credits"}
+
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /markets/active síťová chyba: <urlopen error [Errno -3] Temporary failure in name resolution>
+  [bookmaker] SX.bet chyba: SX.bet /orderbook-v3/snapshot HTTP 502: error code: 502
+
+  [bookmaker] SX.bet chyba: SX.bet /orderbook-v3/snapshot HTTP 503: <html>
+<head><title>503 Service Temporarily Unavailable</title></head>
+<body>
+<center><h1>503 Service Temporarily Unavailable</h1></center>
+<script type="module" src="https://static.cloudflareinsi
+
+Novych pre-match tiketu: 0 (bez dat: 29, bez SX.bet trhu: 38)
+Banka: 895 minci, nevyrizeno 3 tiketu
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+  [čeká] Jiri Lehecka vs Nuno Borges - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Felix Auger-Aliassime vs Camilo Ugo Carabelli - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Thiago Agustin Tirante vs Rafael Jodar - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Daniil Medvedev vs Jan-Lennard Struff - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Taylor Fritz vs Matteo Arnaldi - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Tomas Martin Etcheverry vs Dalibor Svrcina - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Mirra Andreeva vs Nikola Bartunkova - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Arthur Fils vs Pavel Kotov - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Zachary Svajda vs Learner Tien - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Stefanos Tsitsipas vs Luciano Darderi - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Tommy Paul vs Daniel Adolfo Vallejo - zápas je ve stavu 'upcoming', vítěz ještě není známý
+  [čeká] Alex Michelsen vs Botic Van De Zandschulp - zápas je ve stavu 'upcoming', vítěz ještě není známý
+
+Vyhodnoceno nových tiketů: 0
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-10T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-10T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent model-only ukončen: 1)
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 6 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-10T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-10T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent bet-builder ukončen: 1)
+
+===== agent trh-only-antuka-favorit (market_clay_fav) banka 1000 log trh-only-antuka-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-10T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-10T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent trh-only-antuka-favorit ukončen: 1)
+Spouštím aktivní agenty: 5
+
+===== agent set-favorit (set_fav) banka 1000 log set-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-10T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-10T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent set-favorit ukončen: 1)
+
+===== agent pre-match-favorit (prematch_fav) banka 1000 log pre-match-favorit.jsonl =====
+Nevyřízených tiketů: 3 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-10T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-10T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent pre-match-favorit ukončen: 1)
+
+===== agent model-only (model_only) banka 1000 log model-only.jsonl =====
+Nevyřízených tiketů: 12 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-10T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-10T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent model-only ukončen: 1)
+
+===== agent bet-builder (builder) banka 1000 log bet-builder.jsonl =====
+Nevyřízených tiketů: 6 - zjišťuji výsledky...
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-10T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-10T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent bet-builder ukončen: 1)
+
+===== agent trh-only-antuka-favorit (market_clay_fav) banka 1000 log trh-only-antuka-favorit.jsonl =====
+Žádné nevyřízené tikety.
+
+CHYBA Live Tennis API (429): {"detail":"daily request allowance of 100 spent for the FREE tier; it resets at 2026-10-10T21:00:00Z. The BASIC tier allows 1,000/day","docs":"https://docs.livetennisapi.com","error":"rate_limited","limit_per_day":100,"resets_at":"2026-10-10T21:00:00Z","scope":"day","upgrade_channel":"direct","upgrade_price_usd_month":"9.99","upgrade_tier":"basic","upgrade_url":"https://livetennisapi.com/subscribe/upgrade"}
+
+  (agent trh-only-antuka-favorit ukončen: 1)
