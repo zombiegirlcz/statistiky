@@ -45,7 +45,8 @@
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round_market.py",
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_oos.py",
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_signif.py",
-      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_live_fields.py"
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_live_fields.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_rank_gap.py"
     ],
     "redVerificationPending": false
   },
