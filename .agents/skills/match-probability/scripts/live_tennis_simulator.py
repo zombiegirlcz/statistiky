@@ -115,6 +115,26 @@ MARKET_FAV_MAX_ODDS = 1.20
 CLAY_NAME_HINTS = ("clay", "antuka", "terre battue", "arcilla", "roland",
                    "saibro", "coto", "barro", "pablo", "rio", "buenos")
 
+# GRAND SLAM 2. KOLO (experimentální, viz cmd_gs_round2_watch). Sází na
+# TRŽNÍHO favorita v 2. kole grandslamu, BEZ modelu.
+#
+# Proc to jde ZIVE odvodit: grandslam ma VZDY pavouk 128 hracu, takze
+# round_code 'R64' je PRESNE 2. kolo (zadna jiná velikost pavouka se
+# neuplatnuje). Oproti tomu u jinych turnaju je round_code viceznacny.
+#
+# Backtest (scripts/_probe_gs_round2.py, WTA 2021-2025, realne kurzy):
+#   GS 2. kolo (R64), trh-only favorit, kurz<=1.15:
+#     n=102, uspesnost 96.1 %, ROI +5.95 %, P(banka roste po 50 tiketech)=95 %
+#     bootstrap 95% CI ROI [+1.44 %, +9.50 %] (cele nad nulou)
+#     permutacni p = 0.010 (neni artefakt mnoha rezu)
+#     1. polovina let +9.84 % / 2. polovina +3.12 % (drzi OOS)
+#   Kontrola, ze efekt je KOLO, ne 'GS obecne': GS 1. kolo (R128) ROI -2.65 %,
+#   GS 3. kolo (R32) ROI -4.51 %. Jen 2. kolo je kladne.
+#   Pri cap<=1.20 je ROI nizsi (+3.52 %, n=173), proto cap=1.15.
+GS_ROUND2_MAX_ODDS = 1.15
+GRAND_SLAM_TIERS = ("grand_slam", "grandslam", "grand_slam_men",
+                    "grand_slam_women", "gs")
+
 
 # SET-level strategie (vítěz AKTUÁLNÍHO setu, SX.bet trhy 202/203/204).
 SET_FAV_MODEL_MIN = 0.62
@@ -922,6 +942,111 @@ def cmd_market_clay_watch():
     print(f"\nNových antukových tiketů: {n_bets} "
           f"(neantuka: {n_nonclay}, bez SX.bet trhu: {n_nomkt}, "
           f"kurz >{MARKET_FAV_MAX_ODDS}: {n_pricey})")
+    log = load_log()
+    print(f"Banka: {current_bank(log):.0f} mincí, "
+          f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů")
+
+
+def _is_grand_slam(match):
+    """True, když je zápas grandslam.
+
+    Grandslam poznáme primárně podle pole 'tier' z Live Tennis API.
+    Fallback = jméno turnaje (bezpečné slovo ze čtyř grandslamů).
+    """
+    tier = (match.get("tier") or "").lower()
+    if tier in GRAND_SLAM_TIERS or "grand" in tier:
+        return True
+    t = (match.get("tournament") or "").lower()
+    return any(h in t for h in ("wimbledon", "roland", "us open",
+                                "australian open"))
+
+
+def cmd_gs_round2_watch():
+    """TRH-ONLY GRANDSLAM 2. KOLO: sází na TRŽNÍHO favorita v R64 grandslamu.
+
+    Proc 2. kolo: backtest _probe_gs_round2.py na WTA 2021-2025 ukázal, že
+    trh-only favorit (kurz<=1.15) v R64 grandslamu má ROI +5.95 %,
+    P(banka roste po 50 tiketech)=95 %, bootstrap CI [+1.44, +9.50],
+    permutacni p=0.010, a drzi na OBOU polovinách let. Naproti tomu GS
+    1. kolo (R128) ROI -2.65 % a GS 3. kolo (R32) ROI -4.51 % - efekt je
+    KOLO, ne 'GS obecne'.
+
+    Proc to jde ZIVE: grandslam ma vzdy pavouk 128, takze round_code 'R64'
+    je presne 2. kolo. Zadny odhad velikosti pavouka neni potřeba.
+
+    Sází se PŘED zápasem (status=upcoming), bez modelu.
+    """
+    log = load_log()
+    logged = {e["match_id"] for e in log}
+    matches = fetch_upcoming_matches()
+    singles = [m for m in matches
+               if not m.get("is_doubles") and m.get("draw") == "singles"]
+    print(f"Nadcházejících zápasů: {len(matches)} (dvouhry: {len(singles)}) "
+          f"[TRH-ONLY GS 2. KOLO]")
+    print(f"Banka: {current_bank(log):.0f} mincí (start {STARTING_BANK:.0f}), "
+          f"vázáno {pending_exposure(log):.0f}\n")
+    ts = datetime.now(timezone.utc).isoformat()
+    n_bets = n_not_gs = n_not_r64 = n_nomkt = n_pricey = 0
+    for m in singles:
+        if m["id"] in logged:
+            continue
+        if not _is_grand_slam(m):
+            n_not_gs += 1
+            continue
+        if (m.get("round_code") or "").upper() != "R64":
+            n_not_r64 += 1
+            continue
+        name1, name2 = m["players"]["p1"]["name"], m["players"]["p2"]["name"]
+        probs, best, sx_market, src = bm.get_market_info(name1, name2)
+        if not probs or probs.get(name1) is None or probs.get(name2) is None:
+            n_nomkt += 1
+            continue
+        if (best.get(name1) or 99) <= (best.get(name2) or 99):
+            pick_name, odds, p_mkt = name1, best.get(name1), probs.get(name1)
+        else:
+            pick_name, odds, p_mkt = name2, best.get(name2), probs.get(name2)
+        if odds is None or odds > GS_ROUND2_MAX_ODDS:
+            n_pricey += 1
+            continue
+        stake, reason = next_stake(log, model_p=None, market_p=p_mkt, odds=odds)
+        if stake is None:
+            print(f"      ! GS 2. kolo favorit {pick_name} @ {odds}, ale tiket se "
+                  f"nezakládá: {reason}")
+            continue
+        entry = {
+            "match_id": m["id"], "market_kind": "match_gs_round2_prematch",
+            "strategy": "gs_round2_fav", "surface": m.get("surface"),
+            "round_code": m.get("round_code"), "tier": m.get("tier"),
+            "logged_at": ts, "tournament": m.get("tournament"),
+            "scheduled_time": m.get("scheduled_time"),
+            "player1": name1, "player2": name2, "pick": pick_name, "odds": odds,
+            "model_p": None, "market_p": round(p_mkt, 4),
+            "score_at_bet": "pred zapasem (0:0) - trh-only GS 2. kolo, bez modelu",
+            "stake": stake, "status": "pending",
+            "odds_source": src, "bookmaker_mode": bm.mode(),
+        }
+        if sx_market:
+            entry["market_hash"] = sx_market.get("marketHash")
+            entry["outcome_side"] = bm.outcome_side_for(pick_name, sx_market)
+        if bm.is_real():
+            try:
+                res = bm.place_bet(name1, name2, pick=pick_name, odds=odds,
+                                   stake=stake, market=sx_market,
+                                   outcome_side=entry.get("outcome_side"))
+                entry["real_bet"] = res
+                print(f"      => REALNA GS-2kolo sazka odeslana: {res}")
+            except Exception as ex:
+                print(f"      ! realna GS-2kolo sazka selhala: {ex}")
+                continue
+        append_log(entry)
+        log.append(entry)
+        n_bets += 1
+        print(f"      => GS 2. KOLO TIKET na {pick_name} @ {odds} "
+              f"(trh {p_mkt:.0%}, bez modelu), vklad {stake:.0f} "
+              f"[{name1} vs {name2}, {m.get('tournament')}, {m.get('round_code')}]")
+    print(f"\nNových GS-2kolo tiketů: {n_bets} "
+          f"(ne-GS: {n_not_gs}, ne-R64: {n_not_r64}, bez SX.bet trhu: {n_nomkt}, "
+          f"kurz >{GS_ROUND2_MAX_ODDS}: {n_pricey})")
     log = load_log()
     print(f"Banka: {current_bank(log):.0f} mincí, "
           f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů")

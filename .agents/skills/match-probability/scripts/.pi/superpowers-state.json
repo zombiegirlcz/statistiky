@@ -46,7 +46,13 @@
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_oos.py",
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_signif.py",
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_live_fields.py",
-      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_rank_gap.py"
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_rank_gap.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round_ordinal.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round_code_segments.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_live.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_live_oos.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_gs_round2.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_gs_rounds.py"
     ],
     "redVerificationPending": false
   },
