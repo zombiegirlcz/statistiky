@@ -112,3 +112,107 @@ dalo by se to aproximovat živě i bez přesného kola (např. favorit s bye).
 **Co zkusit příště (priorita 3).** Zvážit, zda stávající `market_clay_fav`
 (ROI +0.9 %, slabé OOS) nenahradit touto strategií — ale až po vyřešení
 mapování kola.
+
+## 2026-10-12 — Registrován GS-2kolo agent + nezávislé ověření "2. kolo" efektu
+
+**Co jsem zkoumal.** Přečetl jsem deník (poslední běhy: 2026-10-05 antuka,
+2026-10-07 2. kolo). Zjistil jsem NEDOKONČENÝ kus práce: strategie
+`gs_round2_fav` (GS 2. kolo = R64, trh-only favorit, kurz<=1.15) MÁ
+hotový kód (`cmd_gs_round2_watch` v `live_tennis_simulator.py`, runner
+`_run_gs_round2_fav` v `executor.py`, defaulty v `agents.py`), MÁ zelený
+backtest (`_probe_gs_round2.py`: n=102, ROI +5.95 %, P(50)=95 %,
+CI[+1.44,+9.76], p=0.010, OOS 1.pol +9.84 % / 2.pol +3.12 %), ale
+**NEBYL ZAREGISTROVANÝ žádný agent** — tedy se nikdy nespouštěl.
+
+Navíc jsem napsal dvě nové sondy, které ověřují starší nález "2. kolo" na
+JINÉ datové základně (přímo z `tenis/kurzy/wta_kurzy.csv`, kde je sloupec
+`Round` — bez Sackmann joinu a fuzzy matchingu jmen):
+
+- `scripts/_probe_round_direct.py` — trh-only favorit z kurzy CSV podle
+  poradi kola (1./2./3./4.) x cap (1.10/1.15/1.20).
+- `scripts/_probe_round2_clay_oos.py` — OOS, rozpad podle turnaju,
+  rank-gap kontrola, citlivost na cap, permutacni kontrola.
+
+**Výsledky (WTA 2021–2025, kurzy CSV, 11729 zápasů, FLAT vklad 100):**
+
+Replikace „2. kolo" (bez Sackmann joinu!):
+| segment | n | úspěšnost | ROI | P50 | CI | p |
+|---|---|---|---|---|---|---|
+| cap<=1.15 ordinal==1 | 715 | 91.5 % | −0.27 % | 51.9 % | [−2.7,+2.0] | 0.678 |
+| **cap<=1.15 ordinal==2** | **462** | **93.9 %** | **+2.69 %** | **80.7 %** | **[+0.1,+5.1]** | **0.033** |
+| cap<=1.15 ordinal==3 | 129 | 88.4 % | −3.40 % | 27.1 % | [−9.9,+2.3] | 0.904 |
+| cap<=1.15 ordinal==4 | 31 | 83.9 % | −9.87 % | 2.9 % | [−24.4,+3.7] | 0.964 |
+
+→ Potvrzeno nezávisle: řidič je KOLO 2 (ne kolo 1/3/4). Silnější než
+stará sonda (n=462 vs 370), ale slabší ROI než starý nález (+2.69 %
+vs +3.6 %) — stará sonda použila Sackmann `draw_size` pro přesné
+pořadí kola; CSV `Round` label je ekvivalentní, drobný rozdíl dělá
+jiný pool zápasů (stará sonda vyžadovala join, vyřadila ~nespojené).
+
+Rozpad podle povrchu (ordinal==2, cap<=1.15):
+| povrch | n | úspěšnost | ROI | P50 | CI | p |
+|---|---|---|---|---|---|---|
+| **clay** | **125** | **96.8 %** | **+6.00 %** | **97.3 %** | **[+2.3,+9.1]** | **0.009** |
+| hard | 280 | 92.5 % | +0.98 % | 63.1 % | [−2.5,+4.2] | 0.351 |
+| grass | 57 | 94.7 % | +3.84 % | 87.4 % | [−3.3,+9.5] | 0.184 |
+
+Antuka se 2. kolem vypadá silně (ROI +6 %, P50 97 %), ale **n=125 je
+malé** a je to jeden z mnoha testovaných segmentů → nutná robustnost.
+
+Robustnost segmentu {ordinal==2, clay, cap<=1.15}:
+- OOS: 1.pol (<2023) n=40, +9.85 % CI[+8.62,+11.05]; 2.pol (>=2023)
+  n=85, +4.19 % CI[−1.35,+8.52]. Obě kladné, ale druhá má CI přes nulu.
+- Rok po roku: 2021 +10.8 %, 2022 +8.8 %, 2023 −6.3 %, 2024 +9.4 %,
+  2025 +9.8 %. 4 z 5 let kladné, jeden propadák (2023).
+- Rozpad podle turnajů: 20 různých antukových turnajů; **NENÍ to jen
+  Roland Garros** (RG n=32 ROI +8.4 %, ale i Madrid +10.2 %, Charleston
+  +11.0 %, Stuttgart +8.3 %, Palermo +9.5 % atd.). Dva turnaje záporné
+  (Lausanne −16 %, Poland −20 %, malé n).
+- Rank-gap kontrola (klíčové!): stejný filtr fav_rank<=20 & und_rank>=50
+  na antuce, ale **MIMO 2. kolo**, dává ROI **−1.86 %** (n=90).
+  → „2. kolo" NENÍ jen jinak zapsaný rank-gap; má vlastní informaci.
+- Citlivost na cap: 1.05 +3.2 %, 1.10 +2.5 %, **1.15 +6.0 %**,
+  1.20 +1.9 %, 1.25 +2.1 %, 1.30 +0.2 %. Všechny kladné (dobré), ale
+  vrchol na 1.15 je nejspíš šum (malá n, široké CI).
+- Permutační kontrola: z 5000 náhodných antukových segmentů velikosti
+  n=125 jich 4.86 % dosáhne ROI >= +6 %. → Není to super-vzácné, ale
+  ani banální (p ~ 0.05 v rámci antukového poolu).
+
+**Co jsem změnil.**
+1. **Zaregistroval agenta `gs-2kolo-favorit`** (strategie `gs_round2_fav`,
+   1000 mincí z hlavní banky) přes `cli.py agent create`. Toto je jediná
+   strategie s živě-OVĚŘENÝM zdrojem signálu (GS má vždy pavouk 128 →
+   R64 = přesně 2. kolo, žádný odhad velikosti pavouka není potřeba).
+   `agents.json` jsem needitoval ručně.
+2. **NEZAREGISTROVAL jsem** strategii „2. kolo + antuka" (i když backtest
+   vypadá ještě líp než GS 2. kolo), protože pořadí kola u NE-grandslamů
+   nejde živě odvodit (Live API vrací jen round_code R16/R32…, ne
+   velikost pavouka — potvrzeno starými sondami 2026-10-07). Sázet na
+   špatně odhadnuté kolo = zkazit papírové výsledky. Zapsáno jako nález,
+   ne nasazeno.
+3. Ověřil end-to-end: `BOOKMAKER=sxbet_sim python3 executor.py --only
+   gs-2kolo-favorit` proběhne bez chyby. Dnes 0 tiketů (žádný GS se
+   nehraje, 81 zápasů mimo GS) — běžné, sbírá se postupně.
+
+**Proč GS-2kolo a ne „2. kolo + antuka".** GS 2. kolo má:
+- živě-OVĚŘITELNÝ zdroj (R64 + tier=grand_slam stačí),
+- silnější statistiku (n=102, CI celé nad nulou, perm p=0.010),
+- test OOS přes poloviny let.
+„2. kolo + antuka" má sice hezčí ROI (+6 %), ale n=125, CI dolní mez
++2.3 % je blízko nuly, perm p v rámci antuky 0.049 (ne 0.01) a vrchol
+na capu 1.15 vypadá jako náhoda. Radši nasadit konzervativnější.
+
+**Co zkusit příště.**
+1. Sledovat `gs-2kolo-favorit.jsonl` — příští grandslam (Australian Open,
+   leden 2026) dá první živá data. Cíl: 30+ tiketů a porovnat s backtestem.
+2. Prověřit, jestli se GS-2kolo efekt liší podle grandslamu (RG/WIM/USO/
+   AO); backtestováno jen na WTA, ale strategie sází i muže.
+3. Zvážit, jestli rozšířit `gs_round2_fav` o trh-only favorita na cap
+   <=1.20 (více tiketů, ROI +3.5 %) nebo zůstat na <=1.15 (méně, ale
+   lepší P50). Zatím default 1.15.
+4. Mapování round_code na pořadí kola pro NE-grandslamy: zkusit odvodit
+   velikost pavouka z MNOŽINY round_code viditelných v turnaji
+   (stará priorita 1 z 2026-10-07 — dosud nevyřešeno).
+5. Zkontrolovat, jestli nový agent `gs-2kolo-favorit` nekoliduje s
+   `market_clay_fav` (oba trh-only) — mohou sázet na stejný zápas, ale
+   každý má vlastní banku/log, takže to není problém pro měření.
