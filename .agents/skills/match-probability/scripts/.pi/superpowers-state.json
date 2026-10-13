@@ -54,7 +54,8 @@
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_gs_round2.py",
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_gs_rounds.py",
       "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round_direct.py",
-      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_clay_oos.py"
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_clay_oos.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_seed.py"
     ],
     "redVerificationPending": false
   },
