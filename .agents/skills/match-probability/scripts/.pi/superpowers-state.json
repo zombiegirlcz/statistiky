@@ -1,0 +1,71 @@
+{
+  "workflow": {
+    "phases": {
+      "brainstorm": "pending",
+      "plan": "pending",
+      "execute": "pending",
+      "verify": "pending",
+      "review": "pending",
+      "finish": "pending"
+    },
+    "currentPhase": null,
+    "artifacts": {
+      "brainstorm": null,
+      "plan": null,
+      "execute": null,
+      "verify": null,
+      "review": null,
+      "finish": null
+    },
+    "prompted": {
+      "brainstorm": false,
+      "plan": false,
+      "execute": false,
+      "verify": false,
+      "review": false,
+      "finish": false
+    }
+  },
+  "tdd": {
+    "phase": "idle",
+    "testFiles": [],
+    "sourceFiles": [
+      "/tmp/fav_safe_probe.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_bands.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_segments.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_bank.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_oos.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_clay_robust.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_clay_split.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_fav_maxodds.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_market_fav.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/live_tennis_simulator.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/agents.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/executor.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round_market.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_oos.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_signif.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_live_fields.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_rank_gap.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round_ordinal.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round_code_segments.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_live.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_live_oos.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_gs_round2.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_gs_rounds.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round_direct.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_clay_oos.py",
+      "/root/statistiky/.agents/skills/match-probability/scripts/_probe_round2_seed.py"
+    ],
+    "redVerificationPending": false
+  },
+  "debug": {
+    "active": false,
+    "investigated": true,
+    "fixAttempts": 0
+  },
+  "verification": {
+    "verified": false,
+    "verificationWaived": false
+  }
+}

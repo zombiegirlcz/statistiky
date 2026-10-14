@@ -1,0 +1,55 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - button "Zpět" [ref=e59] [cursor=pointer]: ‹
+    - generic [ref=e3]:
+      - generic [ref=e4]: L6
+      - generic [ref=e5]: Automat
+  - main [ref=e6]:
+    - generic [ref=e60]:
+      - generic [ref=e62]:
+        - generic [ref=e63]: BANK 1 000 Kč
+        - generic [ref=e64]:
+          - checkbox "zvuk" [checked] [ref=e65]
+          - text: zvuk
+      - generic [ref=e66]:
+        - generic [ref=e171]:
+          - generic [ref=e172]: 🍇
+          - generic [ref=e174]: 🎁
+          - generic [ref=e176]: ⭐
+        - generic [ref=e178]:
+          - generic [ref=e179]: 🍋
+          - generic [ref=e181]: 🃏
+          - generic [ref=e183]: 🍒
+        - generic [ref=e185]:
+          - generic [ref=e186]: 🃏
+          - generic [ref=e188]: 7️⃣
+          - generic [ref=e190]: 7️⃣
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - generic [ref=e90]: Vklad / linie
+          - generic [ref=e91]:
+            - button "−" [ref=e92] [cursor=pointer]
+            - generic [ref=e93]: 1 Kč
+            - button "+" [ref=e94] [cursor=pointer]
+        - button "TOČIT" [disabled] [ref=e95]
+        - generic [ref=e96]:
+          - generic [ref=e97]: Celkem / točení
+          - generic [ref=e98]: 5 Kč
+      - generic [ref=e99]: Točí se…
+      - generic [ref=e100]:
+        - heading "Výherní linie (5 · všechny aktivní)" [level=3] [ref=e101]
+        - generic [ref=e102]:
+          - generic [ref=e103] [cursor=pointer]: "1"
+          - generic [ref=e115] [cursor=pointer]: "2"
+          - generic [ref=e127] [cursor=pointer]: "3"
+          - generic [ref=e139] [cursor=pointer]: "4"
+          - generic [ref=e151] [cursor=pointer]: "5"
+        - generic [ref=e163]: RTP ≈ 97 % · wild 🃏 nahrazuje cokoli · scatter 🎁 platí kdekoliv (×2 = 1×, ×3 = 10× vkladu).
+      - generic [ref=e164]:
+        - heading "Historie (posledních 20)" [level=3] [ref=e165]
+        - generic [ref=e166]: Zatím nic…
+        - button "↺ Reset banku (1000)" [ref=e170] [cursor=pointer]
+  - contentinfo [ref=e54]:
+    - generic [ref=e56]: online
+    - generic [ref=e57]: ·
+    - generic [ref=e58]: simulace, žádné reálné peníze

@@ -6,3 +6,8 @@ __pycache__/
 
 # tajné klíče (BOOKMAKER, API klíče, wallet) nikdy do gitu
 .env
+
+# runtime stav pi-mozku (cache kalendare, cas posledniho behu)
+.agents/skills/match-probability/scripts/pi_schedule.json
+.agents/skills/match-probability/scripts/.pi_brain_last_run
+.agents/skills/match-probability/scripts/pi_strategy_loop.log

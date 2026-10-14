@@ -1,0 +1,1136 @@
+#!/usr/bin/env python3
+"""
+server.py — HTTP REST API nad daty /statistiky, napojené na pi agenta.
+
+Co to je
+--------
+Malý Flask server, který na jednom místě vystaví to, co už v repu existuje:
+
+  1. PŘÍMÁ DATA (rychlé, deterministické, neplatí se za to API kvóta):
+     - /api/sx/markets    aktivní trhy na SX.bet (vítěz, sety, góly, handicap, poločas, třetiny…)
+     - /api/sx/odds       VŠECHNY trhy ke konkrétnímu zápasu (odmaržované pravděpodobnosti + kurzy)
+     - /api/matches       nadcházející zápasy s kurzy (The Odds API — fallback)
+     - /api/odds          odvigované tržní pravděpodobnosti konkrétního zápasu (The Odds API — fallback)
+     - /api/probability   náš model z historických dat (aggregate_stats.py)
+
+     Primární zdroj kurzů je SX.bet (zdarma, bez API klíče, víc trhů).
+     The Odds API je jen fallback pro sporty/ligy, které SX.bet nenabízí.
+
+  2. PI AGENT (pomalejší, ale "chytřejší" — použije skill match-probability):
+     - /api/tickets       složí nejlepší možné tikety z aktuální nabídky
+     - /api/agent         obecný dotaz na agenta (volný prompt)
+
+Server je bezstavový — všechna logika zůstává ve skriptech ve
+`.agents/skills/match-probability/scripts/`, server je jen tenká vrstva,
+která je volá. Nemění žádná data, jen čte.
+
+Spuštění
+--------
+    cd /root/statistiky && source ~/.env
+    python3 server.py                 # bind 0.0.0.0:8000
+    SPORTS_PORT=9000 python3 server.py
+
+    # nebo přes přiložený start.sh (najde LAN IP, spustí na pozadí)
+    ./server.sh [port]
+
+POZOR na bezpečnost: server NEMÁ autentizaci a umí spouštět pi agenta
+(s bash přístupem). Bind na 0.0.0.0 znamená, že ho uvidí kdokoli na stejné
+síti. Používej jen v důvěryhodné síti (Wi-Fi/hotspot), nikdy ho nevystavuj
+do internetu bez reverzní proxy s autentizací.
+
+Endpointy
+---------
+GET  /health
+GET  /api/sx/markets?sport=tenis|fotbal|hokej[&market=vitez|set|goly|handicap|polocas|tretiny|gemy|sety|1x2][&limit=40]
+GET  /api/sx/odds?sport=...&a=...&b=...[&market=...][&live=true]
+GET  /api/matches?sport=tenis|fotbal|hokej[&liga=E0]
+GET  /api/odds?sport=...&a=...&b=...
+GET  /api/sx/trades?dny=14&limit=100
+GET  /api/learner/digest?sekundy=25
+POST /api/probability   {"sport":"fotbal","a":"Arsenal","b":"Chelsea","home":"A"}
+POST /api/simulate      {"sport":"fotbal|hokej","a":"Arsenal","b":"Chelsea","home":"A","n":20000} — Monte Carlo (match_simulator.py)
+POST /api/run           {"skript":"replay","args":["--rok","2024"],"timeout":900}
+POST /api/tickets       {"sport":"tenis","budget":1000,"max_legs":3,"trenink":true,"poznamka":"..."}
+POST /api/agent         {"prompt":"..."}
+
+GET  /api/goalscorer?sport=hokej|fotbal&jmeno=...[&live=true]   — P(hráč dá gól), hokej umí --live (aktuální NHL game-log)
+GET  /api/goalwatch/status                                       — stav live_goal_watcher.py (poslední góly, běží/neběží)
+POST /api/goalwatch/start   {"games":"2026020044,2026020045",...,"interval":45}  — spustí watcher na pozadí
+POST /api/goalwatch/stop                                         — zastaví běžící watcher
+GET  /api/tiket-historie                                         — seznam uložených tiketů (tiket_historie.py)
+POST /api/tiket-historie    {"typ":"Maxikombi","kurz":78.44,"vklad":200,"skupiny":{"A":"..."},"vysledek":"4/7"}
+"""
+import json
+import os
+import signal
+import subprocess
+import sys
+import threading
+import time
+
+from flask import Flask, jsonify, redirect, request, send_from_directory
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPTS_DIR = os.path.join(BASE_DIR, ".agents", "skills", "match-probability", "scripts")
+sys.path.insert(0, SCRIPTS_DIR)
+
+WEB_DIR = os.path.join(BASE_DIR, "web")
+PWA_DIR = os.path.join(BASE_DIR, "pwa")
+
+# pi binárka — výchozí 'pi' ze systémového PATH (nebo PI_BIN z ~/.env)
+PI_BIN = os.environ.get("PI_BIN", "pi")
+PI_TIMEOUT = int(os.environ.get("PI_TIMEOUT", "600"))
+
+ALLOWED_SPORTS = ("fotbal", "tenis", "hokej")
+
+# SX.bet sportId (viz sxbet_client.py)
+SX_SPORT_ID = {"tenis": 6, "fotbal": 5, "hokej": 2}
+
+# Lidské názvy skupin trhů na SX.bet → seznam typů (viz _markets.md).
+# Server díky tomu vystaví víc než jen vítěze zápasu.
+SX_MARKET_GROUPS = {
+    "tenis": {
+        "vitez":      {52, 226},
+        "set":        {202, 203, 204},          # vítěz 1./2./3. setu
+        "gemy":       {201, 166},              # AH na gemy / O-U gamů
+        "sety":       {165, 866},              # celkový počet setů / set spread
+    },
+    "fotbal": {
+        "vitez":      {52, 226},
+        "1x2":        {1},
+        "goly":       {2, 28},                 # přes/pod góly
+        "handicap":   {3},
+        "polocas":    {63, 77, 53},            # 12 poločas / O-U poločas / AH poločas
+    },
+    "hokej": {
+        "vitez":      {52, 226},
+        "goly":       {2, 28},                 # přes/pod včetně prodloužení
+        "handicap":   {3, 342},
+        "tretiny":    {202, 203, 204, 21, 45, 46, 64, 65, 66},
+    },
+}
+
+# Whitelist výpočtů/simulací, které smí /api/run spustit. Klíč = jméno pro API,
+# hodnota = cesta ke skriptu RELATIVNĚ ke SCRIPTS_DIR. Argumenty se předávají
+# jako seznam (žádný shell), takže nejde propašovat shell injection.
+BACKTEST_SCRIPTS = {
+    "backtest":          "backtest.py",
+    "tennis-value":      "tennis_value_backtest.py",
+    "inplay-timing":     "inplay_timing_backtest.py",
+    "replay":            "replay_backtest.py",
+    "replay-variants":   "replay_variants.py",
+    "replay-model-only": "replay_model_only.py",
+    "composer":          "composer_learner.py",
+    "ticket-builder":    "ticket_builder.py",
+    "fav-prohra":        os.path.join("..", "backtest_fav_prohra.py"),
+    "aggregate":         "aggregate_stats.py",
+    "market-probs":      "market_probs.py",
+    "tape-collect":      "tape_archiver.py",
+    "tape-settle":       "tape_archiver.py",
+    "tape-report":       "tape_archiver.py",
+    "player-profile":    "player_profile.py",
+    "game-flow":         "game_flow.py",
+    "odds-compare":      "odds_compare.py",
+}
+
+app = Flask(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Pomocné funkce
+# ---------------------------------------------------------------------------
+# Registry běžícího pi agenta, aby ho šlo z jiného requestu přerušit.
+# Flask jede s threaded=True, takže /api/interrupt běží paralelně s během agenta.
+_PROC_LOCK = threading.Lock()
+_PROC = {"p": None}
+
+
+def _run(cmd, timeout=120, cwd=SCRIPTS_DIR, track=False):
+    """Spustí příkaz a vrátí (rc, stdout, stderr, interrupted).
+
+    Když `track=True`, proces se zaregistruje do globálního registru, aby ho
+    šlo přes /api/interrupt zabít (i s celou skupinou potomků, protože si pi
+    spouští vlastní podprocesy). Nikdy nevyhazuje výjimku kvůli rc.
+    """
+    try:
+        if not track:
+            p = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout)
+            return p.returncode, p.stdout, p.stderr, False
+
+        # Tracked varianta: start_new_session=True → vlastní procesní skupina,
+        # takže killpg zabije i děti (pi → bash → python skripty).
+        p = subprocess.Popen(
+            cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, start_new_session=True,
+        )
+        with _PROC_LOCK:
+            _PROC["p"] = p
+        try:
+            out, err = p.communicate(timeout=timeout)
+            return p.returncode, out, err, False
+        except subprocess.TimeoutExpired:
+            _kill_proc(p)
+            out, err = p.communicate()
+            return 124, out, (err or "") + f"\n[timeout po {timeout}s]", False
+        finally:
+            with _PROC_LOCK:
+                if _PROC["p"] is p:
+                    _PROC["p"] = None
+    except FileNotFoundError as e:
+        return 127, "", f"příkaz nenalezen: {e}", False
+
+
+def _kill_proc(p):
+    """Zabije proces i celou jeho skupinu (SIGKILL), potichu když už neběží."""
+    if p is None or p.poll() is not None:
+        return False
+    try:
+        os.killpg(os.getpgid(p.pid), signal.SIGKILL)
+    except (ProcessLookupError, PermissionError, OSError):
+        try:
+            p.kill()
+        except OSError:
+            pass
+    return True
+
+
+def interrupt_agent():
+    """Přeruší běžícího pi agenta. Vrací True, když něco běželo a bylo zabito."""
+    with _PROC_LOCK:
+        p = _PROC.get("p")
+    return _kill_proc(p)
+
+
+def agent_running():
+    with _PROC_LOCK:
+        p = _PROC.get("p")
+    return bool(p is not None and p.poll() is None)
+
+
+def run_pi(prompt, timeout=None):
+    """Spustí pi agenta non-interaktivně (`-p`) s povolenými nástroji.
+
+    Formát volání je ověřený (viz deploy/tick.sh): `pi -p <prompt> --tools ...`.
+    Agent běží v adresáři scripts, takže vidí všechny sázející skripty.
+
+    POZOR: `--tools bash` NESTAČÍ. Agent při stavbě tiketu potřebuje i `read`
+    (přečíst SKILL.md a references/metodika.md), případně `edit`/`write`.
+    S povoleným jen `bash` model napsal tool call jako TEXT místo aby ho
+    zavolal, a volání pak viselo (ověřeno živě 2026-10-05).
+    """
+    if not prompt or not prompt.strip():
+        return {"ok": False, "error": "prázdný prompt"}
+    rc, out, err, _interrupted = _run(
+        [PI_BIN, "-p", prompt, "--tools", "bash,read,edit,write"],
+        timeout=timeout or PI_TIMEOUT, track=True,
+    )
+    # rc < 0 = zabito signálem (SIGKILL = -9) → přerušeno uživatelem.
+    was_interrupted = rc is not None and rc < 0
+    return {
+        "ok": rc == 0,
+        "rc": rc,
+        "interrupted": was_interrupted,
+        "stdout": out,
+        "stderr": err,
+        "pozn": "Přerušeno uživatelem (proces zabit)." if was_interrupted else None,
+    }
+
+
+def _sport_key_for_football_league(code):
+    """Mapování ligového kódu z názvu našeho CSV (E0, I1, ...) na sport_key
+    The Odds API — sdílí tabulku s odds_compare.py, ať není duplikace.
+    (Fallback, když SX.bet daný zápas nenabízí.)"""
+    import odds_compare as oc
+    return oc.FOOTBALL_LEAGUE_TO_SPORT_KEY.get(code)
+
+
+# ---------------------------------------------------------------------------
+# SX.bet — primární zdroj kurzů (více trhů než The Odds API)
+# ---------------------------------------------------------------------------
+def _evid(m):
+    """ID eventu z SX.bet trhu. API pole se jmenuje `sportXeventId` (malé 'e'),
+    ale pro jistotu bereme i `sportXEventId` — historicky se to pletlo a kvůli
+    tomu vracelo /api/sx/odds i /api/sx/by-event prázdné výsledky."""
+    return m.get("sportXeventId") or m.get("sportXEventId")
+
+
+def _sx_group_types(sport, group):
+    """Vrátí množinu typů trhů pro daný sport a skupinu (nebo všechny)."""
+    groups = SX_MARKET_GROUPS.get(sport, {})
+    if group in (None, "", "all"):
+        out = set()
+        for v in groups.values():
+            out |= v
+        return out
+    return groups.get(group, set())
+
+
+def _sx_odds_bulk(markets, max_workers=16):
+    """Paralelně dotáhne orderbook pro seznam trhů → {marketHash: odds}.
+
+    SX.bet umí orderbook jen po JEDNOM trhu (/orderbook-v3/snapshot), takže
+    150 trhů = 150 HTTP dotazů. Sekvenčně to trvá minuty (endpoint pak padá
+    na timeout), paralelně jen sekundy. Jeden vadný trh nesmí shodit celek.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+    import sxbet_client as sx
+
+    def one(m):
+        mh = m.get("marketHash")
+        if not mh:
+            return None, {}
+        try:
+            return mh, sx.market_odds(mh)
+        except Exception:  # noqa: BLE001
+            return mh, {}
+
+    out = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        for mh, odds in ex.map(one, markets):
+            if mh:
+                out[mh] = odds
+    return out
+
+
+def _sx_market_dict(m, with_odds=True, odds=None):
+    """Převede surový SX.bet trh na JSON-friendly dict (+ odmaržované probs).
+
+    `odds` lze předat předem stažený orderbook (viz `_sx_odds_bulk`) — jinak
+    se dotahuje zvlášť. Odmaržovaná pravděpodobnost se počítá z UŽ staženého
+    booku, takže se nedělá druhý HTTP dotaz na trh.
+    """
+    d = {
+        "marketHash": m.get("marketHash"),
+        "typ": m.get("type"),
+        "liga": m.get("leagueLabel"),
+        "zacatek": m.get("gameTime"),
+        "live": m.get("liveEnabled"),
+        "strana1": m.get("outcomeOneName") or m.get("teamOneName"),
+        "strana2": m.get("outcomeTwoName") or m.get("teamTwoName"),
+        "line": m.get("line"),
+    }
+    if not with_odds:
+        return d
+    if odds is None:
+        import sxbet_client as sx
+        try:
+            odds = sx.market_odds(m["marketHash"])
+        except Exception:  # noqa: BLE001
+            odds = {}
+    if "outcomeOne" in odds and "outcomeTwo" in odds:
+        o1, o2 = odds["outcomeOne"], odds["outcomeTwo"]
+        d["kurz1"] = round(o1[0], 3)
+        d["kurz2"] = round(o2[0], 3)
+        total = o1[1] + o2[1]
+        if total > 0:
+            d["p1"] = round(o1[1] / total, 4)
+            d["p2"] = round(o2[1] / total, 4)
+        else:
+            d["p1"], d["p2"] = round(o1[1], 4), round(o2[1], 4)
+        d["likvidita1"] = round(o1[2], 2)
+        d["likvidita2"] = round(o2[2], 2)
+    else:
+        d["kurz1"] = d["kurz2"] = None
+    return d
+
+
+def _trhy_do_textu(trhy):
+    """Z výpisu trhů (z /api/sx/by-event) udělá text pro prompt agenta.
+
+    Posílá se reálný snapshot kurzů, aby agent nemusel sám znovu obcházet
+    celý orderbook (což je pomalé a náchylné na chyby) — dostane přesně to,
+    co vidí uživatel v UI.
+    """
+    if not isinstance(trhy, list) or not trhy:
+        return ""
+
+    def _f(v, dec=3):
+        return "—" if v is None else f"{v:.{dec}f}"
+
+    def _p(v):
+        return "—" if v is None else f"{v * 100:.1f}%"
+
+    radky = []
+    for t in trhy[:40]:
+        if not isinstance(t, dict):
+            continue
+        line = t.get("line")
+        lt = f" (lajna {line})" if line not in (None, "") else ""
+        radky.append(
+            f"  trh {t.get('typ')}{lt}: "
+            f"{t.get('strana1')} kurz {_f(t.get('kurz1'))} "
+            f"(trh {_p(t.get('p1'))}, likvidita {_f(t.get('likvidita1'), 0)} USDC)"
+            f" | {t.get('strana2')} kurz {_f(t.get('kurz2'))} "
+            f"(trh {_p(t.get('p2'))}, likvidita {_f(t.get('likvidita2'), 0)} USDC)"
+        )
+    return "\n".join(radky)
+
+
+def _digest_do_textu(d):
+    """Převede digest z veřejného SX.bet tape (sx_tape.digest) na text pro prompt."""
+    if not d:
+        return "(žádný tréninkový digest)"
+    lines = [
+        f"Zdroj: {d.get('zdroj', '?')} za {d.get('okno_sekund')} s.",
+        f"Zachyceno {d.get('pocet_trades', 0)} sázek, celkem "
+        f"{d.get('celkem_stake_usdc', 0)} USDC.",
+    ]
+    if d.get("podil_stake_strana1") is not None:
+        lines.append(f"Podíl money na stranu 1 (outcomeOne): {d['podil_stake_strana1']:.0%}.")
+    for x in (d.get("podle_typu_trhu") or [])[:6]:
+        lines.append(f"  trh {x.get('typ_trhu')}: n={x.get('n')}, "
+                     f"{x.get('stake_usdc')} USDC, prům. kurz {x.get('prum_kurz')}")
+    for x in (d.get("podle_ligy") or [])[:6]:
+        lines.append(f"  liga {x.get('liga')}: n={x.get('n')}, {x.get('stake_usdc')} USDC")
+    for p in d.get("pouceni") or []:
+        lines.append(f"• {p}")
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# / — webové UI (tmavý motiv) pro stavbu tiketů
+# ---------------------------------------------------------------------------
+@app.get("/")
+@app.get("/app")
+def index():
+    if not os.path.exists(os.path.join(WEB_DIR, "index.html")):
+        return jsonify({"ok": True, "service": "statistiky-server", "pozn": "web/index.html nenalezen",
+                        "endpoints": [r.rule for r in app.url_map.iter_rules() if r.rule.startswith("/api")]}), 200
+    return send_from_directory(WEB_DIR, "index.html")
+
+
+@app.get("/simulator")
+def simulator_page():
+    if not os.path.exists(os.path.join(WEB_DIR, "simulator.html")):
+        return jsonify({"ok": False, "error": "web/simulator.html nenalezen"}), 404
+    return send_from_directory(WEB_DIR, "simulator.html")
+
+
+# ---------------------------------------------------------------------------
+# /loterie/ — PWA Loterie (Lucky Six + Maxa Šestka), statické soubory z pwa/
+# Relativní cesty v pwa/ (manifest, sw.js, app.js) fungují jen s koncovým lomítkem.
+# ---------------------------------------------------------------------------
+@app.get("/loterie")
+def loterie_redirect():
+    return redirect("/loterie/", code=301)
+
+
+@app.get("/loterie/")
+@app.get("/loterie/<path:fname>")
+def loterie(fname="index.html"):
+    if not os.path.isdir(PWA_DIR):
+        return jsonify({"ok": False, "error": "pwa/ nenalezeno"}), 404
+    return send_from_directory(PWA_DIR, fname)
+
+
+# ---------------------------------------------------------------------------
+# /health
+# ---------------------------------------------------------------------------
+@app.get("/health")
+def health():
+    return jsonify({
+        "ok": True,
+        "service": "statistiky-server",
+        "scripts_dir": SCRIPTS_DIR,
+        "pi_bin": PI_BIN,
+        "sports": list(ALLOWED_SPORTS),
+        "bookmaker": os.environ.get("BOOKMAKER", "sxbet_sim"),
+        "zdroj_kurzu": "sxbet (primární) + oddsapi (fallback)",
+        "skripty_pro_run": sorted(BACKTEST_SCRIPTS),
+        "sx_market_groups": {
+            sport: {grp: sorted(types) for grp, types in groups.items()}
+            for sport, groups in SX_MARKET_GROUPS.items()
+        },
+    })
+
+
+# ---------------------------------------------------------------------------
+# /api/matches — nadcházející zápasy s kurzy
+# ---------------------------------------------------------------------------
+@app.get("/api/matches")
+def matches():
+    sport = (request.args.get("sport") or "").strip().lower()
+    if sport not in ALLOWED_SPORTS:
+        return jsonify({"ok": False, "error": f"sport musí být jeden z {ALLOWED_SPORTS}"}), 400
+
+    import odds_compare as oc
+
+    events = []
+    label = None
+    try:
+        if sport == "hokej":
+            data, remaining = oc.fetch_odds(oc.HOCKEY_SPORT_KEY)
+            events = data
+            label = "NHL"
+        elif sport == "tenis":
+            remaining = None
+            for s in oc.tennis_candidates():
+                data, remaining = oc.fetch_odds(s["key"])
+                if data:
+                    events = data
+                    label = s["title"]
+                    break
+        else:  # fotbal
+            liga = (request.args.get("liga") or "").strip()
+            if liga:
+                key = _sport_key_for_football_league(liga)
+                if not key:
+                    return jsonify({"ok": False, "error": f"ligový kód '{liga}' nemá sport_key"}), 400
+                data, remaining = oc.fetch_odds(key)
+                events = data
+                label = liga
+            else:
+                return jsonify({
+                    "ok": False,
+                    "error": "u fotbalu je potřeba zadat &liga=<kód> (E0, I1, SP1, ...)",
+                }), 400
+    except SystemExit as e:  # odds_compare při chybě API volá sys.exit
+        return jsonify({"ok": False, "error": f"odds API selhalo (exit {e.code})"}), 502
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+    out = []
+    for ev in events or []:
+        out.append({
+            "home": ev.get("home_team"),
+            "away": ev.get("away_team"),
+            "commence_time": ev.get("commence_time"),
+            "n_bookmakers": len(ev.get("bookmakers", [])),
+        })
+    return jsonify({"ok": True, "sport": sport, "liga": label, "pocet": len(out), "zapasy": out})
+
+
+# ---------------------------------------------------------------------------
+# /api/odds — odvigované tržní pravděpodobnosti konkrétního zápasu
+# ---------------------------------------------------------------------------
+@app.get("/api/odds")
+def odds():
+    sport = (request.args.get("sport") or "").strip().lower()
+    a = (request.args.get("a") or "").strip()
+    b = (request.args.get("b") or "").strip()
+    if sport not in ALLOWED_SPORTS or not a or not b:
+        return jsonify({"ok": False, "error": "potřeba sport, a, b"}), 400
+
+    import odds_compare as oc
+
+    try:
+        if sport == "fotbal":
+            _code, key = oc.football_sport_key(a, b)
+            if not key:
+                return jsonify({"ok": False, "error": "ligu zápasu nelze určit / není v Odds API"}), 404
+            events, remaining = oc.fetch_odds(key)
+        elif sport == "hokej":
+            events, remaining = oc.fetch_odds(oc.HOCKEY_SPORT_KEY)
+        else:
+            events, remaining = [], None
+            for s in oc.tennis_candidates():
+                evs, remaining = oc.fetch_odds(s["key"])
+                events.extend(evs or [])
+        ev = oc.find_event(events, a, b)
+        if not ev:
+            return jsonify({"ok": False, "error": "zápas se v nadcházejících kurzech nenašel"}), 404
+        probs = oc.devigged_probs(ev, sport)
+    except SystemExit as e:
+        return jsonify({"ok": False, "error": f"odds API selhalo (exit {e.code})"}), 502
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+    return jsonify({
+        "ok": True,
+        "zapas": f"{ev.get('home_team')} vs {ev.get('away_team')}",
+        "commence_time": ev.get("commence_time"),
+        "trh_pravdepodobnosti": probs,
+        "kredity_zbyva": remaining,
+        "pozn": "toto je The Odds API fallback; pro víc trhů použij /api/sx/odds",
+    })
+
+
+# ---------------------------------------------------------------------------
+# /api/sx/markets — aktivní trhy na SX.bet (VÍC než jen vítěz zápasu)
+# ---------------------------------------------------------------------------
+@app.get("/api/sx/markets")
+def sx_markets():
+    sport = (request.args.get("sport") or "").strip().lower()
+    if sport not in ALLOWED_SPORTS:
+        return jsonify({"ok": False, "error": f"sport musí být jeden z {ALLOWED_SPORTS}"}), 400
+    group = (request.args.get("market") or "all").strip().lower()
+    try:
+        limit = min(int(request.args.get("limit", 40)), 200)
+    except ValueError:
+        limit = 40
+
+    import sxbet_client as sx
+    types = _sx_group_types(sport, group)
+    if not types:
+        return jsonify({"ok": False, "error": f"neznámá skupina '{group}' pro {sport}",
+                        "dostupne": list(SX_MARKET_GROUPS.get(sport, {}))}), 400
+
+    try:
+        markets = sx.active_markets(sport_ids=[SX_SPORT_ID[sport]], only_main_line=True, max_pages=8)
+    except RuntimeError as e:
+        return jsonify({"ok": False, "error": str(e)}), 502
+
+    out = []
+    for m in markets:
+        if m.get("type") not in types:
+            continue
+        out.append(_sx_market_dict(m))
+        if len(out) >= limit:
+            break
+
+    return jsonify({
+        "ok": True, "zdroj": "sxbet", "sport": sport, "skupina": group,
+        "pocet": len(out), "trhy": out,
+        "pozn": "p1/p2 = odmaržovaná pravděpodobnost, kurz1/2 = aktuální taker kurz, "
+                "likvidita = kolik USDC je v nejlepší úrovni booku",
+    })
+
+
+# ---------------------------------------------------------------------------
+# /api/sx/odds — všechny trhy ke KONKRÉTNÍMU zápasu/páru
+# ---------------------------------------------------------------------------
+@app.get("/api/sx/odds")
+def sx_odds():
+    sport = (request.args.get("sport") or "").strip().lower()
+    a = (request.args.get("a") or "").strip()
+    b = (request.args.get("b") or "").strip()
+    if sport not in ALLOWED_SPORTS or not a or not b:
+        return jsonify({"ok": False, "error": "potřeba sport, a, b"}), 400
+    group = (request.args.get("market") or "all").strip().lower()
+    live = request.args.get("live")
+    live_only = None if live is None else live.lower() in ("1", "true", "yes")
+
+    import sxbet_client as sx
+    sid = SX_SPORT_ID[sport]
+    types = _sx_group_types(sport, group)
+    if not types:
+        return jsonify({"ok": False, "error": f"neznámá skupina '{group}' pro {sport}",
+                        "dostupne": list(SX_MARKET_GROUPS.get(sport, {}))}), 400
+
+    try:
+        allm = sx.active_markets(sport_ids=[sid], live_only=live_only, max_pages=10)
+    except RuntimeError as e:
+        return jsonify({"ok": False, "error": str(e)}), 502
+
+    # najdi event (sportXEventId), kde figurují obě jména
+    event_ids, label = set(), None
+    for m in allm:
+        t1, t2 = m.get("teamOneName", ""), m.get("teamTwoName", "")
+        if ((sx._name_match(a, t1) and sx._name_match(b, t2)) or
+                (sx._name_match(a, t2) and sx._name_match(b, t1))):
+            event_ids.add(_evid(m))
+            label = m.get("leagueLabel") or label
+    if not event_ids:
+        return jsonify({"ok": False, "error": "zápas na SX.bet nenalezen (jiná jména / není v nabídce)"}), 404
+
+    out = []
+    for m in allm:
+        if _evid(m) not in event_ids or m.get("type") not in types:
+            continue
+        out.append(_sx_market_dict(m))
+    out.sort(key=lambda d: (d.get("typ") or 0, d.get("line") or 0))
+    return jsonify({
+        "ok": True, "zdroj": "sxbet", "zapas": f"{a} vs {b}", "liga": label,
+        "skupina": group, "pocet_trhu": len(out), "trhy": out,
+    })
+
+
+# ---------------------------------------------------------------------------
+# /api/sx/by-event — zápasy se VŠEMI svými trhy (přehledné zobrazení v UI)
+# ---------------------------------------------------------------------------
+@app.get("/api/sx/by-event")
+def sx_by_event():
+    """Vrátí zápasy, kde každý má POD SEBOU všechny dostupné trhy (vítěz,
+    sety, gemy, góly, handicap, poločas, třetiny…) — místo aby se trhy
+    zobrazovaly odděleně podle skupiny.
+
+    Query: sport (tenis|fotbal|hokej), live=true|false (volitelně),
+           limit (max zápasů, default 20).
+    """
+    sport = (request.args.get("sport") or "").strip().lower()
+    if sport not in ALLOWED_SPORTS:
+        return jsonify({"ok": False, "error": f"sport musí být jeden z {ALLOWED_SPORTS}"}), 400
+    live = request.args.get("live")
+    live_only = None if live is None else live.lower() in ("1", "true", "yes")
+    try:
+        limit = min(int(request.args.get("limit", 20)), 60)
+    except ValueError:
+        limit = 20
+
+    import sxbet_client as sx
+    types = _sx_group_types(sport, "all")
+    try:
+        markets = sx.active_markets(sport_ids=[SX_SPORT_ID[sport]], live_only=live_only,
+                                    only_main_line=True, max_pages=10)
+    except RuntimeError as e:
+        return jsonify({"ok": False, "error": str(e)}), 502
+
+    # 1) seskup trhy podle eventu BEZ dotahování kurzů (orderbook je drahý)
+    events = {}
+    for m in markets:
+        evid = _evid(m)
+        if not evid or m.get("type") not in types:
+            continue
+        ev = events.setdefault(evid, {
+            "eventId": evid,
+            "liga": m.get("leagueLabel"),
+            "zacatek": m.get("gameTime"),
+            "live": bool(m.get("liveEnabled")),
+            "zapas": f"{m.get('teamOneName')} vs {m.get('teamTwoName')}",
+            "tym1": m.get("teamOneName"),
+            "tym2": m.get("teamTwoName"),
+            "_raw": [],
+        })
+        ev["_raw"].append(m)
+
+    # 2) vem jen `limit` nejbližších zápasů — teprve jim se stahují kurzy
+    vybrane = sorted(events.values(), key=lambda e: e.get("zacatek") or 0)[:limit]
+
+    # 3) kurzy pro všechny trhy vybraných zápasů PARALELNĚ
+    vsechny = [m for ev in vybrane for m in ev["_raw"]]
+    odds_map = _sx_odds_bulk(vsechny)
+
+    prio = {52: 0, 226: 1, 1: 2}
+    vysledek = []
+    for ev in vybrane:
+        ev["trhy"] = [
+            _sx_market_dict(m, odds=odds_map.get(m.get("marketHash")))
+            for m in ev["_raw"]
+        ]
+        ev["trhy"].sort(key=lambda d: (prio.get(d.get("typ"), 9), d.get("typ") or 0, d.get("line") or 0))
+        ev.pop("_raw", None)
+        if ev["trhy"]:
+            vysledek.append(ev)
+
+    return jsonify({
+        "ok": True, "zdroj": "sxbet", "sport": sport,
+        "pocet_zapasu": len(vysledek),
+        "zapasy": vysledek,
+        "pozn": "každý zápas obsahuje VŠECHNY dostupné trhy (kurz, odmaržovaná p, likvidita)",
+    })
+
+
+# ---------------------------------------------------------------------------
+# /api/probability — náš model z historických dat
+# ---------------------------------------------------------------------------
+@app.post("/api/probability")
+def probability():
+    data = request.get_json(silent=True) or {}
+    sport = (data.get("sport") or "").strip().lower()
+    a = (data.get("a") or "").strip()
+    b = (data.get("b") or "").strip()
+    if sport not in ALLOWED_SPORTS or not a or not b:
+        return jsonify({"ok": False, "error": "potřeba sport, a, b"}), 400
+
+    cmd = [sys.executable, "aggregate_stats.py", sport, a, b]
+    home = data.get("home")
+    if home in ("A", "B"):
+        cmd += ["--home", home]
+    rc, out, err, _ = _run(cmd, timeout=180)
+    return jsonify({"ok": rc == 0, "rc": rc, "vystup": out, "stderr": err})
+
+
+# ---------------------------------------------------------------------------
+# /api/simulate — Monte Carlo simulace zápasu (match_simulator.py)
+# ---------------------------------------------------------------------------
+@app.post("/api/simulate")
+def simulate():
+    data = request.get_json(silent=True) or {}
+    sport = (data.get("sport") or "").strip().lower()
+    a = (data.get("a") or "").strip()
+    b = (data.get("b") or "").strip()
+    if sport not in ("fotbal", "hokej") or not a or not b:
+        return jsonify({"ok": False, "error": "potřeba sport (fotbal|hokej), a, b"}), 400
+
+    try:
+        n = min(max(int(data.get("n", 20000)), 1000), 50000)
+    except (TypeError, ValueError):
+        n = 20000
+
+    cmd = [sys.executable, "match_simulator.py", sport, a, b, "--n", str(n), "--json"]
+    home = data.get("home")
+    if home in ("A", "B"):
+        cmd += ["--home", home]
+    rc, out, err, _ = _run(cmd, timeout=60)
+    if rc != 0:
+        return jsonify({"ok": False, "error": err or "simulace selhala"}), 502
+    try:
+        result = json.loads(out)
+    except json.JSONDecodeError:
+        return jsonify({"ok": False, "error": f"neplatný výstup simulátoru: {out[:300]}"}), 502
+    return jsonify(result)
+
+
+# ---------------------------------------------------------------------------
+# /api/tickets — nejlepší možné tikety (přes pi agenta)
+# ---------------------------------------------------------------------------
+@app.post("/api/tickets")
+def tickets():
+    data = request.get_json(silent=True) or {}
+    sport = (data.get("sport") or "všechny sporty").strip().lower()
+    budget = data.get("budget", 1000)
+    max_legs = data.get("max_legs", 3)
+    poznamka = (data.get("poznamka") or "").strip()
+    mod = (data.get("mod") or "").strip().lower()
+    trhy_txt = _trhy_do_textu(data.get("trhy") or [])
+
+    # --- "trénink" před stavbou: živý tape SX.bet (sázky cizích hráčů) ---
+    digest_txt = ""
+    if data.get("trenink", True):
+        try:
+            import sx_tape
+            d = sx_tape.digest(seconds=int(data.get("tape_sekundy", 20)),
+                               max_trades=int(data.get("tape_max", 300)))
+            digest_txt = _digest_do_textu(d)
+        except Exception as e:  # noqa: BLE001 - trénink nesmí shodit stavbu tiketu
+            digest_txt = f"(tréninkový digest z veřejného tape se nepodařilo sestavit: {e})"
+
+    prompt = (
+        f"Sestav nejlepší možné sázkové tikety. Sport: {sport}. "
+        f"Denní rozpočet: {budget} Kč. Maximálně {max_legs} nohou v AKO kombinaci. "
+        "ZDROJ KURZŮ JE SX.bet (ne The Odds API) — nabízí víc trhů než jen vítěze "
+        "zápasu: vítěz, vítěz setu/třetiny, přes/pod góly, asijský handicap, počet "
+        "gamů/setů, poločas. Použij sxbet_client.py (match_winner_markets, "
+        "set_winner_markets, active_markets, market_odds, devigged_probs). "
+        "Postupuj podle skillu match-probability: zjisti aktuální nabídku zápasů "
+        "a kurzů na SX.bet, spočítej náš model z historických dat "
+        "(aggregate_stats.py — vítěz/přesné skóre; market_probs.py — rohy, karty, "
+        "střely, fauly, SOG, PIM, esa, gemy; player_profile.py — profil hráče), "
+        "najdi hodnotové příležitosti (edge modelu proti odmaržovanému trhu) a "
+        "postav z nich SÓLO i AKO tikety. "
+        "Dodrž pravidla AKO (různé zápasy, kurz = součin). "
+        "U trhů, pro které nemáme historické kurzy k backtestu (hokej, většina "
+        "tenisu, poločas, třetiny, rohy, karty), buď poctivý, že edge není ověřený. "
+        "DŮLEŽITÉ VÝHRADY K MODELU (řekni je uživateli, pokud tiket obsahuje tyto "
+        "trhy): PIM (trestné minuty) model systematicky NADHODNOCUJE — na lajně "
+        "18.5 dává přes 48 %, ale empiricky je to jen 30 % (nejsou Poissonovsky "
+        "rozdělené). Karty jsou taky mírně nadstřelené (model 82 % vs. empiricky "
+        "74 % na 2.5). Góly, rohy, střely, SOG, esa naopak sedí dobře. PIM a karty "
+        "nikdy nepoužívej jako rovnocenný podklad pro tiket — vždy k nim přidej "
+        "výhradu nebo použij empirický sloupec z market_probs.py. "
+        "Buď poctivý i o riziku: AKO kombinace v našich backtestech prohrávaly, "
+        "nepředstírej jistotu. "
+        "Výstup vrať strukturovaně: seznam tiketů (typ, nohy s popisem, kurz, vklad) "
+        "a krátké odůvodnění u každé nohy (model % vs. trh %). "
+        "Nic nesázej reálně — BOOKMAKER=sxbet_sim, jde jen o návrh tiketů."
+    )
+    if digest_txt:
+        prompt += (
+            "\n\n--- TRÉNINK: ŽIVÝ TAPE SX.BET (sázky cizích hráčů, anonymní) ---\n"
+            + digest_txt
+            + "\n--- konec tréninku. Použij jako kontext (kam teče money), "
+              "nepřebírej slepě. ---"
+        )
+    if trhy_txt:
+        prompt += (
+            "\n\n--- KONKRÉTNÍ ZÁPAS A JEHO TRHY (reálné kurzy ze SX.bet) ---\n"
+            + trhy_txt
+            + "\n--- konec seznamu trhů. Toto jsou skutečné kurzy; použij je "
+              "jako vstup pro model a stavbu tiketu. ---"
+        )
+    if mod == "betbuilder":
+        prompt += (
+            "\n\nMÓD: BET BUILDER. Poskládej JEDEN kombinovaný tiket z VÍCE trhů "
+            "TOHOTO JEDNOHO zápasu (např. vítěz + přes/pod + handicap + vítěz setu). "
+            "Vybírej nohy tak, aby měly podporu v datech. KRITICKY DŮLEŽITÉ: nohy "
+            "ze STEJNÉHO zápasu jsou KORELOVANÉ (favorit na vítězství a přes/pod se "
+            "navzájem ovlivňují), takže prostý součin kurzů NADHODNOCUJE skutečnou "
+            "šanci. Řekni to uživateli na rovinu a uveď i poctivý komentář, že "
+            "skutečná společná pravděpodobnost je nižší než součin jednotlivých noh. "
+            "U každé nohy uveď modelové % z našich dat vs. tržní %."
+        )
+    elif mod == "match":
+        prompt += (
+            "\n\nMÓD: CELÝ ZÁPAS. Projdi VŠECHNY trhy tohoto zápasu (viz seznam výše) "
+            "a navrhni nejlepší jednotlivý výběr (SÓLO) i případnou kombinaci. "
+            "U každého výběru uveď modelové % z našich dat vs. tržní % a poctivě "
+            "řekni, kde edge není ověřený (hokej, sety, přes/pod gamů, rohy, karty)."
+        )
+    if poznamka:
+        prompt += f" Doplňující požadavek uživatele: {poznamka}"
+
+    result = run_pi(prompt)
+    return jsonify(result), (200 if result.get("ok") else 502)
+
+
+# ---------------------------------------------------------------------------
+# /api/agent — obecný dotaz na pi agenta
+# ---------------------------------------------------------------------------
+@app.post("/api/interrupt")
+def interrupt():
+    """Přeruší právě běžícího pi agenta (SIGKILL celé procesní skupiny).
+    UI tohle volá tlačítkem „Přerušit“. Když nic neběží, vrátí running=false."""
+    was_running = agent_running()
+    killed = interrupt_agent()
+    return jsonify({
+        "ok": True,
+        "was_running": was_running,
+        "killed": killed,
+        "pozn": "Agent přerušen." if killed else "Nic neběželo.",
+    })
+
+
+@app.get("/api/status")
+def status():
+    """Lehký dotaz pro UI — běží právě agent? Nestojí nic (jen RAM)."""
+    return jsonify({"ok": True, "agent_running": agent_running()})
+
+
+@app.post("/api/agent")
+def agent():
+    data = request.get_json(silent=True) or {}
+    prompt = (data.get("prompt") or "").strip()
+    if not prompt:
+        return jsonify({"ok": False, "error": "potřeba prompt"}), 400
+    result = run_pi(prompt, timeout=data.get("timeout"))
+    return jsonify(result), (200 if result.get("ok") else 502)
+
+
+# ---------------------------------------------------------------------------
+# /api/run — spuštění whitelistovaných výpočtů a simulací (backtesty, replay…)
+# ---------------------------------------------------------------------------
+@app.post("/api/run")
+def run_script():
+    data = request.get_json(silent=True) or {}
+    skript = (data.get("skript") or "").strip()
+    if skript not in BACKTEST_SCRIPTS:
+        return jsonify({"ok": False, "error": f"neznámý skript '{skript}'",
+                        "dostupne": sorted(BACKTEST_SCRIPTS)}), 400
+    args = data.get("args") or []
+    if not isinstance(args, list) or not all(isinstance(a, str) for a in args):
+        return jsonify({"ok": False, "error": "args musí být seznam řetězců"}), 400
+    for a in args:
+        if a.startswith("/") or ".." in a:
+            return jsonify({"ok": False, "error": f"argument '{a}' není povolen"}), 400
+    try:
+        timeout = int(data.get("timeout", 900))
+    except (TypeError, ValueError):
+        timeout = 900
+    # tape-* aliasy: archiver potřebuje podpříkaz jako první argument
+    _TAPE_SUB = {"tape-collect": "collect", "tape-settle": "settle", "tape-report": "report"}
+    extra = [_TAPE_SUB[skript]] if skript in _TAPE_SUB and (not args or args[0] not in ("collect", "settle", "report")) else []
+    rc, out, err, _ = _run([sys.executable, BACKTEST_SCRIPTS[skript], *extra, *args], timeout=timeout)
+    return jsonify({"ok": rc == 0, "rc": rc, "skript": skript, "args": args,
+                    "vystup": out[-40000:], "stderr": err[-8000:]})
+
+
+# ---------------------------------------------------------------------------
+# /api/sx/trades — MOJE sázky (V3 váže query endpointy na API klíč)
+# ---------------------------------------------------------------------------
+@app.get("/api/sx/trades")
+def sx_trades_endpoint():
+    import sxbet_client as sx
+    try:
+        dny = min(int(request.args.get("dny", 14)), 3650)
+        limit = min(int(request.args.get("limit", 100)), 1000)
+    except ValueError:
+        dny, limit = 14, 100
+    try:
+        ts = sx.trades(start_date=int(time.time()) - dny * 86400,
+                       page_size=min(limit, 100), max_pages=max(1, limit // 100))
+    except RuntimeError as e:
+        return jsonify({"ok": False, "error": str(e)}), 502
+    out = []
+    for t in ts[:limit]:
+        out.append({
+            "kurz": (lambda o: round(o, 3) if o else None)(sx.trade_decimal_odds(t)),
+            "vyhral": sx.trade_won(t),
+            "vsazeno_usdc": sx.trade_stake_nominal(t),
+            "marketHash": t.get("marketHash"),
+            "status": t.get("status"),
+            "betTime": t.get("betTime"),
+        })
+    return jsonify({"ok": True, "zdroj": "sxbet /trades-v3 (jen moje sázky)",
+                    "dny": dny, "pocet": len(out), "trades": out})
+
+
+# ---------------------------------------------------------------------------
+# /api/learner/digest — trénink z ŽIVÉHO veřejného tape (sázky cizích hráčů)
+# ---------------------------------------------------------------------------
+@app.get("/api/learner/digest")
+def learner_digest():
+    try:
+        sekundy = min(int(request.args.get("sekundy", 25)), 120)
+        max_trades = min(int(request.args.get("max_trades", 400)), 2000)
+    except ValueError:
+        return jsonify({"ok": False, "error": "sekundy/max_trades musí být čísla"}), 400
+    try:
+        import sx_tape
+        d = sx_tape.digest(seconds=sekundy, max_trades=max_trades)
+    except Exception as e:  # noqa: BLE001
+        return jsonify({"ok": False, "error": str(e)}), 502
+    return jsonify({"ok": True, **d})
+
+
+# ---------------------------------------------------------------------------
+# /api/tape/digest — alias na learner/digest (živý tape cizích sázek)
+# ---------------------------------------------------------------------------
+@app.get("/api/tape/digest")
+def tape_digest():
+    return learner_digest()
+
+
+# ---------------------------------------------------------------------------
+# /api/goalscorer — P(hráč dá gól), viz goalscorer_prob.py
+# ---------------------------------------------------------------------------
+@app.get("/api/goalscorer")
+def goalscorer():
+    sport = (request.args.get("sport") or "").strip().lower()
+    jmeno = (request.args.get("jmeno") or "").strip()
+    live = (request.args.get("live") or "").lower() in ("1", "true", "yes")
+    if sport not in ("hokej", "fotbal") or not jmeno:
+        return jsonify({"ok": False, "error": "potřeba sport (hokej|fotbal) a jmeno"}), 400
+
+    import math
+    import goalscorer_prob as gp
+
+    if sport == "hokej":
+        r = gp.hockey_lambda(jmeno, live=live)
+        if r is None:
+            return jsonify({"ok": False, "error": f"hráč '{jmeno}' nenalezen v hokejových datech (NHL)"}), 404
+        if r["lam"] is None:
+            return jsonify({"ok": False, "error": f"'{r['display_name']}': chybí historická i živá data"}), 404
+        prob = 1 - math.exp(-r["lam"])
+        return jsonify({
+            "ok": True, "sport": sport, "hrac": r["display_name"],
+            "lambda_golu_na_zapas": round(r["lam"], 3),
+            "p_da_gol": round(prob, 4),
+            "sezony": [{"sezona": s, "goly": g, "zapasy": n} for s, g, n in r["seasons"][-3:]],
+            "zive": ({"goly": r["live_goals"], "zapasy": r["live_games"]} if live else None),
+            "pozn": "model NEZOHLEDŇUJE soupeře (obranu/brankáře), jen vlastní formu hráče — hrubý odhad, ne tržní cena.",
+        })
+    else:
+        result = gp.football_lambda(jmeno)
+        match, lam, games_used = result[0], result[1], result[2]
+        if match is None:
+            return jsonify({"ok": False, "error": f"hráč '{jmeno}' nenalezen ve fotbalových datech (jen 11 nejvyšších evropských lig)"}), 404
+        if lam is None:
+            return jsonify({"ok": False, "error": f"'{match}' nalezen, ale nemá žádné sezónní staty"}), 404
+        seasons = result[3]
+        prob = 1 - math.exp(-lam)
+        return jsonify({
+            "ok": True, "sport": sport, "hrac": match,
+            "lambda_golu_na_zapas": round(lam, 3),
+            "p_da_gol": round(prob, 4),
+            "sezony": [{"sezona": s, "goly": g, "starty": a} for s, g, a in seasons[-3:]],
+            "pozn": "model NEZOHLEDŇUJE soupeře, jen vlastní formu hráče — hrubý odhad, ne tržní cena.",
+        })
+
+
+# ---------------------------------------------------------------------------
+# /api/goalwatch — sledování živých NHL gólů (live_goal_watcher.py) na pozadí
+# ---------------------------------------------------------------------------
+_GOALWATCH_LOCK = threading.Lock()
+_GOALWATCH = {"p": None, "games": None, "interval": None}
+
+
+@app.get("/api/goalwatch/status")
+def goalwatch_status():
+    import live_goal_watcher as gw
+    with _GOALWATCH_LOCK:
+        p = _GOALWATCH["p"]
+        running = bool(p is not None and p.poll() is None)
+        games = _GOALWATCH["games"]
+        interval = _GOALWATCH["interval"]
+
+    seen = []
+    if os.path.exists(gw.SEEN_LOG):
+        with open(gw.SEEN_LOG, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    seen.append(json.loads(line))
+    posledni = seen[-15:]
+    return jsonify({
+        "ok": True, "bezi": running, "sledovane_zapasy": games, "interval_s": interval,
+        "celkem_udalosti": len(seen), "posledni_udalosti": posledni,
+    })
+
+
+@app.post("/api/goalwatch/start")
+def goalwatch_start():
+    data = request.get_json(silent=True) or {}
+    games = (data.get("games") or "").strip()
+    try:
+        interval = max(15, min(int(data.get("interval", 45)), 600))
+    except (TypeError, ValueError):
+        interval = 45
+
+    with _GOALWATCH_LOCK:
+        p = _GOALWATCH["p"]
+        if p is not None and p.poll() is None:
+            return jsonify({"ok": False, "error": "watcher už běží, nejdřív zavolej /api/goalwatch/stop"}), 409
+
+        cmd = [sys.executable, "-u", "live_goal_watcher.py", "watch", "--interval", str(interval)]
+        if games:
+            cmd += ["--games", games]
+        log_path = os.path.join(SCRIPTS_DIR, "live_goal_watcher.log")
+        log_f = open(log_path, "a", encoding="utf-8")
+        p = subprocess.Popen(cmd, cwd=SCRIPTS_DIR, stdout=log_f, stderr=subprocess.STDOUT,
+                             start_new_session=True)
+        _GOALWATCH["p"] = p
+        _GOALWATCH["games"] = games or "všechny živé"
+        _GOALWATCH["interval"] = interval
+
+    return jsonify({"ok": True, "pid": p.pid, "sledovane_zapasy": _GOALWATCH["games"],
+                    "interval_s": interval, "log": log_path})
+
+
+@app.post("/api/goalwatch/stop")
+def goalwatch_stop():
+    with _GOALWATCH_LOCK:
+        p = _GOALWATCH["p"]
+        killed = _kill_proc(p)
+        _GOALWATCH["p"] = None
+    return jsonify({"ok": True, "killed": killed, "pozn": "Watcher zastaven." if killed else "Nic neběželo."})
+
+
+# ---------------------------------------------------------------------------
+# /api/tiket-historie — ulozene sazkove tikety (tiket_historie.py)
+# ---------------------------------------------------------------------------
+@app.get("/api/tiket-historie")
+def tiket_historie_list():
+    import tiket_historie as th
+    return jsonify({"ok": True, "pocet": len(th.load_all()), "tikety": th.load_all()})
+
+
+@app.post("/api/tiket-historie")
+def tiket_historie_add():
+    import time as _time
+    import uuid as _uuid
+
+    import tiket_historie as th
+
+    data = request.get_json(silent=True) or {}
+    for req_field in ("kurz", "vklad"):
+        if req_field not in data:
+            return jsonify({"ok": False, "error": f"chybí povinné pole '{req_field}'"}), 400
+
+    entry = {
+        "id": str(_uuid.uuid4())[:8],
+        "ts": _time.time(),
+        "datum": _time.strftime("%Y-%m-%d %H:%M"),
+        "typ": data.get("typ", "Maxikombi"),
+        "kurz": data.get("kurz"),
+        "vklad": data.get("vklad"),
+        "skupiny": data.get("skupiny") or {},
+        "vysledek": data.get("vysledek", ""),
+        "screenshot": data.get("screenshot", ""),
+        "poznamka": data.get("poznamka", ""),
+    }
+    th.append(entry)
+    return jsonify({"ok": True, "tiket": entry})
+
+
+def main():
+    port = int(os.environ.get("SPORTS_PORT", "8000"))
+    host = os.environ.get("SPORTS_HOST", "0.0.0.0")
+    print(f"statistiky-server: http://{host}:{port}")
+    print(f"  scripts: {SCRIPTS_DIR}")
+    print(f"  pi:      {PI_BIN}")
+    print("  POZOR: bez autentizace, jen pro důvěryhodnou síť.")
+    app.run(host=host, port=port, threaded=True)
+
+
+if __name__ == "__main__":
+    main()

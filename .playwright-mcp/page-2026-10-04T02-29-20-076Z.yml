@@ -1,0 +1,65 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: L6
+      - generic [ref=e5]: Loterie
+  - main [ref=e6]:
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - heading "Loterie — simulátor" [level=2] [ref=e9]
+        - paragraph [ref=e10]: Lucky Six (Fortuna, 35 z 48, RTP 75,87 %) a Maxa Šestka (6 z 49, RTP 59,57 %). Vše offline, bez reálných peněz.
+      - generic [ref=e11]:
+        - button "🎟 Lucky Six — Fortuna" [ref=e12]
+        - button "🎟 Hlavní sázka (6 čísel) vybereš 6, vyhraješ když padnou všechny" [ref=e13] [cursor=pointer]:
+          - generic [ref=e14]: 🎟
+          - generic [ref=e15]:
+            - text: Hlavní sázka (6 čísel)
+            - generic [ref=e16]: vybereš 6, vyhraješ když padnou všechny
+        - button "🧩 Systémová sázka (6/7 – 6/10) víc čísel = víc kombinací" [ref=e17] [cursor=pointer]:
+          - generic [ref=e18]: 🧩
+          - generic [ref=e19]:
+            - text: Systémová sázka (6/7 – 6/10)
+            - generic [ref=e20]: víc čísel = víc kombinací
+        - button "🌈 Vedlejší hry Barva · Prvních 5 · Barva prvního čísla" [ref=e21] [cursor=pointer]:
+          - generic [ref=e22]: 🌈
+          - generic [ref=e23]:
+            - text: Vedlejší hry
+            - generic [ref=e24]: Barva · Prvních 5 · Barva prvního čísla
+        - button "⚡ Rychlá simulace dne 24 h / 3:30 = 411 kol + bank" [ref=e25] [cursor=pointer]:
+          - generic [ref=e26]: ⚡
+          - generic [ref=e27]:
+            - text: Rychlá simulace dne
+            - generic [ref=e28]: 24 h / 3:30 = 411 kol + bank
+        - button "📊 Statistiky & RTP" [ref=e29] [cursor=pointer]:
+          - generic [ref=e30]: 📊
+          - generic [ref=e31]: Statistiky & RTP
+        - button "🍀 Maxa Šestka" [ref=e32]
+        - button "🍀 Simulace do hlavní výhry 1 z 13 983 816 · jackpot 5 000 000 Kč" [ref=e33] [cursor=pointer]:
+          - generic [ref=e34]: 🍀
+          - generic [ref=e35]:
+            - text: Simulace do hlavní výhry
+            - generic [ref=e36]: 1 z 13 983 816 · jackpot 5 000 000 Kč
+        - button "📊 Statistiky & RTP" [ref=e37] [cursor=pointer]:
+          - generic [ref=e38]: 📊
+          - generic [ref=e39]: Statistiky & RTP
+        - button "🎰 Automat (slot)" [ref=e40]
+        - button "🎰 Hrát automat 3 válce · 5 linií · bank · zvuky" [ref=e41] [cursor=pointer]:
+          - generic [ref=e42]: 🎰
+          - generic [ref=e43]:
+            - text: Hrát automat
+            - generic [ref=e44]: 3 válce · 5 linií · bank · zvuky
+        - button "📊 Výplatní tabulka & RTP symboly · násobky · wild/scatter" [ref=e45] [cursor=pointer]:
+          - generic [ref=e46]: 📊
+          - generic [ref=e47]:
+            - text: Výplatní tabulka & RTP
+            - generic [ref=e48]: symboly · násobky · wild/scatter
+        - button "📖 Vzdělávání" [ref=e49]
+        - button "📖 Jak to funguje RNG · RTP · volatilita · mýty · zákon" [ref=e50] [cursor=pointer]:
+          - generic [ref=e51]: 📖
+          - generic [ref=e52]:
+            - text: Jak to funguje
+            - generic [ref=e53]: RNG · RTP · volatilita · mýty · zákon
+  - contentinfo [ref=e54]:
+    - generic [ref=e56]: online
+    - generic [ref=e57]: ·
+    - generic [ref=e58]: simulace, žádné reálné peníze

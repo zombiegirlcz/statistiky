@@ -88,6 +88,56 @@ Tohle vrátí implikovanou pravděpodobnost z průměru živých bookmakerských
 
 **Nepoužívej to automaticky u každého dotazu** - stojí to API kredity (u fotbalu/hokeje 1 kredit, u tenisu pár kreditů podle počtu právě běžících turnajů) a funguje to jen pro NADCHÁZEJÍCÍ zápasy, ne historické. Použij to, když o to uživatel výslovně požádá ("porovnej to s kurzy", "co na to sázkové kanceláře") nebo když chceš u důležité predikce druhou kontrolu. Pokud proměnná `ODDS_API_KEY` není nastavená, skript to rovnou řekne i s návodem na založení účtu - neřeš to jako chybu, je to čistě volitelný doplněk.
 
+## Volitelně: historické pravděpodobnosti pro VÍC trhů (rohy, karty, střely…)
+
+Když se uživatel ptá na pravděpodobnost jiného trhu než 1X2 / přesné skóre -
+rohy, karty, střely na branku, fauly, SOG, PIM, esa, počet gamů - použij:
+
+```bash
+python3 .agents/skills/match-probability/scripts/market_probs.py fotbal "Arsenal" "Chelsea"
+python3 .agents/skills/match-probability/scripts/market_probs.py hokej  "Toronto" "Edmonton"
+python3 .agents/skills/match-probability/scripts/market_probs.py tenis  "Jannik Sinner" "Carlos Alcaraz"
+```
+
+Počítá **čistě z historie, BEZ kurzů** (na rohy/karty historické kurzy nemáme):
+týmový průměr doma/venku + blend se vzájemnými zápasy (65/35) → Poissonovo
+rozdělení → pravděpodobnost přes/pod na několika lajnách. Ke každé lajně navíc
+hlásí **empirický podíl** z reálných zápasů obou týmů (kontrola modelu).
+
+### ⚠️ Výhrady k metodě - VŽDY je ber v potaz a řekni je uživateli
+
+Model je **Poisson na všechno**, ale ne každá statistika je Poissonovsky
+rozdělená. Z porovnání modelu vs. empirických dat (ověřeno živě na
+Arsenal–Chelsea a TOR–EDM):
+
+- **PIM (trestné minuty u hokeje) - NESEDÍ, ber s velkou rezervou.**
+  Model na lajně 18.5 dává „přes 48 %", empiricky je to jen **30 %**.
+  Trestné minuty jsou shlukované (pár vyloučení dělá velký skok), ne Poisson.
+  Čísla PIM uváděj, ale **nikdy je nepoužij jako spolehlivý podklad pro tiket**
+  bez explicitní výhrady uživateli.
+- **Karty - mírně nadstřelené.** Model na 2.5 dává „přes 82 %", empiricky 74 %.
+  Blíž než PIM, ale pořád systematicky posunuté nahoru - také s rezervou.
+- **Góly, rohy, střely, SOG, esa - sedí dobře** (model a empirický podíl se
+  shodují v jednotkách procent). Těm věřit můžeš.
+
+Pokud uživatel chce tiket na PIM nebo karty, řekni mu na rovinu, že tenhle
+model je tam systematicky mimo a že empirický sloupec v datech je spolehlivější
+než modelový odhad.
+
+## Volitelně: pravděpodobnost, že KONKRÉTNÍ HRÁČ dá gól (trh "střelec gólu")
+
+Pokud se uživatel zeptá na pravděpodobnost, že konkrétní hráč vstřelí gól (fotbal i hokej, včetně "hráč dá gól včetně prodloužení" u hokeje) - trh, který `aggregate_stats.py`/`market_probs.py` nepočítají (ty řeší výsledek/skóre ZÁPASU, ne jednotlivého hráče) - použij:
+
+```bash
+python3 .agents/skills/match-probability/scripts/goalscorer_prob.py fotbal "Erling Haaland"
+python3 .agents/skills/match-probability/scripts/goalscorer_prob.py hokej "William Nylander"
+python3 .agents/skills/match-probability/scripts/goalscorer_prob.py hokej "Nylander William"   # funguje i v pořadí příjmení jméno, jak to dává tiket
+```
+
+Počítá Poissonův odhad `P(≥1 gól) = 1 - e^(-λ)` z hráčovy **vlastní** sezonní střelecké frekvence (góly/zápasy), váženě přes poslední 1-2 sezony (aktuální 70 %, předchozí 30 %). U hokeje se playoff řádky ze vzorku vyřazují, aby se nemíchaly jiné podmínky do jedné váhy.
+
+**Zásadní omezení - vždy řekni uživateli:** model **nezohledňuje soupeře** (sílu obrany, brankáře, pravděpodobnou sestavu) - je to hrubý odhad z vlastní formy hráče, ne tržní cena. Při málo odehraných zápasech (`< 10`) skript sám vypíše varování o nízké spolehlivosti. Pro tiket s víc nohama na tomhle trhu (typicky AKO) platí stejný nález jako jinde v tomhle skillu - víc nezávislých noh kombinovaných dohromady dramaticky snižuje šanci na proplacení celého tiketu (kurzy se násobí, pravděpodobnosti taky), i když každá noha samotná je rozumná sázka.
+
 ## Volitelně: stavba sázkových tiketů (SÓLO i AKO kombinace)
 
 Pokud uživatel chce rovnou TIKET (konkrétní sázku s vkladem, ne jen procenta) - "slož mi sázku", "jaký tiket na dnešek", "udělej kombinaci" - použij:
@@ -96,6 +146,11 @@ Pokud uživatel chce rovnou TIKET (konkrétní sázku s vkladem, ne jen procenta
 python3 .agents/skills/match-probability/scripts/ticket_builder.py den 2024-03-16   # historický den (má smysl jen na už odehraný den, kde známe i kurzy)
 python3 .agents/skills/match-probability/scripts/ticket_builder.py backtest 40       # 40 náhodných dní, změří úspěšnost
 ```
+
+**POZOR:** pokud tiket obsahuje nohu na trh, který `ticket_builder.py` sám
+nepočítá (rohy, karty, PIM, střely…), bereš ta čísla z `market_probs.py` -
+a tam PLATÍ VÝHRADY VÝŠE (PIM a karty jsou systematicky mimo, nepoužívej je
+jako rovnocenný podklad). U tiketů s PIM/kartami to uživateli vždy řekni.
 
 Funguje jen pro **fotbal** (jediný sport, kde máme v `fotbal/*.csv` i skutečné historické kurzy - sloupce `Avg*`, průměr víc sázkových kanceláří, NE přímo Fortuna). Hledá "hodnotové sázky" (edge mezi modelem a odvigovaným trhem) na obou stranách každého trhu (1X2, přes/pod 2.5 gólu, hendikep) - takže klidně navrhne i sázku na outsidera nebo hendikep na poraženého, ne jen na favorita. Staví SÓLO i AKO (kombinované) tikety podle pravidel Fortuny (AKO = kurzy se násobí, kombinuje se vždy jen přes různé zápasy).
 
@@ -151,6 +206,59 @@ python3 .agents/skills/match-probability/scripts/live_game_bet.py agresivni-stat
 ```
 
 **Tohle není "spíš poroste" nástroj jako ostatní dva** - je to vědomě vysoce rizikové nastavení. Realistický výsledek je buď rychlý růst k cíli, nebo rychlá ztráta všeho - žádné plynulé mezistádium. Mluv o tom s uživatelem takhle na rovinu. Jakmile hlásí "ZASTAVENO", dál to nespouštěj (agent sám odmítne nový tiket). Podrobnosti a zdůvodnění 50%→100% kompromisu v `AGENT_NAVOD.md`, sekce 13, a v `references/metodika.md`.
+
+## CLI: Komplexní nástroj pro správu sázejícího agenta
+
+Pokud uživatel potřebuje **přímé ovládání agenta bez TUI** (skrze příkazový řádek), nebo když potřebuješ **spravovat agenty programově z ostatních skriptů**, použij:
+
+```bash
+cd /root/statistiky/.agents/skills/match-probability/scripts && python3 cli.py
+```
+
+CLI nabízí následující příkazy:
+
+### Bank (správa hlavní banky)
+```bash
+python3 cli.py bank status                # zobrazit stav (volná banka, alokace, celkem)
+python3 cli.py bank deposit 1000          # vložit mince do hlavní banky
+python3 cli.py bank withdraw 500          # vybrat mince z hlavní banky
+```
+
+### Agent (správa jednotlivých agentů)
+```bash
+python3 cli.py agent list                                      # seznam všech agentů
+python3 cli.py agent create "Nový agent" match_fav 500         # vytvořit agenta (jméno, strategie, alokace)
+python3 cli.py agent fund match-fav 200                        # přidat mince agentovi
+python3 cli.py agent defund match-fav 100                      # vybrat mince od agenta
+python3 cli.py agent toggle match-fav                          # zapnout/vypnout agenta
+python3 cli.py agent remove match-fav --force                  # smazat agenta (vrátit jeho banku)
+```
+
+Dostupné strategie: `match_fav` (vítěz zápasu), `gem` (vítěz gemu), `gem_aggr` (agresivní gem).
+
+### Run (spuštění sázkového cyklu)
+```bash
+python3 cli.py run                         # spustit všechny aktivní agenty
+python3 cli.py run --agent match-fav      # spustit jen konkrétního agenta
+```
+
+### Status (přehled)
+```bash
+python3 cli.py status                      # zobrazit banku, agenty, nedávné tikety dohromady
+python3 cli.py results --limit 10          # posledních 10 tiketů a statistiku (procento výher, ROI)
+```
+
+### TUI (interaktivní menu)
+```bash
+python3 cli.py tui                         # spustit main.py (barevné interaktivní menu s InquirerPy)
+```
+
+**Příklady typických sekvencí:**
+- Inicializace: `cli.py bank status` → `cli.py agent create "Můj agent" match_fav 500` → `cli.py agent list`
+- Běh: `cli.py status` → `cli.py run` → `cli.py results`
+- Finančí operace: `cli.py bank deposit 1000` → `cli.py agent fund match-fav 500` → `cli.py bank status`
+
+CLI vrací standardní exit kódy (0 = OK, >0 = chyba) a je navržen tak, aby šel používat z shell skriptů a Modal deploymentu bez interakce. TUI (barevný interaktivní režim) je pro manuální spuštění.
 
 ## Když data chybí
 

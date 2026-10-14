@@ -1,0 +1,70 @@
+{
+  "skupiny": {
+    "A": {
+      "typ": "bez_zdroje",
+      "stav": "ceka",
+      "vysledek": null,
+      "popis": "Buriram Utd. vs Borneo Samarinda - vysledek 1 (ASEAN Club Championship, mimo pokryti)"
+    },
+    "B": {
+      "typ": "tenis_vitez",
+      "stav": "ceka",
+      "vysledek": null,
+      "hrac1": "Ann Li",
+      "hrac2": "Elina Svitolina",
+      "tip": "2",
+      "popis": "Ann Li vs Elina Svitolina, tip vitez 2"
+    },
+    "C": {
+      "typ": "bez_zdroje",
+      "stav": "ceka",
+      "vysledek": null,
+      "popis": "Magnitogorsk gol v zapase +3.5 (KHL, mimo pokryti)"
+    },
+    "D": {
+      "typ": "bez_zdroje",
+      "stav": "ceka",
+      "vysledek": null,
+      "popis": "Perm gol v zapase +2.5 (VHL, mimo pokryti)"
+    },
+    "E": {
+      "typ": "bez_zdroje",
+      "stav": "ceka",
+      "vysledek": null,
+      "popis": "Zlin vs Kolin - vysledek 2 (2. Cesko hokej, mimo pokryti)"
+    },
+    "F": {
+      "typ": "bez_zdroje",
+      "stav": "ceka",
+      "vysledek": null,
+      "popis": "Ilves gol v zapase +3.5 (1. Finsko hokej, mimo pokryti)"
+    },
+    "G": {
+      "typ": "bez_zdroje",
+      "stav": "ceka",
+      "vysledek": null,
+      "popis": "IPK gol v zapase +3.5 (2. Finsko hokej, mimo pokryti)"
+    },
+    "H": {
+      "typ": "sx_odds",
+      "stav": "bezi",
+      "vysledek": null,
+      "sport": "fotbal",
+      "a": "IF Gnistan",
+      "b": "Inter Turku",
+      "popis": "IF Gnistan vs Inter Turku (fotbal, SX.bet kurzy)"
+    },
+    "I": {
+      "typ": "bez_zdroje",
+      "stav": "ceka",
+      "vysledek": null,
+      "popis": "Leksand gol v zapase +3.5 (2. Svedsko hokej, mimo pokryti)"
+    },
+    "J": {
+      "typ": "bez_zdroje",
+      "stav": "ceka",
+      "vysledek": null,
+      "popis": "Kalmar gol v zapase +3.5 (2. Svedsko hokej, mimo pokryti)"
+    }
+  }
+}

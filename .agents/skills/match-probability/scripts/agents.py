@@ -90,6 +90,102 @@ STRATEGIE = {
             "game_fav_min": ("Min. pravděpodobnost výhry gemu", 0.01, 1.0, "např. 0.70"),
         },
     },
+    "builder": {
+        "nazev": "Bet builder: vítěz zápasu + vítěz 1. setu (vyšší kurz)",
+        "log": "live_builder_bets_log.jsonl",
+        "mod": "live_tennis_simulator",
+        "tick": "builder-watch",
+        "defaults": {
+            "stake_pct": 0.02, "min_stake": 10.0, "max_exposure_pct": 0.25,
+        },
+        "popisky": {
+            "stake_pct": ("Vklad jako podíl banky", 0.001, 1.0, "např. 0.02 = 2 %"),
+            "min_stake": ("Minimální vklad (mincí)", 1, 100000, ""),
+            "max_exposure_pct": ("Max. podíl banky v souběžných tiketech", 0.01, 1.0, ""),
+        },
+    },
+    "model_only": {
+        "nazev": "Model-only: model se rozhoduje sám (i na underdoga)",
+        "log": "live_model_bets_log.jsonl",
+        "mod": "live_tennis_simulator",
+        "tick": "model-watch",
+        "defaults": {
+            "stake_pct": 0.02, "min_stake": 10.0, "max_exposure_pct": 0.25,
+        },
+        "popisky": {
+            "stake_pct": ("Vklad jako podíl banky", 0.001, 1.0, "např. 0.02 = 2 %"),
+            "min_stake": ("Minimální vklad (mincí)", 1, 100000, ""),
+            "max_exposure_pct": ("Max. podíl banky v souběžných tiketech", 0.01, 1.0, ""),
+        },
+    },
+    "prematch_fav": {
+        "nazev": "Pre-match: silný favorit na vítěze zápasu (před zápasem)",
+        "log": "live_prematch_bets_log.jsonl",
+        "mod": "live_tennis_simulator",
+        "tick": "prematch-watch",
+        "defaults": {
+            "stake_pct": 0.02, "min_stake": 10.0, "max_exposure_pct": 0.25,
+            "fav_model_min": 0.75, "fav_market_min": 0.65, "fav_max_odds": 1.60,
+        },
+        "popisky": {
+            "stake_pct": ("Vklad jako podíl banky", 0.001, 1.0, "např. 0.02 = 2 %"),
+            "min_stake": ("Minimální vklad (mincí)", 1, 100000, ""),
+            "max_exposure_pct": ("Max. podíl banky v souběžných tiketech", 0.01, 1.0, ""),
+            "fav_model_min": ("Min. šance podle modelu", 0.01, 1.0, "např. 0.75"),
+            "fav_market_min": ("Min. šance podle trhu", 0.01, 1.0, "např. 0.65"),
+            "fav_max_odds": ("Max. kurz", 1.01, 100.0, "nad tímhle se nesází"),
+        },
+    },
+    "market_clay_fav": {
+        "nazev": "Trh-only: tržní favorit na ANTuce, kurz<=1.20 (bez modelu)",
+        "log": "live_market_clay_bets_log.jsonl",
+        "mod": "live_tennis_simulator",
+        "tick": "market-clay-watch",
+        "defaults": {
+            "stake_pct": 0.02, "min_stake": 10.0, "max_exposure_pct": 0.25,
+            "market_fav_max_odds": 1.20,
+        },
+        "popisky": {
+            "stake_pct": ("Vklad jako podíl banky", 0.001, 1.0, "např. 0.02 = 2 %"),
+            "min_stake": ("Minimální vklad (mincí)", 1, 100000, ""),
+            "max_exposure_pct": ("Max. podíl banky v souběžných tiketech", 0.01, 1.0, ""),
+            "market_fav_max_odds": ("Max. kurz tržního favorita", 1.01, 5.0, "např. 1.20"),
+        },
+    },
+    "gs_round2_fav": {
+        "nazev": "Trh-only: tržní favorit v 2. kole grandslamu (R64), kurz<=1.15",
+        "log": "live_gs_round2_bets_log.jsonl",
+        "mod": "live_tennis_simulator",
+        "tick": "gs-round2-watch",
+        "defaults": {
+            "stake_pct": 0.02, "min_stake": 10.0, "max_exposure_pct": 0.25,
+            "gs_round2_max_odds": 1.15,
+        },
+        "popisky": {
+            "stake_pct": ("Vklad jako podíl banky", 0.001, 1.0, "např. 0.02 = 2 %"),
+            "min_stake": ("Minimální vklad (mincí)", 1, 100000, ""),
+            "max_exposure_pct": ("Max. podíl banky v souběžných tiketech", 0.01, 1.0, ""),
+            "gs_round2_max_odds": ("Max. kurz tržního favorita", 1.01, 2.0, "např. 1.15"),
+        },
+    },
+    "set_fav": {
+        "nazev": "Set-level: silný favorit na vítěze AKTUÁLNÍHO setu",
+        "log": "live_set_bets_log.jsonl",
+        "mod": "live_tennis_simulator",
+        "tick": "set-watch",
+        "defaults": {
+            "stake_pct": 0.02, "min_stake": 10.0, "max_exposure_pct": 0.25,
+            "set_fav_model_min": 0.62, "set_fav_market_min": 0.55, "set_fav_max_odds": 2.00,
+        },
+        "popisky": {
+            "stake_pct": ("Vklad jako podíl banky", 0.001, 1.0, "např. 0.02 = 2 %"),
+            "min_stake": ("Minimální vklad (mincí)", 1, 100000, ""),
+            "max_exposure_pct": ("Max. podíl banky v souběžných tiketech", 0.01, 1.0, ""),
+            "set_fav_model_min": ("Min. šance na výhru setu dle modelu", 0.01, 1.0, "např. 0.62"),
+            "set_fav_market_min": ("Min. šance na výhru setu dle trhu", 0.01, 1.0, "např. 0.55"),
+            "set_fav_max_odds": ("Max. kurz", 1.01, 100.0, "nad tímhle se nesází"),
+        },
+    },
 }
 
 

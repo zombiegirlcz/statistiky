@@ -101,10 +101,73 @@ FAV_MODEL_MIN = 0.75     # náš model musí hráče vidět aspoň na 75 % šanc
 FAV_MARKET_MIN = 0.65    # a skutečný trh ho taky musí vidět jako jasného favorita
 FAV_MAX_ODDS = 1.60      # kurz nad tohle už není "bezpečný" favorit, nesázet
 
+# TRH-ONLY ANTUKA (experimentální, viz cmd_market_clay_watch). Sází na
+# TRŽNÍHO favorita na antuce s nízkým kurzem, BEZ našeho modelu.
+# Backtest (scripts/_probe_market_fav.py, WTA 2021-2025):
+#   trh-only favorit kurz<=1.20 na antuce: ROI +0.9 %, P(banka roste po 50
+#   tiketech)=58 % (v OBOU polovinách let kladné: +0.6 % / +1.0 %).
+#   Naproti tomu živá model&trh strategie (FAV_* výše) měla na stejných
+#   datech ROI -13 %, P(rost)=4 %. Náš model tedy spíš škodí - proto se tu
+#   vůbec nepoužívá.
+MARKET_FAV_MAX_ODDS = 1.20
+
+# Antukové vodítko ve jménu turnaje (když API nevrátí surface). Malá písmena.
+CLAY_NAME_HINTS = ("clay", "antuka", "terre battue", "arcilla", "roland",
+                   "saibro", "coto", "barro", "pablo", "rio", "buenos")
+
+# GRAND SLAM 2. KOLO (experimentální, viz cmd_gs_round2_watch). Sází na
+# TRŽNÍHO favorita v 2. kole grandslamu, BEZ modelu.
+#
+# Proc to jde ZIVE odvodit: grandslam ma VZDY pavouk 128 hracu, takze
+# round_code 'R64' je PRESNE 2. kolo (zadna jiná velikost pavouka se
+# neuplatnuje). Oproti tomu u jinych turnaju je round_code viceznacny.
+#
+# Backtest (scripts/_probe_gs_round2.py, WTA 2021-2025, realne kurzy):
+#   GS 2. kolo (R64), trh-only favorit, kurz<=1.15:
+#     n=102, uspesnost 96.1 %, ROI +5.95 %, P(banka roste po 50 tiketech)=95 %
+#     bootstrap 95% CI ROI [+1.44 %, +9.50 %] (cele nad nulou)
+#     permutacni p = 0.010 (neni artefakt mnoha rezu)
+#     1. polovina let +9.84 % / 2. polovina +3.12 % (drzi OOS)
+#   Kontrola, ze efekt je KOLO, ne 'GS obecne': GS 1. kolo (R128) ROI -2.65 %,
+#   GS 3. kolo (R32) ROI -4.51 %. Jen 2. kolo je kladne.
+#   Pri cap<=1.20 je ROI nizsi (+3.52 %, n=173), proto cap=1.15.
+GS_ROUND2_MAX_ODDS = 1.15
+GRAND_SLAM_TIERS = ("grand_slam", "grandslam", "grand_slam_men",
+                    "grand_slam_women", "gs")
+
+
+# SET-level strategie (vítěz AKTUÁLNÍHO setu, SX.bet trhy 202/203/204).
+SET_FAV_MODEL_MIN = 0.62
+SET_FAV_MARKET_MIN = 0.55
+SET_FAV_MAX_ODDS = 2.00
+
+# MODEL-ONLY strategie: model se rozhoduje UPLNE SAM, bez trhu. Sazi na
+# stranu, ktere sam veri vic. Kdyz je presvedceny i o SLABSI strane (underdog),
+# muze na ni vsadit - projev "z pocitu, ktery je z cisel" (hold/break rate,
+# forma, h2h). Prah MODEL_ONLY_MIN = jakou minimalni sanci model pozaduje.
+MODEL_ONLY_MIN = 0.50    # 0.50 = model si troufne i na vyrovnane zapasy
+MODEL_ONLY_DOG_MIN = 0.55  # vetsi jistota, kdyz jde o underdoga (slabsi strana)
+
+# BET BUILDER: kombinace vitez zapasu + vitez 1.setu (jeden zapas, kurzy se
+# nasobi). Sazi se jen pri kladnem edge modelu proti soucinu trznich kurzu.
+BUILDER_MIN_EDGE = 0.03   # 3 procentni body jako minimalni vyhoda
+
 STARTING_BANK = 1000.0   # rozpočet ve fiktivních mincích
 STAKE_PCT = 0.02         # vklad = 2 % aktuální banky
 MIN_STAKE = 10.0         # pod tohle se nesází (odpovídá minimálnímu vkladu u sázkovek)
 MAX_EXPOSURE_PCT = 0.25  # max. podíl banky vázaný v nevyřízených tiketech zároveň
+
+# STUPŇOVANÉ SÁZENÍ podle JISTOTY (uživatel: "tutovka klidně all-in").
+# Standardní favorit = malý vklad (nízký kurz = malý zisk, nemá smysl riskovat
+# moc). Ale když se model I trh shodnou na TÉMĚŘ JISTOTĚ, vklad roste - až
+# all-in. Logika: u 1.03 je výhra z 20 mincí skoro nic, kdežto riziko je malé.
+CONF_STRONG_MODEL_MIN = 0.85   # silný favorit: model i trh vysoko
+CONF_STRONG_MARKET_MIN = 0.80
+CONF_STRONG_STAKE_PCT = 0.10   # 10 % banky
+CONF_LOCK_MODEL_MIN = 0.90     # TUTOVKA: model i trh téměř jistí
+CONF_LOCK_MARKET_MIN = 0.90
+CONF_LOCK_MAX_ODDS = 1.10      # a kurz velmi nízký (near-lock)
+CONF_LOCK_STAKE_PCT = 1.00     # ALL-IN na tutovku
 
 BIG_PROB_SHIFT = 0.10    # od jakého posunu pravděpodobnosti to hlásit jako událost
 
@@ -208,6 +271,12 @@ def _live_api_request(path, params=None):
 
 def fetch_live_matches():
     data = _live_api_request("/matches", {"status": "live", "limit": 100})
+    return data.get("data", [])
+
+
+def fetch_upcoming_matches():
+    """Nadchazejici zapasy (jeste nezacaly) - pro PRE-MATCH sazeni."""
+    data = _live_api_request("/matches", {"status": "upcoming", "limit": 100})
     return data.get("data", [])
 
 
@@ -320,6 +389,46 @@ def match_win_prob(hold_a, hold_b, sa, sb, ga, gb, a_serves, sets_to_win=2):
     to může i vedoucího hráče. Jako podlahu/strop proto bereme zhruba polovinu
     toho čísla (2 %) - hrubý, ale daty podložený odhad, ne číslo z hlavy."""
     raw = _match_win_prob_raw(hold_a, hold_b, sa, sb, ga, gb, a_serves, sets_to_win)
+    return min(MAX_PROB, max(MIN_PROB, raw))
+
+
+def _set_win_prob_raw(hold_a, hold_b, ga, gb, a_serves):
+    """P(A vyhraje set) ze stavu gamu ga:gb v TOMTO setu, A podava (a_serves)."""
+    memo = {}
+
+    def rec(ga, gb, a_serves):
+        if ga >= 6 and ga - gb >= 2:
+            return 1.0
+        if gb >= 6 and gb - ga >= 2:
+            return 0.0
+        if ga == 7:
+            return 1.0
+        if gb == 7:
+            return 0.0
+        key = (ga, gb, a_serves)
+        if key in memo:
+            return memo[key]
+        if ga == 6 and gb == 6:
+            p_tb_a = min(0.95, max(0.05, 0.5 + 0.5 * (hold_a - hold_b)))
+            res = p_tb_a * rec(ga + 1, gb, not a_serves) + \
+                  (1 - p_tb_a) * rec(ga, gb + 1, not a_serves)
+        else:
+            p_server = hold_a if a_serves else hold_b
+            if a_serves:
+                res = p_server * rec(ga + 1, gb, not a_serves) + \
+                      (1 - p_server) * rec(ga, gb + 1, not a_serves)
+            else:
+                res = p_server * rec(ga, gb + 1, not a_serves) + \
+                      (1 - p_server) * rec(ga + 1, gb, not a_serves)
+        memo[key] = res
+        return res
+
+    return rec(ga, gb, a_serves)
+
+
+def set_win_prob(hold_a, hold_b, ga, gb, a_serves):
+    """Jako _set_win_prob_raw, ale s podlahou/stropem (skreč, odstoupení)."""
+    raw = _set_win_prob_raw(hold_a, hold_b, ga, gb, a_serves)
     return min(MAX_PROB, max(MIN_PROB, raw))
 
 
@@ -453,16 +562,43 @@ def pending_exposure(log):
     return sum(e["stake"] for e in log if e["status"] == "pending")
 
 
-def next_stake(log):
-    """Vrátí (vklad, důvod_zamítnutí). Vklad je None, když se sázet nemá."""
+def stake_tier(model_p, market_p, odds):
+    """Podle jistoty vrátí (podil_banky, nazev_urovne).
+
+    Tutovka (model i trh >= CONF_LOCK_*, kurz <= CONF_LOCK_MAX_ODDS) = all-in.
+    Silný favorit (model i trh vysoko) = vetsi vklad. Jinak standardni STAKE_PCT.
+    """
+    if (model_p is not None and market_p is not None and odds is not None
+            and model_p >= CONF_LOCK_MODEL_MIN and market_p >= CONF_LOCK_MARKET_MIN
+            and odds <= CONF_LOCK_MAX_ODDS):
+        return CONF_LOCK_STAKE_PCT, "TUTOVKA (all-in)"
+    if (model_p is not None and market_p is not None
+            and model_p >= CONF_STRONG_MODEL_MIN and market_p >= CONF_STRONG_MARKET_MIN):
+        return CONF_STRONG_STAKE_PCT, "silny favorit"
+    return STAKE_PCT, "standard"
+
+
+def next_stake(log, model_p=None, market_p=None, odds=None):
+    """Vrátí (vklad, důvod_zamítnutí). Vklad je None, když se sázet nemá.
+
+    Vklad se stupňuje podle jistoty (viz stake_tier) - tutovka jde all-in
+    i pres normalni strop soubezne expozice (maximalni vyuziti volne banky).
+    """
     bank = current_bank(log)
     if bank < MIN_STAKE:
         return None, f"rozpočet vyčerpán (banka {bank:.0f} mincí)"
     exposure = pending_exposure(log)
+    pct, tier = stake_tier(model_p, market_p, odds)
+    if pct >= 1.0:
+        # TUTOVKA = all-in: vsad celou volnou banku (bez ohledu na strop expozice)
+        free = bank - exposure
+        if free < MIN_STAKE:
+            return None, f"tutovka, ale volná banka je jen {free:.0f} mincí (vázáno {exposure:.0f})"
+        return round(free), None
     if exposure >= bank * MAX_EXPOSURE_PCT:
         return None, (f"strop souběžné expozice ({exposure:.0f} z max "
                       f"{bank * MAX_EXPOSURE_PCT:.0f} mincí už je v nevyřízených tiketech)")
-    stake = max(MIN_STAKE, round(bank * STAKE_PCT))
+    stake = max(MIN_STAKE, round(bank * pct))
     free = min(bank - exposure, bank * MAX_EXPOSURE_PCT - exposure)
     if stake > free:
         return None, f"na tiket by zbylo jen {free:.0f} mincí (potřeba {stake:.0f})"
@@ -657,7 +793,7 @@ def cmd_watch():
         if not pick:
             continue
 
-        stake, reason = next_stake(log)
+        stake, reason = next_stake(log, model_p=pick[2], market_p=pick[3], odds=pick[1])
         if stake is None:
             print(f"      ! favorit {pick[0]} @ {pick[1]} (model {pick[2]:.0%}/trh {pick[3]:.0%}), "
                   f"ale tiket se nezakládá: {reason}")
@@ -710,6 +846,580 @@ def cmd_watch():
     print("\nVyhodnocení dohraných zápasů spusť zvlášť: python3 bet_evaluator.py vyhodnot")
 
 
+def _is_clay(match):
+    """True, když je zápas (s vysokou jistotou) na antuce.
+
+    Primární vodítko = název turnaje (spolehlivé), fallback = pole 'surface'
+    z Live Tennis API. Když ani jedno neříká 'antuka', vrací False - radši
+    vynechat než sázet na neznámém povrchu (cíl je POUZE antuka, protože
+    jen tam vyšel backtest kladně).
+    """
+    t = (match.get("tournament") or "").lower()
+    if any(h in t for h in CLAY_NAME_HINTS):
+        return True
+    return (match.get("surface") or "").lower() == "clay"
+
+
+def cmd_market_clay_watch():
+    """TRH-ONLY ANTUKA: sází na TRŽNÍHO favorita na antuce, BEZ našeho modelu.
+
+    Proč bez modelu: backtest (_probe_market_fav.py) ukázal, že na datech
+    WTA 2021-2025 je náš model v této hře spíš na škodu. Kombinace
+    'model>=0.75 & trh>=0.65 & kurz<=1.60' měla ROI -13 % a P(rost)=4 %,
+    zatímco prostý tržní favorit s kurzem <=1.20 na ANTuce měl ROI kladné
+    na obou polovinách let a P(rost) ~58 %.
+
+    Sází se PŘED zápasem (nadcházející zápasy) - přesně jako v backtestu,
+    který používal předzápasové kurzy. Bez modelu tedy není potřeba číst
+    živé skóre a strategie je plně nezávislá na stávajících agentech.
+    Jen jedna strana může být tržní favorit (nižší kurz), takže žádná
+    deduplikace stran není potřeba.
+    """
+    log = load_log()
+    logged = {e["match_id"] for e in log}
+    matches = fetch_upcoming_matches()
+    singles = [m for m in matches
+               if not m.get("is_doubles") and m.get("draw") == "singles"]
+    print(f"Nadcházejících zápasů: {len(matches)} (dvouhry: {len(singles)}) "
+          f"[TRH-ONLY ANTUKA]")
+    print(f"Banka: {current_bank(log):.0f} mincí (start {STARTING_BANK:.0f}), "
+          f"vázáno {pending_exposure(log):.0f}\n")
+    ts = datetime.now(timezone.utc).isoformat()
+    n_bets = n_nonclay = n_nomkt = n_pricey = 0
+    for m in singles:
+        if m["id"] in logged:
+            continue
+        if not _is_clay(m):
+            n_nonclay += 1
+            continue
+        name1, name2 = m["players"]["p1"]["name"], m["players"]["p2"]["name"]
+        probs, best, sx_market, src = bm.get_market_info(name1, name2)
+        if not probs or probs.get(name1) is None or probs.get(name2) is None:
+            n_nomkt += 1
+            continue
+        # tržní favorit = nižší kurz (a tedy vyšší odmaržovaná pravděpodobnost)
+        if (best.get(name1) or 99) <= (best.get(name2) or 99):
+            pick_name, odds, p_mkt = name1, best.get(name1), probs.get(name1)
+        else:
+            pick_name, odds, p_mkt = name2, best.get(name2), probs.get(name2)
+        if odds is None or odds > MARKET_FAV_MAX_ODDS:
+            n_pricey += 1
+            continue
+        stake, reason = next_stake(log, model_p=None, market_p=p_mkt, odds=odds)
+        if stake is None:
+            print(f"      ! antukový favorit {pick_name} @ {odds}, ale tiket se "
+                  f"nezakládá: {reason}")
+            continue
+        entry = {
+            "match_id": m["id"], "market_kind": "match_market_clay_prematch",
+            "strategy": "market_clay_fav", "surface": "clay",
+            "logged_at": ts, "tournament": m.get("tournament"),
+            "scheduled_time": m.get("scheduled_time"),
+            "player1": name1, "player2": name2, "pick": pick_name, "odds": odds,
+            "model_p": None, "market_p": round(p_mkt, 4),
+            "score_at_bet": "pred zapasem (0:0) - trh-only, bez modelu",
+            "stake": stake, "status": "pending",
+            "odds_source": src, "bookmaker_mode": bm.mode(),
+        }
+        if sx_market:
+            entry["market_hash"] = sx_market.get("marketHash")
+            entry["outcome_side"] = bm.outcome_side_for(pick_name, sx_market)
+        if bm.is_real():
+            try:
+                res = bm.place_bet(name1, name2, pick=pick_name, odds=odds, stake=stake,
+                                   market=sx_market, outcome_side=entry.get("outcome_side"))
+                entry["real_bet"] = res
+                print(f"      => REALNA antukova sazka odeslana: {res}")
+            except Exception as ex:
+                print(f"      ! realna antukova sazka selhala: {ex}")
+                continue
+        append_log(entry)
+        log.append(entry)
+        n_bets += 1
+        print(f"      => ANTUKA TIKET na {pick_name} @ {odds} "
+              f"(trh {p_mkt:.0%}, bez modelu), vklad {stake:.0f} "
+              f"[{name1} vs {name2}, {m.get('tournament')}]")
+    print(f"\nNových antukových tiketů: {n_bets} "
+          f"(neantuka: {n_nonclay}, bez SX.bet trhu: {n_nomkt}, "
+          f"kurz >{MARKET_FAV_MAX_ODDS}: {n_pricey})")
+    log = load_log()
+    print(f"Banka: {current_bank(log):.0f} mincí, "
+          f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů")
+
+
+def _is_grand_slam(match):
+    """True, když je zápas grandslam.
+
+    Grandslam poznáme primárně podle pole 'tier' z Live Tennis API.
+    Fallback = jméno turnaje (bezpečné slovo ze čtyř grandslamů).
+    """
+    tier = (match.get("tier") or "").lower()
+    if tier in GRAND_SLAM_TIERS or "grand" in tier:
+        return True
+    t = (match.get("tournament") or "").lower()
+    return any(h in t for h in ("wimbledon", "roland", "us open",
+                                "australian open"))
+
+
+def cmd_gs_round2_watch():
+    """TRH-ONLY GRANDSLAM 2. KOLO: sází na TRŽNÍHO favorita v R64 grandslamu.
+
+    Proc 2. kolo: backtest _probe_gs_round2.py na WTA 2021-2025 ukázal, že
+    trh-only favorit (kurz<=1.15) v R64 grandslamu má ROI +5.95 %,
+    P(banka roste po 50 tiketech)=95 %, bootstrap CI [+1.44, +9.50],
+    permutacni p=0.010, a drzi na OBOU polovinách let. Naproti tomu GS
+    1. kolo (R128) ROI -2.65 % a GS 3. kolo (R32) ROI -4.51 % - efekt je
+    KOLO, ne 'GS obecne'.
+
+    Proc to jde ZIVE: grandslam ma vzdy pavouk 128, takze round_code 'R64'
+    je presne 2. kolo. Zadny odhad velikosti pavouka neni potřeba.
+
+    Sází se PŘED zápasem (status=upcoming), bez modelu.
+    """
+    log = load_log()
+    logged = {e["match_id"] for e in log}
+    matches = fetch_upcoming_matches()
+    singles = [m for m in matches
+               if not m.get("is_doubles") and m.get("draw") == "singles"]
+    print(f"Nadcházejících zápasů: {len(matches)} (dvouhry: {len(singles)}) "
+          f"[TRH-ONLY GS 2. KOLO]")
+    print(f"Banka: {current_bank(log):.0f} mincí (start {STARTING_BANK:.0f}), "
+          f"vázáno {pending_exposure(log):.0f}\n")
+    ts = datetime.now(timezone.utc).isoformat()
+    n_bets = n_not_gs = n_not_r64 = n_nomkt = n_pricey = 0
+    for m in singles:
+        if m["id"] in logged:
+            continue
+        if not _is_grand_slam(m):
+            n_not_gs += 1
+            continue
+        if (m.get("round_code") or "").upper() != "R64":
+            n_not_r64 += 1
+            continue
+        name1, name2 = m["players"]["p1"]["name"], m["players"]["p2"]["name"]
+        probs, best, sx_market, src = bm.get_market_info(name1, name2)
+        if not probs or probs.get(name1) is None or probs.get(name2) is None:
+            n_nomkt += 1
+            continue
+        if (best.get(name1) or 99) <= (best.get(name2) or 99):
+            pick_name, odds, p_mkt = name1, best.get(name1), probs.get(name1)
+        else:
+            pick_name, odds, p_mkt = name2, best.get(name2), probs.get(name2)
+        if odds is None or odds > GS_ROUND2_MAX_ODDS:
+            n_pricey += 1
+            continue
+        stake, reason = next_stake(log, model_p=None, market_p=p_mkt, odds=odds)
+        if stake is None:
+            print(f"      ! GS 2. kolo favorit {pick_name} @ {odds}, ale tiket se "
+                  f"nezakládá: {reason}")
+            continue
+        entry = {
+            "match_id": m["id"], "market_kind": "match_gs_round2_prematch",
+            "strategy": "gs_round2_fav", "surface": m.get("surface"),
+            "round_code": m.get("round_code"), "tier": m.get("tier"),
+            "logged_at": ts, "tournament": m.get("tournament"),
+            "scheduled_time": m.get("scheduled_time"),
+            "player1": name1, "player2": name2, "pick": pick_name, "odds": odds,
+            "model_p": None, "market_p": round(p_mkt, 4),
+            "score_at_bet": "pred zapasem (0:0) - trh-only GS 2. kolo, bez modelu",
+            "stake": stake, "status": "pending",
+            "odds_source": src, "bookmaker_mode": bm.mode(),
+        }
+        if sx_market:
+            entry["market_hash"] = sx_market.get("marketHash")
+            entry["outcome_side"] = bm.outcome_side_for(pick_name, sx_market)
+        if bm.is_real():
+            try:
+                res = bm.place_bet(name1, name2, pick=pick_name, odds=odds,
+                                   stake=stake, market=sx_market,
+                                   outcome_side=entry.get("outcome_side"))
+                entry["real_bet"] = res
+                print(f"      => REALNA GS-2kolo sazka odeslana: {res}")
+            except Exception as ex:
+                print(f"      ! realna GS-2kolo sazka selhala: {ex}")
+                continue
+        append_log(entry)
+        log.append(entry)
+        n_bets += 1
+        print(f"      => GS 2. KOLO TIKET na {pick_name} @ {odds} "
+              f"(trh {p_mkt:.0%}, bez modelu), vklad {stake:.0f} "
+              f"[{name1} vs {name2}, {m.get('tournament')}, {m.get('round_code')}]")
+    print(f"\nNových GS-2kolo tiketů: {n_bets} "
+          f"(ne-GS: {n_not_gs}, ne-R64: {n_not_r64}, bez SX.bet trhu: {n_nomkt}, "
+          f"kurz >{GS_ROUND2_MAX_ODDS}: {n_pricey})")
+    log = load_log()
+    print(f"Banka: {current_bank(log):.0f} mincí, "
+          f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů")
+
+
+def cmd_set_watch():
+    """Sází na vítěze AKTUÁLNÍHO setu (SX.bet trhy 202/203/204)."""
+    log = load_log()
+    logged = {(e["match_id"], e.get("set_no")) for e in log}
+    matches = fetch_live_matches()
+    singles = [m for m in matches
+               if not m.get("is_doubles") and m.get("draw") == "singles"]
+    print(f"Živých zápasů: {len(matches)} (z toho dvouhry: {len(singles)}) [SET-level]")
+    print(f"Banka: {current_bank(log):.0f} mincí (start {STARTING_BANK:.0f}), "
+          f"vázáno {pending_exposure(log):.0f}\n")
+    ts = datetime.now(timezone.utc).isoformat()
+    n_bets = n_nomkt = 0
+    for m in singles:
+        sc = m.get("score") or {}
+        if not sc.get("sets") or sc.get("stale"):
+            continue
+        cur = parse_score(sc, best_of_5=(m.get("format") == "BO5"))
+        if cur["between_sets"]:
+            continue
+        p1, p2 = m["players"]["p1"], m["players"]["p2"]
+        name1, name2 = p1["name"], p2["name"]
+        gender = m.get("gender", "men")
+        set_no = cur["sets"][0] + cur["sets"][1] + 1
+        if set_no > 3 or (m["id"], set_no) in logged:
+            continue
+        hold1, n1 = get_hold_rate(name1, gender)
+        hold2, n2 = get_hold_rate(name2, gender)
+        if hold1 is None or hold2 is None or n1 < MIN_HOLD_N or n2 < MIN_HOLD_N:
+            continue
+        p1_set = set_win_prob(hold1, hold2, cur["games"][0], cur["games"][1],
+                              cur["server"] == 1)
+        probs, best, sx_market, src = bm.get_set_market_info(name1, name2, set_no)
+        if not probs or probs.get(name1) is None or probs.get(name2) is None:
+            n_nomkt += 1
+            continue
+        pick = None
+        for name, p_model in ((name1, p1_set), (name2, 1 - p1_set)):
+            p_mkt = probs.get(name)
+            odds = best.get(name)
+            if p_mkt is None or odds is None:
+                continue
+            if p_model >= SET_FAV_MODEL_MIN and p_mkt >= SET_FAV_MARKET_MIN \
+                    and odds <= SET_FAV_MAX_ODDS:
+                pick = (name, odds, p_model, p_mkt)
+                break
+        if not pick:
+            continue
+        stake, reason = next_stake(log, model_p=pick[2], market_p=pick[3], odds=pick[1])
+        if stake is None:
+            print(f"      ! set {set_no} favorit {pick[0]} @ {pick[1]}, ale tiket se nezakládá: {reason}")
+            continue
+        name, odds, model_p, market_p = pick
+        entry = {
+            "match_id": m["id"], "set_no": set_no, "market_kind": "set",
+            "logged_at": ts, "tournament": m.get("tournament"),
+            "player1": name1, "player2": name2, "pick": name, "odds": odds,
+            "model_p": round(model_p, 4), "market_p": round(market_p, 4),
+            "score_at_bet": (f"sety {cur['sets'][0]}:{cur['sets'][1]}, "
+                             f"gemy {cur['games'][0]}:{cur['games'][1]}"),
+            "stake": stake, "status": "pending",
+            "odds_source": src, "bookmaker_mode": bm.mode(),
+        }
+        if sx_market:
+            entry["market_hash"] = sx_market.get("marketHash")
+            entry["outcome_side"] = bm.outcome_side_for(name, sx_market)
+        if bm.is_real():
+            try:
+                res = bm.place_bet(name1, name2, pick=name, odds=odds, stake=stake,
+                                   market=sx_market, outcome_side=entry.get("outcome_side"))
+                entry["real_bet"] = res
+                print(f"      => REÁLNÁ SET SÁZKA odeslána: {res}")
+            except Exception as ex:
+                print(f"      ! reálná set sázka selhala: {ex}")
+                continue
+        append_log(entry)
+        log.append(entry)
+        logged.add((m["id"], set_no))
+        n_bets += 1
+        print(f"      => SET {set_no} TIKET na {name} @ {odds} "
+              f"(model {model_p:.0%}, trh {market_p:.0%}), vklad {stake:.0f} [{name1} vs {name2}]")
+    print(f"\nNových set tiketů: {n_bets} (bez set kurzu: {n_nomkt})")
+    log = load_log()
+    print(f"Banka: {current_bank(log):.0f} mincí, "
+          f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů")
+
+
+def cmd_prematch_watch():
+    """PRE-MATCH sazeni: nadchazejici zapasy, kde SX.bet ma trh na viteze
+    zapasu (typ 52). Model pocita pravdepodobnost z hold/break rate obou
+    hracu na stavu 0:0 (los o podani je 50:50, proto prumeruji obe varianty)."""
+    log = load_log()
+    logged = {e["match_id"] for e in log}
+    matches = fetch_upcoming_matches()
+    singles = [m for m in matches
+               if not m.get("is_doubles") and m.get("draw") == "singles"]
+    print(f"Nadchazejicich zapasu: {len(matches)} (z toho dvouhry: {len(singles)}) [PRE-MATCH]")
+    print(f"Banka: {current_bank(log):.0f} minci (start {STARTING_BANK:.0f}), "
+          f"vazano {pending_exposure(log):.0f}\n")
+    ts = datetime.now(timezone.utc).isoformat()
+    n_bets = n_nodata = n_nomkt = 0
+    for m in singles:
+        if m["id"] in logged:
+            continue
+        name1, name2 = m["players"]["p1"]["name"], m["players"]["p2"]["name"]
+        gender = m.get("gender", "men")
+        hold1, k1 = get_hold_rate(name1, gender)
+        hold2, k2 = get_hold_rate(name2, gender)
+        if hold1 is None or hold2 is None or k1 < MIN_HOLD_N or k2 < MIN_HOLD_N:
+            n_nodata += 1
+            continue
+        # los o podani = 50:50 -> prumer obou variant
+        p_a_serves = match_win_prob(hold1, hold2, 0, 0, 0, 0, True)
+        p_b_serves = match_win_prob(hold1, hold2, 0, 0, 0, 0, False)
+        p1_model = (p_a_serves + p_b_serves) / 2.0
+        probs, best, sx_market, src = bm.get_market_info(name1, name2)
+        if not probs or probs.get(name1) is None or probs.get(name2) is None:
+            n_nomkt += 1
+            continue
+        pick = None
+        for name, p_model in ((name1, p1_model), (name2, 1 - p1_model)):
+            p_mkt = probs.get(name)
+            odds = best.get(name)
+            if p_mkt is None or odds is None:
+                continue
+            if p_model >= FAV_MODEL_MIN and p_mkt >= FAV_MARKET_MIN and odds <= FAV_MAX_ODDS:
+                pick = (name, odds, p_model, p_mkt)
+                break
+        if not pick:
+            continue
+        stake, reason = next_stake(log, model_p=pick[2], market_p=pick[3], odds=pick[1])
+        if stake is None:
+            print(f"      ! pre-match favorit {pick[0]} @ {pick[1]}, ale tiket se nezaklada: {reason}")
+            continue
+        name, odds, model_p, market_p = pick
+        entry = {
+            "match_id": m["id"], "market_kind": "match_prematch",
+            "logged_at": ts, "tournament": m.get("tournament"),
+            "scheduled_time": m.get("scheduled_time"),
+            "player1": name1, "player2": name2, "pick": name, "odds": odds,
+            "model_p": round(model_p, 4), "market_p": round(market_p, 4),
+            "score_at_bet": "pred zapasem (0:0)",
+            "stake": stake, "status": "pending",
+            "odds_source": src, "bookmaker_mode": bm.mode(),
+        }
+        if sx_market:
+            entry["market_hash"] = sx_market.get("marketHash")
+            entry["outcome_side"] = bm.outcome_side_for(name, sx_market)
+        if bm.is_real():
+            try:
+                res = bm.place_bet(name1, name2, pick=name, odds=odds, stake=stake,
+                                   market=sx_market, outcome_side=entry.get("outcome_side"))
+                entry["real_bet"] = res
+                print(f"      => REALNA PRE-MATCH SAZKA odeslana: {res}")
+            except Exception as ex:
+                print(f"      ! realna sazka selhala: {ex}")
+                continue
+        append_log(entry)
+        log.append(entry)
+        logged.add(m["id"])
+        n_bets += 1
+        print(f"      => PRE-MATCH TIKET na {name} @ {odds} "
+              f"(model {model_p:.0%}, trh {market_p:.0%}), vklad {stake:.0f} "
+              f"[{name1} vs {name2}, {m.get('scheduled_time')}]")
+    print(f"\nNovych pre-match tiketu: {n_bets} "
+          f"(bez dat: {n_nodata}, bez SX.bet trhu: {n_nomkt})")
+    log = load_log()
+    print(f"Banka: {current_bank(log):.0f} minci, "
+          f"nevyrizeno {sum(1 for e in log if e['status'] == 'pending')} tiketu")
+
+
+def cmd_model_watch():
+    """MODEL-ONLY sazeni: model se rozhoduje UPLNE SAM, bez trhu.
+
+    Sazi na stranu, ktere model veri vic (podle hold/break rate, formy,
+    h2h - proste 'z cisel'). Kdyz je model presvedceny i o SLABSI strane
+    (underdog), muze na ni vsadit - prave to je ten 'pocit z cisel'.
+    NEPOUZIVA zadny kurzovy filtr - rozhoduje jen model. Pro evidenci se
+    kurz porad zapise (kdyz je k dispozici), ale nevybira se podle nej.
+    """
+    log = load_log()
+    logged = {e["match_id"] for e in log}
+    # live + upcoming: u upcoming jsou kurzy na SX.bet (a model se rozhoduje
+    # z ciste sily hracu, stav 0:0). U live uz mame rozehrany stav.
+    live = fetch_live_matches()
+    up = fetch_upcoming_matches()
+    matches = []
+    for m in live:
+        m["_phase"] = "live"
+        matches.append(m)
+    for m in up:
+        if m.get("id") not in {x.get("id") for x in matches}:
+            m["_phase"] = "prematch"
+            matches.append(m)
+    singles = [m for m in matches
+               if not m.get("is_doubles") and m.get("draw") == "singles"]
+    n_live = sum(1 for m in singles if m.get("_phase") == "live")
+    print(f"Zápasů: {len(matches)} (dvouhry: {len(singles)}, z toho live {n_live}, "
+          f"prematch {len(singles)-n_live}) [MODEL-ONLY]")
+    print(f"Banka: {current_bank(log):.0f} mincí (start {STARTING_BANK:.0f}), "
+          f"vázáno {pending_exposure(log):.0f}\n")
+    ts = datetime.now(timezone.utc).isoformat()
+    n_bets = n_nodata = n_dog = n_nomkt = 0
+    for m in singles:
+        if m["id"] in logged:
+            continue
+        name1, name2 = m["players"]["p1"]["name"], m["players"]["p2"]["name"]
+        gender = m.get("gender", "men")
+        if m.get("_phase") == "live":
+            sc = m.get("score") or {}
+            if not sc.get("sets") or sc.get("stale"):
+                continue
+            cur = parse_score(sc, best_of_5=(m.get("format") == "BO5"))
+            sa, sb = cur["sets"]; ga, gb = cur["games"]; srv = cur["server"] == 1
+            score_txt = (f"sety {sa}:{sb}, gemy {ga}:{gb}")
+        else:
+            sa = sb = ga = gb = 0; srv = True
+            score_txt = "pred zapasem (0:0)"
+        hold1, k1 = get_hold_rate(name1, gender)
+        hold2, k2 = get_hold_rate(name2, gender)
+        if hold1 is None or hold2 is None or k1 < MIN_HOLD_N or k2 < MIN_HOLD_N:
+            n_nodata += 1
+            continue
+        # model pocita vyhru zapasu z aktualniho stavu (sety/gemy) - pro
+        # pred-zapasovy stav 0:0 to je cista sila hracu
+        p1 = match_win_prob(hold1, hold2, sa, sb, ga, gb, srv)
+        # model si vybere stranu, ktere veri vic
+        if p1 >= 0.5:
+            pick, p_model = name1, p1
+        else:
+            pick, p_model = name2, 1 - p1
+        # kurz jen pro evidenci (neni filtr)
+        probs, best, sx_market, src = bm.get_market_info(name1, name2)
+        odds = (best or {}).get(pick)
+        mkt_p = (probs or {}).get(pick)
+        is_dog = (mkt_p is not None and mkt_p < 0.5)
+        # Bez kurzu nelze tiket vyhodnotit (profit = stake*(odds-1)) - preskoc.
+        # Model se sice rozhoduje sam KOHO, ale potrebuje cenu, za kterou se
+        # sazi; jinak by tiket visel navzdy (bug odhaleny testem).
+        if odds is None:
+            n_nomkt += 1
+            continue
+        # prah: normalne MODEL_ONLY_MIN, u underdoga prisnejsi
+        need = MODEL_ONLY_DOG_MIN if is_dog else MODEL_ONLY_MIN
+        if p_model < need:
+            continue
+        # stupnovane sazeni: bez trhu -> jako 'market' pouzijeme model
+        stake, reason = next_stake(log, model_p=p_model, market_p=p_model, odds=odds)
+        if stake is None:
+            print(f"      ! model favorit {pick} (p={p_model:.0%}), ale tiket se nezakládá: {reason}")
+            continue
+        entry = {
+            "match_id": m["id"], "market_kind": "model_only",
+            "phase": m.get("_phase"),
+            "logged_at": ts, "tournament": m.get("tournament"),
+            "player1": name1, "player2": name2, "pick": pick,
+            "odds": odds, "model_p": round(p_model, 4),
+            "market_p": round(mkt_p, 4) if mkt_p is not None else None,
+            "is_underdog": is_dog,
+            "score_at_bet": score_txt,
+            "stake": stake, "status": "pending",
+            "odds_source": src, "bookmaker_mode": bm.mode(),
+        }
+        if sx_market and pick:
+            entry["market_hash"] = sx_market.get("marketHash")
+            entry["outcome_side"] = bm.outcome_side_for(pick, sx_market)
+        append_log(entry)
+        log.append(entry)
+        logged.add(m["id"])
+        n_bets += 1
+        if is_dog:
+            n_dog += 1
+        tag = "UNDERDOG" if is_dog else "favorit"
+        print(f"      => MODEL-ONLY [{tag}] TIKET na {pick} "
+              f"(model {p_model:.0%})" + (f", kurz {odds}" if odds else "") +
+              f", vklad {stake:.0f} [{name1} vs {name2}]")
+    print(f"\nNových model-only tiketů: {n_bets} (z toho underdog: {n_dog}, "
+          f"bez dat: {n_nodata}, bez kurzu: {n_nomkt})")
+    log = load_log()
+    print(f"Banka: {current_bank(log):.0f} mincí, "
+          f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů")
+
+
+def cmd_builder_watch():
+    """BET BUILDER: kombinuje dva trhy na JEDEN zapas - vitez zapasu A vitez
+    1. setu (stejny hrac). Kurzy se nasobi -> vyssi kurz nez solo. Model
+    pocita SPRAVNOU joint pravdepodobnost = P(set1) * P(match | vyhrany set1),
+    protoze obe nohy jsou KORELOVANE (nelze jen nasobit P(set1)*P(match)).
+
+    Sazi se jen kdyz model vidi KLADNY edge proti soucinu trznich kurzu.
+    """
+    log = load_log()
+    logged = {e["match_id"] for e in log}
+    up = fetch_upcoming_matches()
+    singles = [m for m in up
+               if not m.get("is_doubles") and m.get("draw") == "singles"]
+    print(f"Nadchazejicich dvouher: {len(singles)} [BET BUILDER]")
+    print(f"Banka: {current_bank(log):.0f} mincí (start {STARTING_BANK:.0f}), "
+          f"vázáno {pending_exposure(log):.0f}\n")
+    ts = datetime.now(timezone.utc).isoformat()
+    n_bets = n_nodata = n_noedge = 0
+    for m in singles:
+        if m["id"] in logged:
+            continue
+        name1, name2 = m["players"]["p1"]["name"], m["players"]["p2"]["name"]
+        gender = m.get("gender", "men")
+        hold1, k1 = get_hold_rate(name1, gender)
+        hold2, k2 = get_hold_rate(name2, gender)
+        if hold1 is None or hold2 is None or k1 < MIN_HOLD_N or k2 < MIN_HOLD_N:
+            n_nodata += 1
+            continue
+        # trhy: vitez zapasu + vitez 1. setu
+        pm_probs, pm_odds, pm_mk, _ = bm.get_market_info(name1, name2)
+        ps_probs, ps_odds, ps_mk, _ = bm.get_set_market_info(name1, name2, 1)
+        if not pm_probs or not ps_probs:
+            n_nodata += 1
+            continue
+        # model vybere favorita (podle vitezstvi zapasu)
+        p_m1 = match_win_prob(hold1, hold2, 0, 0, 0, 0, True)
+        fav = name1 if p_m1 >= 0.5 else name2
+        # P(set1) pro favored
+        p_set = set_win_prob(hold1, hold2, 0, 0, True)
+        p_set_fav = p_set if fav == name1 else 1 - p_set
+        # P(match | vyhrany set1) pro favored (stav 1:0, 0:0, podava souper)
+        p_mg = match_win_prob(hold1, hold2, 1, 0, 0, 0, False)
+        p_mg_fav = p_mg if fav == name1 else 1 - p_mg
+        joint = p_set_fav * p_mg_fav
+        om = (pm_odds or {}).get(fav)
+        os_ = (ps_odds or {}).get(fav)
+        if om is None or os_ is None:
+            n_nodata += 1
+            continue
+        comb_odd = om * os_
+        edge = joint - (1.0 / comb_odd)
+        if edge < BUILDER_MIN_EDGE:
+            n_noedge += 1
+            continue
+        stake, reason = next_stake(log, model_p=joint, market_p=joint, odds=comb_odd)
+        if stake is None:
+            print(f"      ! builder {fav} (joint {joint:.0%}), ale tiket se nezakládá: {reason}")
+            continue
+        entry = {
+            "match_id": m["id"], "market_kind": "builder",
+            "logged_at": ts, "tournament": m.get("tournament"),
+            "scheduled_time": m.get("scheduled_time"),
+            "player1": name1, "player2": name2, "pick": fav,
+            "odds": round(comb_odd, 3),
+            "leg_odds_match": round(om, 3), "leg_odds_set1": round(os_, 3),
+            "model_p": round(joint, 4), "market_p": round(1.0 / comb_odd, 4),
+            "edge": round(edge, 4),
+            "score_at_bet": "pred zapasem (0:0)",
+            "stake": stake, "status": "pending",
+            "bookmaker_mode": bm.mode(),
+        }
+        if pm_mk:
+            entry["market_hash"] = pm_mk.get("marketHash")
+        append_log(entry)
+        log.append(entry)
+        logged.add(m["id"])
+        n_bets += 1
+        print(f"      => BUILDER TIKET: {fav} vyhraje zapas I 1. set "
+              f"@ {comb_odd:.2f} ({om:.2f}x{os_:.2f}) | joint {joint:.0%} vs trh "
+              f"{1.0/comb_odd:.0%} | edge {edge:+.0%}, vklad {stake:.0f} [{name1} vs {name2}]")
+    print(f"\nNových builder tiketů: {n_bets} (bez dat/trhu: {n_nodata}, bez edge: {n_noedge})")
+    log = load_log()
+    print(f"Banka: {current_bank(log):.0f} mincí, "
+          f"nevyřízeno {sum(1 for e in log if e['status'] == 'pending')} tiketů")
+
+
 def cmd_status():
     log = load_log()
     if not log:
@@ -737,6 +1447,14 @@ def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else None
     if mode in ("watch", "scan"):
         cmd_watch()
+    elif mode == "set-watch":
+        cmd_set_watch()
+    elif mode == "prematch-watch":
+        cmd_prematch_watch()
+    elif mode == "model-watch":
+        cmd_model_watch()
+    elif mode == "builder-watch":
+        cmd_builder_watch()
     elif mode == "status":
         cmd_status()
     else:

@@ -1,0 +1,41 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]: π
+    - generic [ref=e4]: Tiket builder · pi agent · SX.bet
+    - button "↻" [ref=e5] [cursor=pointer]
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - heading "⚽ Zápasy a všechny příležitosti" [level=2] [ref=e8]
+      - generic [ref=e9]:
+        - button "Tenis" [ref=e10] [cursor=pointer]
+        - button "Fotbal" [ref=e11] [cursor=pointer]
+        - button "Hokej" [ref=e12] [cursor=pointer]
+      - generic [ref=e13]:
+        - button "Načíst zápasy" [ref=e14] [cursor=pointer]
+        - generic [ref=e15]:
+          - checkbox "jen LIVE" [ref=e16]
+          - text: jen LIVE
+      - generic [ref=e17]: Načítám zápasy a všechny trhy ze SX.bet…
+    - generic [ref=e20]:
+      - heading "🎯 Tiket od pi agenta" [level=2] [ref=e21]
+      - generic [ref=e22]: Klikni na „Sestavit tiket“ u konkrétního trhu výše.
+    - generic [ref=e24]:
+      - heading "📡 Živý tape (sázky ostatních)" [level=2] [ref=e25]
+      - generic [ref=e26]:
+        - spinbutton [ref=e27]: "20"
+        - generic [ref=e28]: sekund sběru
+        - button "Načíst tape" [ref=e29] [cursor=pointer]
+      - generic [ref=e30]: Tréninkový přehled z veřejného tape SX.bet.
+      - generic [ref=e32]: Tape ukazuje, kam teče money, ne jestli ten sázkař vydělává. Je to kontext, ne signál ke kopírování.
+    - generic [ref=e33]:
+      - heading "📦 Archiv sázek (sběr z tape)" [level=2] [ref=e34]
+      - generic [ref=e35]: "Ukládá každou sázku z veřejného tape a přes /markets/find k ní dopočítá výsledek. Cíl: zjistit, jestli velké sázky vyhrávají častěji, než říká jejich kurz. Data se musí nasbírat — než bude >200 vyhodnocených sázek, ber čísla jako orientační."
+      - generic [ref=e36]:
+        - button "📥 Nasbírat (30 s)" [ref=e37] [cursor=pointer]
+        - button "✅ Doplnit výsledky" [ref=e38] [cursor=pointer]
+        - button "📊 Report" [ref=e39] [cursor=pointer]
+      - generic [ref=e40]: Klikni na „Report“ pro analýzu (vyžaduje nasbíraná data).
+      - generic [ref=e42]: Archiv nemá identitu hráče — SX.bet ji veřejně nedá. Je to tok peněz + výsledek, ne „kdo sází“.
+    - generic [ref=e43]:
+      - heading "⚠️ Poctivé výhrady k modelu" [level=2] [ref=e44]
+      - generic [ref=e45]: "Model nemá prokázanou výhodu nad trhem (backtest: AKO 0/40, SÓLO ROI −14,8 %). U PIM (trestné minuty) model systematicky nadhodnocuje (48 % vs. empiricky 30 %) — brát s velkou rezervou. Karty mírně nadstřelené (82 % vs. 74 %). Góly, rohy, střely, SOG, esa naopak sedí dobře. Nic se nesází reálně."
