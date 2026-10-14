@@ -29,6 +29,7 @@ if not os.path.exists(BASE):
         BASE = candidate
     else:
         BASE = os.getcwd()
+
 UA = "Mozilla/5.0 (StatistikyBot update tool)"
 S = requests.Session()
 S.headers.update({"User-Agent": UA})
