@@ -31,6 +31,15 @@ Skript sám:
 
 Pokud chceš aktualizovat jen jeden sport, přidej argument: `python3 update_stats.py hokej` (nebo `fotbal` / `tenis`).
 
+### Ochrana proti duplicitám
+
+Duplicitní řádek (stejný zápas dvakrát v datech) by pokazil `match-probability` - zápas by se do formy týmu započítal dvakrát. Proti tomu je dvojitá pojistka:
+
+1. **Skript sám** - fotbal a tenis duplicitu vzniknout nepustí vůbec, protože vždy přepíšou celý CSV aktuální sezóny/roku čerstvou verzí ze zdroje (žádné přidávání řádků, žádná duplicita). Hokej je jediný, kdo řádky přidává (append), takže `update_hockey()` si před zápisem načte všechna `game_id`, co už v CSV jsou (`load_existing_game_ids`), a zapíše jen ty zápasy, co tam ještě nejsou.
+2. **CI kontrola na GitHubu** - `.github/workflows/validate.yml` (spouští `.github/scripts/validate_data.py`) při každém PR i push na `master` projde `hokej/*.csv` a selže, pokud najde duplicitní `game_id`. Tohle je záchranná síť pro situaci, kdy duplicitu nezpůsobí tenhle skript, ale něco kolem něj - typicky sloučení dvou větví, které nezávisle na sobě přidaly stejné zápasy proti zastaralému `master` (přesně tohle se stalo, když se nahromadilo 13 soupeřících PR a muselo se to ručně rozmotat).
+
+Pokud tahle CI kontrola na duplicitu spadne, neřeš to smazáním "přebytečného" řádku bez rozmyslu - nejdřív zjisti, odkud duplicita přišla (typicky merge dvou větví se stejnými daty) a slouč podle toho, ne nazdařbůh.
+
 ### Co dělat s výstupem
 
 Po doběhnutí skriptu stručně shrň uživateli, co se změnilo (kolik nových zápasů/řádků v kterém sportu) - stejně jako to dělá log. Pokud skript nic nenašel (sezóna zrovna nehraje, data ještě nejsou na zdroji), řekni to rovnou, není to chyba.
