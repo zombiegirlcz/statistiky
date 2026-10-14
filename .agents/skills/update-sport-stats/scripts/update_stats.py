@@ -14,6 +14,7 @@ Pouziti:
 import csv
 import glob
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -21,8 +22,13 @@ from datetime import date, datetime
 
 import requests
 
-DEFAULT_BASE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
-BASE = "/root/statistiky" if os.path.exists("/root/statistiky") else DEFAULT_BASE
+BASE = os.getenv("STATISTIKY_BASE", "/root/statistiky")
+if not os.path.exists(BASE):
+    candidate = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+    if os.path.exists(os.path.join(candidate, "fotbal")):
+        BASE = candidate
+    else:
+        BASE = os.getcwd()
 UA = "Mozilla/5.0 (StatistikyBot update tool)"
 S = requests.Session()
 S.headers.update({"User-Agent": UA})
