@@ -22,18 +22,25 @@ from datetime import date, datetime
 
 import requests
 
-DEFAULT_BASE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
-BASE = "/root/statistiky" if os.path.exists("/root/statistiky") else DEFAULT_BASE
+BASE = os.getenv("STATISTIKY_BASE", "/root/statistiky")
+if not os.path.exists(BASE):
+    candidate = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+    if os.path.exists(os.path.join(candidate, "fotbal")):
+        BASE = candidate
+    else:
+        BASE = os.getcwd()
+
 UA = "Mozilla/5.0 (StatistikyBot update tool)"
 S = requests.Session()
 S.headers.update({"User-Agent": UA})
 LOG_PATH = os.path.join(BASE, "_update_log.txt")
 
-if os.path.exists("/root/markitdown/.venv/bin/markitdown"):
-    MARKITDOWN = "/root/markitdown/.venv/bin/markitdown"
-    MARKITDOWN_PY = "/root/markitdown/.venv/bin/python3"
-else:
-    MARKITDOWN = shutil.which("markitdown") or "markitdown"
+MARKITDOWN = "/root/markitdown/.venv/bin/markitdown"
+if not os.path.exists(MARKITDOWN):
+    MARKITDOWN = "markitdown"
+
+MARKITDOWN_PY = "/root/markitdown/.venv/bin/python3"
+if not os.path.exists(MARKITDOWN_PY):
     MARKITDOWN_PY = sys.executable
 
 _log_lines = []
