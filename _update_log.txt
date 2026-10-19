@@ -250,3 +250,22 @@
 [21:07:34]   [markitdown] prevedeno: 2026-27_G1_Recko_-_Super_League.md
 [21:07:35]   [markitdown] prevedeno: NHL_2026-2027.md
 [21:07:35] === HOTOVO: 23 souboru zmeneno ===
+
+--- 2026-10-19T21:30:01.941814 ---
+[21:26:24] === DENNI AKTUALIZACE (2026-10-19) ===
+[21:26:57]   chyba site (https://www.football-data.co.uk/mmz4281/2627/E1.csv): HTTPSConnectionPool(host='www.football-data.co.uk', port=443): Read timed out. (read timeout=20), zkouska 1/4
+[21:27:19]   chyba site (https://www.football-data.co.uk/mmz4281/2627/E1.csv): HTTPSConnectionPool(host='www.football-data.co.uk', port=443): Read timed out. (read timeout=20), zkouska 2/4
+[21:27:25]   [fotbal] Anglie - Championship (2026-27): 108 -> 120 radku (+12)
+[21:28:07]   chyba site (https://www.football-data.co.uk/mmz4281/2627/SC0.csv): HTTPSConnectionPool(host='www.football-data.co.uk', port=443): Read timed out. (read timeout=20), zkouska 1/4
+[21:28:29]   chyba site (https://www.football-data.co.uk/mmz4281/2627/SC0.csv): HTTPSConnectionPool(host='www.football-data.co.uk', port=443): Read timed out. (read timeout=20), zkouska 2/4
+[21:28:37]   [fotbal] Skotsko - Championship (2026-27): 48 -> 49 radku (+1)
+[21:29:01]   chyba site (https://www.football-data.co.uk/mmz4281/2627/D2.csv): HTTPSConnectionPool(host='www.football-data.co.uk', port=443): Read timed out. (read timeout=20), zkouska 1/4
+[21:29:42]   chyba site (https://www.football-data.co.uk/mmz4281/2627/T1.csv): HTTPSConnectionPool(host='www.football-data.co.uk', port=443): Read timed out. (read timeout=20), zkouska 1/4
+[21:29:47] [tenis] zadne nove zapasy, vse aktualni
+[21:29:47] [hokej] 2026-2027: 31 novych zapasu k dostazeni (z 136 celkem)
+[21:29:53] [hokej] 2026-2027: pridano 31 zapasu
+[21:29:53] Prevadim 3 zmenenych souboru do Markdownu...
+[21:29:57]   [markitdown] prevedeno: 2026-27_E1_Anglie_-_Championship.md
+[21:29:59]   [markitdown] prevedeno: 2026-27_SC1_Skotsko_-_Championship.md
+[21:30:01]   [markitdown] prevedeno: NHL_2026-2027.md
+[21:30:01] === HOTOVO: 3 souboru zmeneno ===
