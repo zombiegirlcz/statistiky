@@ -251,16 +251,15 @@
 [21:07:35]   [markitdown] prevedeno: NHL_2026-2027.md
 [21:07:35] === HOTOVO: 23 souboru zmeneno ===
 
---- 2026-10-18T21:30:53.192840 ---
-[21:28:54] === DENNI AKTUALIZACE (2026-10-18) ===
-[21:28:59]   [fotbal] Anglie - Championship (2026-27): 108 -> 120 radku (+12)
-[21:29:11]   [fotbal] Skotsko - Championship (2026-27): 48 -> 49 radku (+1)
-[21:30:21]   chyba site (https://www.football-data.co.uk/mmz4281/2627/P1.csv): HTTPSConnectionPool(host='www.football-data.co.uk', port=443): Read timed out. (read timeout=20), zkouska 1/4
-[21:30:39] [tenis] zadne nove zapasy, vse aktualni
-[21:30:40] [hokej] 2026-2027: 29 novych zapasu k dostazeni (z 134 celkem)
-[21:30:45] [hokej] 2026-2027: pridano 29 zapasu
-[21:30:45] Prevadim 3 zmenenych souboru do Markdownu...
-[21:30:49]   [markitdown] prevedeno: 2026-27_E1_Anglie_-_Championship.md
-[21:30:51]   [markitdown] prevedeno: 2026-27_SC1_Skotsko_-_Championship.md
-[21:30:53]   [markitdown] prevedeno: NHL_2026-2027.md
-[21:30:53] === HOTOVO: 3 souboru zmeneno ===
+--- 2026-10-17T21:30:35.464717 ---
+[21:30:19] === DENNI AKTUALIZACE (2026-10-17) ===
+[21:30:21]   [fotbal] Anglie - Championship (2026-27): 108 -> 120 radku (+12)
+[21:30:22]   [fotbal] Skotsko - Championship (2026-27): 48 -> 49 radku (+1)
+[21:30:27] [tenis] zadne nove zapasy, vse aktualni
+[21:30:27] [hokej] 2026-2027: 16 novych zapasu k dostazeni (z 121 celkem)
+[21:30:27] [hokej] 2026-2027: pridano 16 zapasu
+[21:30:27] Prevadim 3 zmenenych souboru do Markdownu...
+[21:30:31]   [markitdown] prevedeno: 2026-27_E1_Anglie_-_Championship.md
+[21:30:33]   [markitdown] prevedeno: 2026-27_SC1_Skotsko_-_Championship.md
+[21:30:35]   [markitdown] prevedeno: NHL_2026-2027.md
+[21:30:35] === HOTOVO: 3 souboru zmeneno ===
