@@ -263,3 +263,26 @@
 [21:11:01]   [markitdown] prevedeno: 2026-27_SC1_Skotsko_-_Championship.md
 [21:11:03]   [markitdown] prevedeno: NHL_2026-2027.md
 [21:11:03] === HOTOVO: 3 souboru zmeneno ===
+
+--- 2026-10-23T21:31:02.646206 ---
+[21:31:02] === DENNI AKTUALIZACE (2026-10-23) ===
+[21:31:02] === HOTOVO: 0 souboru zmeneno ===
+
+--- 2026-10-23T21:32:15.482798 ---
+[21:31:38] === DENNI AKTUALIZACE (2026-10-23) ===
+[21:31:39]   [fotbal] Anglie - Championship (2026-27): 120 -> 133 radku (+13)
+[21:31:39]   [fotbal] Anglie - League One (2026-27): 115 -> 127 radku (+12)
+[21:31:40]   [fotbal] Anglie - League Two (2026-27): 127 -> 139 radku (+12)
+[21:31:40]   [fotbal] Skotsko - Championship (2026-27): 49 -> 55 radku (+6)
+[21:31:42]   [fotbal] Spanelsko - La Liga (2026-27): 89 -> 90 radku (+1)
+[21:31:45] [tenis] zadne nove zapasy, vse aktualni
+[21:31:46] [hokej] 2026-2027: 58 novych zapasu k dostazeni (z 165 celkem)
+[21:32:03] [hokej] 2026-2027: pridano 58 zapasu
+[21:32:03] Prevadim 6 zmenenych souboru do Markdownu...
+[21:32:07]   [markitdown] prevedeno: 2026-27_E1_Anglie_-_Championship.md
+[21:32:08]   [markitdown] prevedeno: 2026-27_E2_Anglie_-_League_One.md
+[21:32:10]   [markitdown] prevedeno: 2026-27_E3_Anglie_-_League_Two.md
+[21:32:12]   [markitdown] prevedeno: 2026-27_SC1_Skotsko_-_Championship.md
+[21:32:13]   [markitdown] prevedeno: 2026-27_SP1_Spanelsko_-_La_Liga.md
+[21:32:15]   [markitdown] prevedeno: NHL_2026-2027.md
+[21:32:15] === HOTOVO: 6 souboru zmeneno ===
