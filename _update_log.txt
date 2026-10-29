@@ -263,3 +263,58 @@
 [21:11:01]   [markitdown] prevedeno: 2026-27_SC1_Skotsko_-_Championship.md
 [21:11:03]   [markitdown] prevedeno: NHL_2026-2027.md
 [21:11:03] === HOTOVO: 3 souboru zmeneno ===
+
+--- 2026-10-29T22:17:20.898031 ---
+[22:17:20] === DENNI AKTUALIZACE (2026-10-29) ===
+[22:17:20] === HOTOVO: 0 souboru zmeneno ===
+
+--- 2026-10-29T22:39:17.461829 ---
+[22:38:14] === DENNI AKTUALIZACE (2026-10-29) ===
+[22:38:15]   [fotbal] Anglie - Premier League (2026-27): 71 -> 81 radku (+10)
+[22:38:16]   [fotbal] Anglie - Championship (2026-27): 120 -> 145 radku (+25)
+[22:38:16]   [fotbal] Anglie - League One (2026-27): 115 -> 144 radku (+29)
+[22:38:16]   [fotbal] Anglie - League Two (2026-27): 127 -> 152 radku (+25)
+[22:38:17]   [fotbal] Anglie - National League (2026-27): 156 -> 178 radku (+22)
+[22:38:17]   [fotbal] Skotsko - Premiership (2026-27): 55 -> 67 radku (+12)
+[22:38:17]   [fotbal] Skotsko - Championship (2026-27): 49 -> 60 radku (+11)
+[22:38:18]   [fotbal] Skotsko - League One (2026-27): 55 -> 60 radku (+5)
+[22:38:18]   [fotbal] Nemecko - Bundesliga (2026-27): 55 -> 64 radku (+9)
+[22:38:18]   [fotbal] Nemecko - 2. Bundesliga (2026-27): 73 -> 82 radku (+9)
+[22:38:19]   [fotbal] Italie - Serie A (2026-27): 71 -> 91 radku (+20)
+[22:38:19]   [fotbal] Italie - Serie B (2026-27): 71 -> 91 radku (+20)
+[22:38:19]   [fotbal] Spanelsko - La Liga (2026-27): 89 -> 100 radku (+11)
+[22:38:19]   [fotbal] Spanelsko - Segunda Division (2026-27): 111 -> 122 radku (+11)
+[22:38:20]   [fotbal] Francie - Ligue 1 (2026-27): 64 -> 73 radku (+9)
+[22:38:20]   [fotbal] Francie - Ligue 2 (2026-27): 82 -> 91 radku (+9)
+[22:38:20]   [fotbal] Nizozemsko - Eredivisie (2026-27): 82 -> 91 radku (+9)
+[22:38:21]   [fotbal] Belgie - Jupiler Pro League (2026-27): 73 -> 81 radku (+8)
+[22:38:21]   [fotbal] Portugalsko - Primeira Liga (2026-27): 73 -> 82 radku (+9)
+[22:38:21]   [fotbal] Turecko - Super Lig (2026-27): 73 -> 82 radku (+9)
+[22:38:21]   [fotbal] Recko - Super League (2026-27): 49 -> 56 radku (+7)
+[22:38:22] [tenis] zadne nove zapasy, vse aktualni
+[22:38:23] [hokej] 2026-2027: 95 novych zapasu k dostazeni (z 202 celkem)
+[22:38:37] [hokej] 2026-2027: pridano 95 zapasu
+[22:38:37] Prevadim 22 zmenenych souboru do Markdownu...
+[22:38:41]   [markitdown] prevedeno: 2026-27_E0_Anglie_-_Premier_League.md
+[22:38:42]   [markitdown] prevedeno: 2026-27_E1_Anglie_-_Championship.md
+[22:38:44]   [markitdown] prevedeno: 2026-27_E2_Anglie_-_League_One.md
+[22:38:47]   [markitdown] prevedeno: 2026-27_E3_Anglie_-_League_Two.md
+[22:38:48]   [markitdown] prevedeno: 2026-27_EC_Anglie_-_National_League.md
+[22:38:50]   [markitdown] prevedeno: 2026-27_SC0_Skotsko_-_Premiership.md
+[22:38:51]   [markitdown] prevedeno: 2026-27_SC1_Skotsko_-_Championship.md
+[22:38:53]   [markitdown] prevedeno: 2026-27_SC2_Skotsko_-_League_One.md
+[22:38:55]   [markitdown] prevedeno: 2026-27_D1_Nemecko_-_Bundesliga.md
+[22:38:56]   [markitdown] prevedeno: 2026-27_D2_Nemecko_-_2._Bundesliga.md
+[22:38:58]   [markitdown] prevedeno: 2026-27_I1_Italie_-_Serie_A.md
+[22:38:59]   [markitdown] prevedeno: 2026-27_I2_Italie_-_Serie_B.md
+[22:39:01]   [markitdown] prevedeno: 2026-27_SP1_Spanelsko_-_La_Liga.md
+[22:39:03]   [markitdown] prevedeno: 2026-27_SP2_Spanelsko_-_Segunda_Division.md
+[22:39:04]   [markitdown] prevedeno: 2026-27_F1_Francie_-_Ligue_1.md
+[22:39:06]   [markitdown] prevedeno: 2026-27_F2_Francie_-_Ligue_2.md
+[22:39:07]   [markitdown] prevedeno: 2026-27_N1_Nizozemsko_-_Eredivisie.md
+[22:39:09]   [markitdown] prevedeno: 2026-27_B1_Belgie_-_Jupiler_Pro_League.md
+[22:39:10]   [markitdown] prevedeno: 2026-27_P1_Portugalsko_-_Primeira_Liga.md
+[22:39:12]   [markitdown] prevedeno: 2026-27_T1_Turecko_-_Super_Lig.md
+[22:39:14]   [markitdown] prevedeno: 2026-27_G1_Recko_-_Super_League.md
+[22:39:17]   [markitdown] prevedeno: NHL_2026-2027.md
+[22:39:17] === HOTOVO: 22 souboru zmeneno ===
